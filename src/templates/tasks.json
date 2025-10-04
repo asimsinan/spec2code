@@ -1,0 +1,626 @@
+{
+  "id": "sdd-tasks-perfect-v1",
+  "name": "SDD Tasks Template",
+  "version": "1.2.4",
+  "description": "Comprehensive tasks template based on SDD methodology with TDD ordering, constitutional gates validation, and platform-aware task planning",
+  "template_data": {
+    "title": "Implementation Tasks: {{FEATURE_NAME}}",
+    "metadata": {
+      "generated": "{{CURRENT_DATE}}",
+      "status": "Draft",
+      "platform": "{{PLATFORM}}",
+      "tddOrder": "Contract → Integration → E2E → Unit → Implementation",
+      "generatedFrom": "specs/plan.md"
+    },
+    "executiveSummary": {
+      "title": "Task Planning Summary",
+      "content": "{{TASK_PLANNING_SUMMARY}}",
+      "instruction": "Provide high-level overview of task breakdown: total tasks, phases, parallelization opportunities, and key dependencies"
+    },
+    "constitutionalGatesValidation": {
+      "title": "Constitutional Gates Validation for Task Planning",
+      "description": "Validate that task planning follows all constitutional gates",
+      "overallCompliance": "{{OVERALL_COMPLIANCE}}",
+      "violations": "{{CONSTITUTIONAL_VIOLATIONS}}",
+      "gates": {
+        "testFirstGate": {
+          "title": "Test-First Gate",
+          "status": "{{TEST_FIRST_GATE_STATUS}}",
+          "check": "{{TEST_FIRST_GATE_CHECK}}",
+          "violations": "{{TEST_FIRST_GATE_VIOLATIONS}}"
+        },
+        "integrationFirstTestingGate": {
+          "title": "Integration-First Testing Gate",
+          "status": "{{INTEGRATION_FIRST_TESTING_GATE_STATUS}}",
+          "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
+          "violations": "{{INTEGRATION_FIRST_TESTING_GATE_VIOLATIONS}}"
+        },
+        "simplicityGate": {
+          "title": "Simplicity Gate",
+          "status": "{{SIMPLICITY_GATE_STATUS}}",
+          "check": "{{SIMPLICITY_GATE_CHECK}}",
+          "violations": "{{SIMPLICITY_GATE_VIOLATIONS}}"
+        },
+        "libraryFirstGate": {
+          "title": "Library-First Gate",
+          "status": "{{LIBRARY_FIRST_GATE_STATUS}}",
+          "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
+          "violations": "{{LIBRARY_FIRST_GATE_VIOLATIONS}}"
+        },
+        "cliInterfaceGate": {
+          "title": "CLI Interface Gate",
+          "status": "{{CLI_INTERFACE_GATE_STATUS}}",
+          "check": "{{CLI_INTERFACE_GATE_CHECK}}",
+          "violations": "{{CLI_INTERFACE_GATE_VIOLATIONS}}"
+        },
+        "antiAbstractionGate": {
+          "title": "Anti-Abstraction Gate",
+          "status": "{{ANTI_ABSTRACTION_GATE_STATUS}}",
+          "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
+          "violations": "{{ANTI_ABSTRACTION_GATE_VIOLATIONS}}"
+        },
+        "traceabilityGate": {
+          "title": "Traceability Gate",
+          "status": "{{TRACEABILITY_GATE_STATUS}}",
+          "check": "{{TRACEABILITY_GATE_CHECK}}",
+          "violations": "{{TRACEABILITY_GATE_VIOLATIONS}}"
+        }
+      }
+    },
+    "tddTaskOrdering": {
+      "title": "TDD Task Ordering (NON-NEGOTIABLE)",
+      "description": "Tasks must follow strict TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration",
+      "order": [
+        "Contract Tests",
+        "Integration Tests", 
+        "E2E Tests",
+        "Unit Tests",
+        "Implementation",
+        "UI-API Integration",
+        "Platform-Specific Implementation",
+        "API-First Integration",
+        "UI-API Integration (Detailed)"
+      ],
+      "enforcement": "{{TDD_ORDER_ENFORCEMENT}}",
+      "violations": "{{TDD_ORDER_VIOLATIONS}}"
+    },
+    "taskPhases": {
+      "phase1": {
+        "title": "Phase 1: Contract & Test Setup",
+        "description": "Foundation phase - contracts and initial tests",
+        "tasks": [
+          {
+            "id": "TASK-001",
+            "title": "Create API Contracts",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{API_CONTRACTS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_CONTRACTS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_CONTRACTS_ESTIMATED_LOC}}",
+            "dependencies": [],
+            "constitutionalCompliance": "{{API_CONTRACTS_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-002", 
+            "title": "Create Contract Tests",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{CONTRACT_TESTS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{CONTRACT_TESTS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{CONTRACT_TESTS_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-001"],
+            "constitutionalCompliance": "{{CONTRACT_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-003",
+            "title": "Create Integration Test Scenarios", 
+            "parallelizable": false,
+            "tddPhase": "Integration",
+            "description": "{{INTEGRATION_TESTS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{INTEGRATION_TESTS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{INTEGRATION_TESTS_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-001"],
+            "constitutionalCompliance": "{{INTEGRATION_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase2": {
+        "title": "Phase 2: Database Setup",
+        "description": "Database setup and schema design",
+        "tasks": [
+          {
+            "id": "TASK-004",
+            "title": "Database Setup",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{DATABASE_SETUP_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{DATABASE_SETUP_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{DATABASE_SETUP_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-001"],
+            "constitutionalCompliance": "{{DATABASE_SETUP_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-005",
+            "title": "Schema Design",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{SCHEMA_DESIGN_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{SCHEMA_DESIGN_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{SCHEMA_DESIGN_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-004"],
+            "constitutionalCompliance": "{{SCHEMA_DESIGN_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-006",
+            "title": "Migration Setup",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{MIGRATION_SETUP_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{MIGRATION_SETUP_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{MIGRATION_SETUP_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-005"],
+            "constitutionalCompliance": "{{MIGRATION_SETUP_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase3": {
+        "title": "Phase 3: Data Models",
+        "description": "Data modeling and validation",
+        "tasks": [
+          {
+            "id": "TASK-007",
+            "title": "Create Data Models",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{DATA_MODELS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{DATA_MODELS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{DATA_MODELS_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-005"],
+            "constitutionalCompliance": "{{DATA_MODELS_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-008",
+            "title": "Create Model Tests",
+            "parallelizable": true,
+            "tddPhase": "Unit",
+            "description": "{{MODEL_TESTS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{MODEL_TESTS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{MODEL_TESTS_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-007"],
+            "constitutionalCompliance": "{{MODEL_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase4": {
+        "title": "Phase 4: Library Implementation",
+        "description": "Core library implementation following TDD",
+        "tasks": [
+          {
+            "id": "TASK-009",
+            "title": "Implement Core Library",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{CORE_LIBRARY_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{CORE_LIBRARY_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{CORE_LIBRARY_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-002", "TASK-007", "TASK-008"],
+            "constitutionalCompliance": "{{CORE_LIBRARY_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-010",
+            "title": "Create CLI Interface",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{CLI_INTERFACE_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{CLI_INTERFACE_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{CLI_INTERFACE_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-009"],
+            "constitutionalCompliance": "{{CLI_INTERFACE_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-011",
+            "title": "Library Integration Tests",
+            "parallelizable": false,
+            "tddPhase": "Integration",
+            "description": "{{LIBRARY_INTEGRATION_TESTS_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{LIBRARY_INTEGRATION_TESTS_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{LIBRARY_INTEGRATION_TESTS_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-009"],
+            "constitutionalCompliance": "{{LIBRARY_INTEGRATION_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase5": {
+        "title": "Phase 5: Application Integration",
+        "description": "Application layer and end-to-end validation",
+        "tasks": [
+          {
+            "id": "TASK-012",
+            "title": "Application Layer",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{APPLICATION_LAYER_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{APPLICATION_LAYER_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{APPLICATION_LAYER_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-010"],
+            "constitutionalCompliance": "{{APPLICATION_LAYER_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-013",
+            "title": "End-to-End Validation",
+            "parallelizable": false,
+            "tddPhase": "E2E",
+            "description": "{{E2E_VALIDATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{E2E_VALIDATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{E2E_VALIDATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-011", "TASK-012"],
+            "constitutionalCompliance": "{{E2E_VALIDATION_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase6": {
+        "title": "Phase 6: UI-API Integration (COMPREHENSIVE)",
+        "description": "Complete UI-API integration including setup, implementation, data flow, error handling, and comprehensive testing",
+        "tasks": [
+          {
+            "id": "TASK-014",
+            "title": "API Client Setup",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{API_CLIENT_SETUP_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_CLIENT_SETUP_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_CLIENT_SETUP_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-001", "TASK-002"],
+            "constitutionalCompliance": "{{API_CLIENT_SETUP_CONSTITUTIONAL_COMPLIANCE}}",
+            "crossReferences": {
+              "platformSpecific": "See Phase 7: Platform-Specific Implementation",
+              "apiFirst": "See Phase 8: API-First Integration"
+            }
+          },
+          {
+            "id": "TASK-015",
+            "title": "UI-API Connection Implementation",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{UI_API_CONNECTION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{UI_API_CONNECTION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{UI_API_CONNECTION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-014"],
+            "constitutionalCompliance": "{{UI_API_CONNECTION_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-016",
+            "title": "API Data Flow Integration",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{API_DATA_FLOW_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_DATA_FLOW_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_DATA_FLOW_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-015"],
+            "constitutionalCompliance": "{{API_DATA_FLOW_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-017",
+            "title": "API Error Handling Implementation",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{API_ERROR_HANDLING_IMPLEMENTATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_ERROR_HANDLING_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_ERROR_HANDLING_IMPLEMENTATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-016"],
+            "constitutionalCompliance": "{{API_ERROR_HANDLING_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}"
+          },
+          {
+            "id": "TASK-018",
+            "title": "UI-API Integration Testing",
+            "parallelizable": false,
+            "tddPhase": "Integration",
+            "description": "{{UI_API_INTEGRATION_TESTING_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{UI_API_INTEGRATION_TESTING_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{UI_API_INTEGRATION_TESTING_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-017"],
+            "constitutionalCompliance": "{{UI_API_INTEGRATION_TESTING_CONSTITUTIONAL_COMPLIANCE}}"
+          }
+        ]
+      },
+      "phase7": {
+        "title": "Phase 7: Platform-Specific Implementation",
+        "description": "Platform-specific setup and optimization tasks",
+        "tasks": [
+          {
+            "id": "TASK-019",
+            "title": "Platform-Specific Setup",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{PLATFORM_SPECIFIC_SETUP_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_SETUP_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{PLATFORM_SPECIFIC_SETUP_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-018"],
+            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_SETUP_CONSTITUTIONAL_COMPLIANCE}}",
+            "platformSpecific": true,
+            "platform": "{{PLATFORM}}"
+          },
+          {
+            "id": "TASK-020",
+            "title": "Platform-Specific Testing",
+            "parallelizable": false,
+            "tddPhase": "Integration",
+            "description": "{{PLATFORM_SPECIFIC_TESTING_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_TESTING_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{PLATFORM_SPECIFIC_TESTING_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-019"],
+            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_TESTING_CONSTITUTIONAL_COMPLIANCE}}",
+            "platformSpecific": true,
+            "platform": "{{PLATFORM}}"
+          },
+          {
+            "id": "TASK-021",
+            "title": "Platform-Specific Optimization",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{PLATFORM_SPECIFIC_OPTIMIZATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_OPTIMIZATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{PLATFORM_SPECIFIC_OPTIMIZATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-020"],
+            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_OPTIMIZATION_CONSTITUTIONAL_COMPLIANCE}}",
+            "platformSpecific": true,
+            "platform": "{{PLATFORM}}"
+          }
+        ]
+      },
+      "phase8": {
+        "title": "Phase 8: API-First Integration",
+        "description": "API-First implementation tasks for applicable platforms",
+        "tasks": [
+          {
+            "id": "TASK-022",
+            "title": "API Design Implementation",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{API_DESIGN_IMPLEMENTATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_DESIGN_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_DESIGN_IMPLEMENTATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-021"],
+            "constitutionalCompliance": "{{API_DESIGN_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
+            "apiFirst": true
+          },
+          {
+            "id": "TASK-023",
+            "title": "API Contract Implementation",
+            "parallelizable": true,
+            "tddPhase": "Contract",
+            "description": "{{API_CONTRACT_IMPLEMENTATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_CONTRACT_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_CONTRACT_IMPLEMENTATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-022"],
+            "constitutionalCompliance": "{{API_CONTRACT_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
+            "apiFirst": true
+          },
+          {
+            "id": "TASK-024",
+            "title": "API Testing Implementation",
+            "parallelizable": false,
+            "tddPhase": "Integration",
+            "description": "{{API_TESTING_IMPLEMENTATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_TESTING_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_TESTING_IMPLEMENTATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-023"],
+            "constitutionalCompliance": "{{API_TESTING_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
+            "apiFirst": true
+          },
+          {
+            "id": "TASK-025",
+            "title": "API Documentation Implementation",
+            "parallelizable": false,
+            "tddPhase": "Implementation",
+            "description": "{{API_DOCUMENTATION_IMPLEMENTATION_TASK_DESCRIPTION}}",
+            "acceptanceCriteria": "{{API_DOCUMENTATION_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
+            "estimatedLOC": "{{API_DOCUMENTATION_IMPLEMENTATION_ESTIMATED_LOC}}",
+            "dependencies": ["TASK-024"],
+            "constitutionalCompliance": "{{API_DOCUMENTATION_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
+            "apiFirst": true
+          }
+        ]
+      }
+    },
+    "platformSpecificTasks": {
+      "mobile": {
+        "title": "Mobile Platform Tasks",
+        "content": "{{MOBILE_PLATFORM_TASKS}}",
+        "instruction": "Generate mobile-specific tasks: native capabilities, offline functionality, performance optimization, accessibility, security, store compliance, UI-API integration (HTTP clients, state management, offline sync)"
+      },
+      "web": {
+        "title": "Web Platform Tasks", 
+        "content": "{{WEB_PLATFORM_TASKS}}",
+        "instruction": "Generate web-specific tasks: progressive enhancement, responsive design, browser compatibility, performance, accessibility, UI-API integration (fetch/axios, state management, error handling)"
+      },
+      "desktop": {
+        "title": "Desktop Platform Tasks",
+        "content": "{{DESKTOP_PLATFORM_TASKS}}",
+        "instruction": "Generate desktop-specific tasks: OS integration, distribution, performance, accessibility, security, UI-API integration (HTTP clients, state management, local storage)"
+      },
+      "backend": {
+        "title": "Backend Platform Tasks",
+        "content": "{{BACKEND_PLATFORM_TASKS}}",
+        "instruction": "Generate backend-specific tasks: API design, database setup, monitoring, security, performance, scalability"
+      },
+      "ai": {
+        "title": "AI Platform Tasks",
+        "content": "{{AI_PLATFORM_TASKS}}",
+        "instruction": "Generate AI-specific tasks: data quality, model performance, reproducibility, ethics, deployment"
+      }
+    },
+    "apiFirstTasks": {
+      "title": "API-First Task Planning (Web/Mobile/Backend)",
+      "description": "API-First implementation tasks for applicable platforms",
+      "apiDesignTasks": {
+        "title": "API Design Tasks",
+        "content": "{{API_DESIGN_TASKS}}",
+        "instruction": "Generate API design tasks: endpoint structure, resource modeling, HTTP methods, status codes"
+      },
+      "apiContractTasks": {
+        "title": "API Contract Tasks",
+        "content": "{{API_CONTRACT_TASKS}}",
+        "instruction": "Generate API contract tasks: request/response schemas, validation rules, error handling"
+      },
+      "apiTestingTasks": {
+        "title": "API Testing Tasks",
+        "content": "{{API_TESTING_TASKS}}",
+        "instruction": "Generate API testing tasks: contract testing, integration testing, performance testing"
+      },
+      "apiDocumentationTasks": {
+        "title": "API Documentation Tasks",
+        "content": "{{API_DOCUMENTATION_TASKS}}",
+        "instruction": "Generate API documentation tasks: OpenAPI specs, versioning, developer experience"
+      }
+    },
+    "uiApiIntegrationTasks": {
+      "title": "UI-API Integration Tasks (Web/Mobile/Desktop)",
+      "description": "Critical tasks for connecting UI to APIs - often missed in API-First development",
+      "apiClientTasks": {
+        "title": "API Client Implementation",
+        "content": "{{API_CLIENT_TASKS}}",
+        "instruction": "Generate API client tasks: HTTP client setup, request/response handling, error management, authentication"
+      },
+      "uiApiConnectionTasks": {
+        "title": "UI-API Connection Tasks",
+        "content": "{{UI_API_CONNECTION_TASKS}}",
+        "instruction": "Generate UI-API connection tasks: data fetching, state management, loading states, error handling"
+      },
+      "apiDataFlowTasks": {
+        "title": "API Data Flow Tasks",
+        "content": "{{API_DATA_FLOW_TASKS}}",
+        "instruction": "Generate API data flow tasks: data transformation, validation, caching, real-time updates"
+      },
+      "apiErrorHandlingTasks": {
+        "title": "API Error Handling Tasks",
+        "content": "{{API_ERROR_HANDLING_TASKS}}",
+        "instruction": "Generate API error handling tasks: user feedback, retry logic, offline handling, graceful degradation"
+      }
+    },
+    "taskDependencies": {
+      "title": "Task Dependencies",
+      "description": "Task dependency mapping and parallelization opportunities",
+      "parallelizableTasks": "{{PARALLELIZABLE_TASKS}}",
+      "sequentialTasks": "{{SEQUENTIAL_TASKS}}",
+      "criticalPath": "{{CRITICAL_PATH}}",
+      "dependencyGraph": "{{DEPENDENCY_GRAPH}}"
+    },
+    "definitionOfDone": {
+      "title": "Definition of Done",
+      "description": "Criteria that must be met for each task to be considered complete",
+      "criteria": [
+        "Code written and reviewed",
+        "All tests pass",
+        "Documentation updated", 
+        "No linting errors",
+        "Constitutional compliance verified",
+        "Traceability to FR-XXX requirements confirmed"
+      ],
+      "qualityGates": "{{QUALITY_GATES}}",
+      "reviewChecklist": "{{REVIEW_CHECKLIST}}"
+    },
+    "mermaidDiagrams": {
+      "title": "Task Flow Visualization",
+      "taskFlowDiagram": {
+        "title": "Task Flow Diagram",
+        "content": "{{MERMAID_TASK_FLOW_DIAGRAM}}",
+        "instruction": "Generate Mermaid flowchart showing task flow with phases, dependencies, and parallelization"
+      },
+      "tddOrderDiagram": {
+        "title": "TDD Order Diagram",
+        "content": "{{MERMAID_TDD_ORDER_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing TDD order enforcement: Contract → Integration → E2E → Unit → Implementation"
+      },
+      "dependencyDiagram": {
+        "title": "Task Dependencies Diagram",
+        "content": "{{MERMAID_DEPENDENCY_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing task dependencies and critical path"
+      },
+      "platformTasksDiagram": {
+        "title": "Platform-Specific Tasks Diagram",
+        "content": "{{MERMAID_PLATFORM_TASKS_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing platform-specific task breakdown"
+      },
+      "constitutionalGatesDiagram": {
+        "title": "Constitutional Gates Validation Diagram",
+        "content": "{{MERMAID_CONSTITUTIONAL_GATES_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing constitutional gates validation for task planning"
+      },
+      "uiApiIntegrationDiagram": {
+        "title": "UI-API Integration Flow Diagram",
+        "content": "{{MERMAID_UI_API_INTEGRATION_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing UI-API integration flow: API client → UI components → data flow → error handling"
+      }
+    },
+    "constitutionalGates": {
+      "testFirstGate": {
+        "title": "Test-First Gate",
+        "description": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation",
+        "check": "{{TEST_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "integrationFirstTestingGate": {
+        "title": "Integration-First Testing Gate", 
+        "description": "Prefer real dependencies (DBs/services).",
+        "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "simplicityGate": {
+        "title": "Simplicity Gate",
+        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "check": "{{SIMPLICITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "libraryFirstGate": {
+        "title": "Library-First Gate",
+        "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
+        "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
+        "platforms": ["web", "desktop", "backend", "ai"]
+      },
+      "cliInterfaceGate": {
+        "title": "CLI Interface Gate",
+        "description": "Each developer/system tool library exposes a CLI with --json mode using stdin/stdout; errors go to stderr",
+        "check": "{{CLI_INTERFACE_GATE_CHECK}}",
+        "platforms": ["desktop", "backend", "ai"]
+      },
+      "antiAbstractionGate": {
+        "title": "Anti-Abstraction Gate",
+        "description": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
+        "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "traceabilityGate": {
+        "title": "Traceability Gate",
+        "description": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec",
+        "check": "{{TRACEABILITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      }
+    },
+    "sddPrinciples": {
+      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
+      "multiStepRefinement": "Use iterative refinement over one-shot generation",
+      "libraryFirstTesting": "Prefer real dependencies over mocks",
+      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
+      "traceability": "Every line of code traces to numbered requirement",
+      "testFirstImperative": "No implementation before tests",
+      "tddOrdering": "Contract → Integration → E2E → Unit → Implementation"
+    },
+    "sddVersion": {
+      "version": "SDD-Cursor-1.3",
+      "generated": "2025-09-21",
+      "description": "Tasks template based on asy-sdd.md with TDD ordering, constitutional gates validation, and numbered platform-specific phases"
+    },
+    "taskSummary": {
+      "title": "Task Summary",
+      "totalPhases": 8,
+      "totalTasks": 25,
+      "corePhases": "Phase 1-5: Core implementation (TASK-001 to TASK-013)",
+      "integrationPhases": "Phase 6: UI-API Integration Comprehensive (TASK-014 to TASK-018)",
+      "platformPhases": "Phase 7: Platform-Specific (TASK-019 to TASK-021)",
+      "apiPhases": "Phase 8: API-First Integration (TASK-022 to TASK-025)",
+      "note": "All tasks numbered sequentially to ensure AI attention and complete implementation coverage"
+    }
+  },
+  "is_active": true
+}

@@ -1,0 +1,143 @@
+{
+  "name": "@asimsinan/sdd-mcp-server",
+  "version": "2.3.0",
+  "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "sdd-mcp": "dist/bin/sdd-mcp-server.js"
+  },
+  "scripts": {
+    "build:lib": "tsc -p tsconfig.lib.json && cp src/lib/sdd-mcp-server/database/schema*.sql dist/lib/sdd-mcp-server/database/ && mkdir -p dist/bin && chmod +x dist/bin/sdd-mcp-server.js",
+    "install:template": "node scripts/install-template.js",
+    "build:with-template": "npm run build:lib && npm run install:template",
+    "copy-template-to-dist": "node scripts/copy-template-to-dist.js",
+    "create-prefilled-db": "node scripts/create-prefilled-db.js",
+    "build:complete": "npm run build:lib && npm run copy-template-to-dist && npm run create-prefilled-db",
+    "dev:lib": "tsc --watch",
+    "start:lib": "node dist/index.js",
+    "install:global": "npm run build:complete && npm pack && npm install -g asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz && rm asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz",
+    "reinstall:global": "npm run build:complete && npm pack && npm uninstall -g sdd-mcp && npm install -g asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz && rm asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz",
+    "update:global": "./scripts/update-global.sh",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:phase1": "jest tests/phase1/",
+    "lint": "eslint src/",
+    "postversion": "node -e \"const pkg = require('./package.json'); const version = pkg.version; const fs = require('fs'); const files = ['src/templates/spec.json', 'src/templates/plan.json', 'src/templates/status.json', 'src/templates/tasks.json', 'src/templates/clarify.json', 'src/templates/implement.json']; files.forEach(file => { if (fs.existsSync(file)) { const content = fs.readFileSync(file, 'utf8'); const updated = content.replace(/\\\"version\\\": \\\"[\\d.]+\\\"/g, `\\\"version\\\": \\\"${version}\\\"`); fs.writeFileSync(file, updated); console.log(`Updated ${file} to version ${version}`); } }); console.log('Version updated! Run npm run reinstall:global to install the new version globally.');\"",
+    "clean": "shx rm -rf dist/ .next/",
+    "setup:private": "node scripts/setup-private-publish.js"
+  },
+  "keywords": [
+    "mcp",
+    "specification-driven-development",
+    "ai",
+    "code-generation",
+    "quality-intelligence"
+  ],
+  "author": "Asim Sinan Yuksel",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asimsinan/sdd-mcp-server.git"
+  },
+  "homepage": "https://github.com/asimsinan/sdd-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/asimsinan/sdd-mcp-server/issues"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "scripts/",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "tsconfig.json",
+    "tsconfig.lib.json"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.2.0",
+    "jsonrepair": "^3.13.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "next": "^14.0.0",
+    "postcss": "^8.4.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "shx": "^0.3.4",
+    "tailwindcss": "^3.3.0",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "testMatch": [
+      "**/tests/**/*.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/**/index.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "testEnvironment": "node",
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.*\\.mjs$))"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}

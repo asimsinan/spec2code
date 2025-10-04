@@ -1,0 +1,383 @@
+{
+  "id": "sdd-plan-perfect-v1",
+  "name": "SDD Plan Template",
+  "version": "1.2.4",
+  "description": "Comprehensive implementation plan template based on SDD methodology from asy-sdd.md with all 26 constitutional gates",
+  "template_data": {
+    "title": "Implementation Plan: {{FEATURE_NAME}}",
+    "metadata": {
+      "created": "{{CURRENT_DATE}}",
+      "status": "Draft",
+      "platform": "{{PLATFORM}}",
+      "specPath": "specs/spec.md"
+    },
+    "summary": {
+      "title": "Summary",
+      "content": "{{SUMMARY}}",
+      "instruction": "Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes."
+    },
+    "technicalContext": {
+      "title": "Technical Context",
+      "languageVersion": "{{LANGUAGE_VERSION}}",
+      "primaryDependencies": "{{PRIMARY_DEPENDENCIES}}",
+      "technologyStack": "{{TECHNOLOGY_STACK}}",
+      "frontendStack": "{{FRONTEND_STACK}}",
+      "backendStack": "{{BACKEND_STACK}}",
+      "stylingApproach": "{{STYLING_APPROACH}}",
+      "chartLibraries": "{{CHART_LIBRARIES}}",
+      "stateManagement": "{{STATE_MANAGEMENT}}",
+      "storage": "{{ENTERPRISE_GRADE_STORAGE}}",
+      "testing": "{{TESTING}}",
+      "targetPlatform": "{{TARGET_PLATFORM}}",
+      "performanceGoals": "{{PERFORMANCE_GOALS}}",
+      "instruction": "Extract the complete technology stack from the user input and specification. Include ALL technologies mentioned, organized by category. Do not add technologies not mentioned. Do not omit technologies that were mentioned. Create a comprehensive technical context that captures exactly what was specified."
+    },
+    "edgeCaseAnalysis": {
+      "title": "Edge Case Analysis",
+      "hasEdgeCases": "{{HAS_EDGE_CASES}}",
+      "edgeCaseCount": "{{EDGE_CASE_COUNT}}",
+      "complexity": "{{EDGE_CASE_COMPLEXITY}}",
+      "estimatedAdditionalTime": "{{EDGE_CASE_ADDITIONAL_TIME}}",
+      "edgeCases": "{{EDGE_CASES_LIST}}",
+      "highComplexityCount": "{{HIGH_COMPLEXITY_EDGE_CASES}}",
+      "mediumComplexityCount": "{{MEDIUM_COMPLEXITY_EDGE_CASES}}",
+      "lowComplexityCount": "{{LOW_COMPLEXITY_EDGE_CASES}}",
+      "instruction": "Analyze edge cases from specification. Extract edge cases, categorize by complexity, and estimate additional development time. Include specific edge cases that need special attention during implementation."
+    },
+    "constitutionCheck": {
+      "title": "Constitution Check",
+      "simplicityGate": {
+        "title": "Simplicity Gate",
+        "projects": "{{PROJECTS_COUNT}}",
+        "maxProjects": 5,
+        "usingFrameworkDirectly": "{{USING_FRAMEWORK_DIRECTLY}}",
+        "singleDataModel": "{{SINGLE_DATA_MODEL}}",
+        "instruction": "Validate ≤5 projects for initial scope. If exceeded, force simplification or document in Complexity Tracking."
+      },
+      "architectureGate": {
+        "title": "Architecture Gate",
+        "everyFeatureAsLibrary": "{{EVERY_FEATURE_AS_LIBRARY}}",
+        "cliPerLibraryPlanned": "{{CLI_PER_LIBRARY_PLANNED}}",
+        "libraries": "{{LIBRARIES_LIST}}",
+        "instruction": "Ensure every feature starts as standalone library with CLI interface (for developer/system tools). UI/app layers are thin veneers."
+      },
+      "testingGate": {
+        "title": "Testing Gate (NON-NEGOTIABLE)",
+        "tddOrderEnforced": "{{TDD_ORDER_ENFORCED}}",
+        "realDependenciesUsed": "{{REAL_DEPENDENCIES_USED}}",
+        "contractTestsPlanned": "{{CONTRACT_TESTS_PLANNED}}",
+        "instruction": "Enforce TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration. Prefer real dependencies over mocks."
+      },
+      "platformSpecificGates": {
+        "title": "Platform-Specific Gates",
+        "content": "{{PLATFORM_SPECIFIC_GATES}}",
+        "instruction": "Validate platform-specific gates based on selected platform. Include API-First for web/mobile/backend platforms."
+      }
+    },
+    "projectStructure": {
+      "title": "Project Structure",
+      "content": "{{PROJECT_STRUCTURE}}",
+      "instruction": "🚨 MANDATORY PROJECT STRUCTURE: Define the EXACT folder structure that MUST be followed during implementation. Include specific directory names, file naming conventions, and organizational rules. This structure will be strictly enforced during implementation - NO DEVIATIONS ALLOWED. Follow SDD path conventions with lib/[feature-name]/, contracts/, tests/ structure.",
+      "template": "src/\n├── lib/[feature-name]/          # Library implementation\n│   ├── models/                  # Data models\n│   ├── services/                # Business logic\n│   └── cli.(ts|py|rs|go)        # Command interface\n├── contracts/                   # API specifications\n└── tests/\n    ├── contract/                # Contract tests\n    ├── integration/             # Integration tests\n    └── unit/                    # Unit tests",
+      "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
+    },
+    "implementationPhases": {
+      "title": "Implementation Phases",
+      "phase1": {
+        "title": "Phase 1: Contracts & Tests",
+        "content": "{{PHASE_1_CONTRACTS_TESTS}}",
+        "instruction": "Define API contracts, create contract tests (must fail initially), create integration test scenarios, generate data models from requirements."
+      },
+      "phase2": {
+        "title": "Phase 2: Library Implementation",
+        "content": "{{PHASE_2_LIBRARY_IMPLEMENTATION}}",
+        "instruction": "Implement core library following TDD, create CLI interface for library (if appropriate for developer/system tool), ensure all tests pass, add error handling and validation."
+      },
+      "phase3": {
+        "title": "Phase 3: Integration & Validation",
+        "content": "{{PHASE_3_INTEGRATION_VALIDATION}}",
+        "instruction": "Integrate with existing systems, performance validation, security review, documentation updates."
+      }
+    },
+    "databaseStrategy": {
+      "title": "Database Strategy",
+      "description": "Comprehensive database design and implementation planning",
+      "databaseChoice": {
+        "title": "Database Technology Choice",
+        "content": "{{ENTERPRISE_GRADE_DATABASE_CHOICE}}",
+        "instruction": "Choose appropriate enterprise-grade database technology based on project requirements"
+      },
+      "schemaDesign": {
+        "title": "Schema Design Planning",
+        "content": "{{SCHEMA_DESIGN}}",
+        "instruction": "Design enterprise-grade schema: tables/collections, relationships, indexes, constraints, data types, normalization level."
+      },
+      "migrationStrategy": {
+        "title": "Migration Strategy",
+        "content": "{{MIGRATION_STRATEGY}}",
+        "instruction": "Plan database migrations: version control, rollback strategy, data migration, schema evolution, environment management."
+      },
+      "connectionManagement": {
+        "title": "Connection Management",
+        "content": "{{CONNECTION_MANAGEMENT}}",
+        "instruction": "Plan connection management: connection pooling, timeout handling, retry logic, failover, monitoring, resource cleanup."
+      }
+    },
+    "apiFirstPlanning": {
+      "title": "API-First Planning (Web/Mobile/Backend)",
+      "description": "Comprehensive API design and implementation planning",
+      "apiDesign": {
+        "title": "API Design Planning",
+        "content": "{{API_DESIGN_PLANNING}}",
+        "instruction": "Plan RESTful/GraphQL API design: endpoint structure, resource modeling, HTTP methods, status codes, API consistency."
+      },
+      "apiContracts": {
+        "title": "API Contract Planning",
+        "content": "{{API_CONTRACT_PLANNING}}",
+        "instruction": "Plan API contracts: request/response schemas, validation rules, error handling, data types, contract completeness."
+      },
+      "apiTesting": {
+        "title": "API Testing Planning",
+        "content": "{{API_TESTING_PLANNING}}",
+        "instruction": "Plan API testing: contract testing, integration testing, performance testing, security testing, test automation."
+      },
+      "apiDocumentation": {
+        "title": "API Documentation Planning",
+        "content": "{{API_DOCUMENTATION_PLANNING}}",
+        "instruction": "Plan API documentation: OpenAPI specification, versioning strategy, migration approach, developer experience."
+      }
+    },
+    "platformSpecificPlanning": {
+      "title": "Platform-Specific Planning",
+      "mobile": {
+        "title": "Mobile Platform Planning",
+        "content": "{{MOBILE_PLATFORM_PLANNING}}",
+        "instruction": "Plan mobile-specific features: native capabilities, offline strategy, performance targets, accessibility, security, store compliance."
+      },
+      "web": {
+        "title": "Web Platform Planning",
+        "content": "{{WEB_PLATFORM_PLANNING}}",
+        "instruction": "Plan web-specific features: progressive enhancement, responsive design, browser compatibility, performance optimization, accessibility."
+      },
+      "desktop": {
+        "title": "Desktop Platform Planning",
+        "content": "{{DESKTOP_PLATFORM_PLANNING}}",
+        "instruction": "Plan desktop-specific features: OS integration, distribution strategy, performance optimization, accessibility, security."
+      },
+      "backend": {
+        "title": "Backend Platform Planning",
+        "content": "{{BACKEND_PLATFORM_PLANNING}}",
+        "instruction": "Plan backend-specific features: API design, database design, monitoring strategy, security, performance, scalability."
+      },
+      "ai": {
+        "title": "AI Platform Planning",
+        "content": "{{AI_PLATFORM_PLANNING}}",
+        "instruction": "Plan AI-specific features: data quality, model performance, reproducibility, ethics compliance, deployment strategy."
+      }
+    },
+    "complexityTracking": {
+      "title": "Complexity Tracking",
+      "description": "Use only when a constitutional gate is intentionally broken",
+      "table": {
+        "headers": ["Violation", "Justification", "Simpler Alternative Rejected"],
+        "rows": "{{COMPLEXITY_TRACKING_ROWS}}"
+      },
+      "instruction": "If any constitutional gate is violated, document: 1) What was violated, 2) Why it was necessary, 3) Why simpler alternatives won't work"
+    },
+    "platformGates": {
+      "mobile": {
+        "gates": ["simplicity", "nativeFirst", "offlineFirst", "performance", "accessibility", "security", "storeCompliance", "apiFirst"],
+        "qualityGates": ["deviceCompatibility", "batteryOptimization", "memoryManagement", "touchInterface", "offlineSync", "apiTesting"]
+      },
+      "web": {
+        "gates": ["simplicity", "progressiveEnhancement", "responsiveDesign", "performance", "security", "accessibility", "browserCompatibility", "apiFirst"],
+        "qualityGates": ["crossBrowserTesting", "responsiveDesign", "seoOptimization", "progressiveWebApp", "coreWebVitals", "apiTesting"]
+      },
+      "desktop": {
+        "gates": ["simplicity", "nativeIntegration", "performance", "security", "accessibility", "distribution", "cliInterface"],
+        "qualityGates": ["osIntegration", "installerTesting", "autoUpdateTesting", "uninstallerTesting"]
+      },
+      "backend": {
+        "gates": ["simplicity", "apiFirst", "database", "security", "performance", "monitoring", "cliInterface"],
+        "qualityGates": ["apiTesting", "databaseTesting", "loadTesting", "securityTesting", "monitoringTesting"]
+      },
+      "ai": {
+        "gates": ["simplicity", "dataQuality", "modelPerformance", "reproducibility", "ethics", "deployment", "cliInterface"],
+        "qualityGates": ["dataValidation", "modelTesting", "biasTesting", "performanceTesting", "deploymentTesting"]
+      }
+    },
+    "constitutionalGates": {
+      "simplicityGate": {
+        "title": "Simplicity Gate",
+        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "check": "{{SIMPLICITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "libraryFirstGate": {
+        "title": "Library-First Gate",
+        "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
+        "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
+        "platforms": ["web", "desktop", "backend", "ai"]
+      },
+      "cliInterfaceGate": {
+        "title": "CLI Interface Gate",
+        "description": "Each developer/system tool library exposes a CLI with --json mode using stdin/stdout; errors go to stderr",
+        "check": "{{CLI_INTERFACE_GATE_CHECK}}",
+        "platforms": ["desktop", "backend", "ai"]
+      },
+      "testFirstGate": {
+        "title": "Test-First Gate",
+        "description": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation → UI-API Integration",
+        "check": "{{TEST_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "integrationFirstTestingGate": {
+        "title": "Integration-First Testing Gate",
+        "description": "Prefer real dependencies (DBs/services).",
+        "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "antiAbstractionGate": {
+        "title": "Anti-Abstraction Gate",
+        "description": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
+        "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "traceabilityGate": {
+        "title": "Traceability Gate",
+        "description": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec",
+        "check": "{{TRACEABILITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "nativeFirstGate": {
+        "title": "Native-First Gate",
+        "description": "Use platform-native capabilities and patterns. Avoid cross-platform frameworks unless justified",
+        "check": "{{NATIVE_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "offlineFirstGate": {
+        "title": "Offline-First Gate",
+        "description": "Core functionality works without internet. Local data storage and sync when online",
+        "check": "{{OFFLINE_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "performanceGate": {
+        "title": "Performance Gate",
+        "description": "Platform-specific performance requirements: Mobile (60fps, <3s launch, <100MB), Web (<3s load, <100ms interaction), Desktop (<2s startup, <50MB base)",
+        "check": "{{PERFORMANCE_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop"]
+      },
+      "accessibilityGate": {
+        "title": "Accessibility Gate",
+        "description": "Full accessibility support: Mobile (screen reader, touch), Web (WCAG 2.1 AA), Desktop (OS accessibility features)",
+        "check": "{{ACCESSIBILITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop"]
+      },
+      "securityGate": {
+        "title": "Security Gate",
+        "description": "Platform-specific security: Mobile (encryption, secure storage), Web (HTTPS, CSP, XSS/CSRF), Backend (auth, validation), Desktop (code signing, sandboxing)",
+        "check": "{{SECURITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend"]
+      },
+      "storeComplianceGate": {
+        "title": "Store Compliance Gate",
+        "description": "App store guidelines and review readiness for mobile apps",
+        "check": "{{STORE_COMPLIANCE_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "progressiveEnhancementGate": {
+        "title": "Progressive Enhancement Gate",
+        "description": "Works without JavaScript, then enhances with JS. Graceful degradation",
+        "check": "{{PROGRESSIVE_ENHANCEMENT_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "responsiveDesignGate": {
+        "title": "Responsive Design Gate",
+        "description": "Mobile-first design with breakpoints for tablet and desktop. All screen sizes supported",
+        "check": "{{RESPONSIVE_DESIGN_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "browserCompatibilityGate": {
+        "title": "Browser Compatibility Gate",
+        "description": "Works on Chrome, Firefox, Safari, and Edge. 95% of target browsers supported",
+        "check": "{{BROWSER_COMPATIBILITY_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "nativeIntegrationGate": {
+        "title": "Native Integration Gate",
+        "description": "Integrate with OS features: menus, notifications, file associations, system preferences",
+        "check": "{{NATIVE_INTEGRATION_GATE_CHECK}}",
+        "platforms": ["desktop"]
+      },
+      "distributionGate": {
+        "title": "Distribution Gate",
+        "description": "Installer, auto-updates, and uninstaller. Code signing and update mechanisms",
+        "check": "{{DISTRIBUTION_GATE_CHECK}}",
+        "platforms": ["desktop"]
+      },
+      "apiFirstGate": {
+        "title": "API-First Gate",
+        "description": "RESTful/GraphQL APIs with OpenAPI specs. API documentation and versioning. All features expose well-defined APIs",
+        "check": "{{API_FIRST_GATE_CHECK}}",
+        "platforms": ["backend", "web", "mobile"]
+      },
+      "databaseGate": {
+        "title": "Database Gate",
+        "description": "Proper schema design, migrations, indexing, and data integrity",
+        "check": "{{DATABASE_GATE_CHECK}}",
+        "platforms": ["backend"]
+      },
+      "monitoringGate": {
+        "title": "Monitoring Gate",
+        "description": "Logging, metrics, health checks, and observability",
+        "check": "{{MONITORING_GATE_CHECK}}",
+        "platforms": ["backend"]
+      },
+      "dataQualityGate": {
+        "title": "Data Quality Gate",
+        "description": "Clean, validated, representative datasets. Data preprocessing and validation",
+        "check": "{{DATA_QUALITY_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "modelPerformanceGate": {
+        "title": "Model Performance Gate",
+        "description": "Accuracy, precision, recall metrics. Model evaluation and benchmarking",
+        "check": "{{MODEL_PERFORMANCE_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "reproducibilityGate": {
+        "title": "Reproducibility Gate",
+        "description": "Deterministic training, version control, and experiment tracking",
+        "check": "{{REPRODUCIBILITY_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "ethicsGate": {
+        "title": "Ethics Gate",
+        "description": "Bias detection, fairness, explainability, and ethical AI principles",
+        "check": "{{ETHICS_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "deploymentGate": {
+        "title": "Deployment Gate",
+        "description": "Model serving, monitoring, rollback, and production deployment",
+        "check": "{{DEPLOYMENT_GATE_CHECK}}",
+        "platforms": ["ai"]
+      }
+    },
+    "sddPrinciples": {
+      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
+      "multiStepRefinement": "Use iterative refinement over one-shot generation",
+      "libraryFirstTesting": "Prefer real dependencies over mocks",
+      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
+      "traceability": "Every line of code traces to numbered requirement",
+      "businessFacing": "Plans are for technical stakeholders but business-aligned"
+    },
+   
+    "sddVersion": {
+      "version": "SDD-Cursor-1.2",
+      "generated": "2025-09-20",
+      "description": "Implementation plan template based on asy-sdd.md with all 26 constitutional gates"
+    }
+  },
+  "is_active": true
+}

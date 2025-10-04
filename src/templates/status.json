@@ -1,0 +1,414 @@
+{
+  "id": "sdd-status-perfect-v1",
+  "name": "SDD Status Template",
+  "version": "1.2.4",
+  "description": "Comprehensive status template based on SDD methodology with constitutional gates validation, platform-aware reporting, and Mermaid diagrams",
+  "template_data": {
+    "title": "Feature Status: {{FEATURE_NAME}}",
+    "metadata": {
+      "generated": "{{CURRENT_DATE}}",
+      "status": "{{FEATURE_STATUS}}",
+      "platform": "{{PLATFORM}}",
+      "completionPercentage": "{{COMPLETION_PERCENTAGE}}",
+      "lastUpdated": "{{LAST_UPDATED}}"
+    },
+    "executiveSummary": {
+      "title": "Executive Summary",
+      "content": "{{EXECUTIVE_SUMMARY}}",
+      "instruction": "Provide high-level status overview: current phase, key achievements, blockers, next steps, and overall health"
+    },
+    "constitutionalGatesStatus": {
+      "title": "Constitutional Gates Status",
+      "description": "Validation of all applicable constitutional gates for the platform",
+      "overallCompliance": "{{OVERALL_COMPLIANCE}}",
+      "violations": "{{CONSTITUTIONAL_VIOLATIONS}}",
+      "gates": {
+        "simplicityGate": {
+          "title": "Simplicity Gate",
+          "status": "{{SIMPLICITY_GATE_STATUS}}",
+          "check": "{{SIMPLICITY_GATE_CHECK}}",
+          "violations": "{{SIMPLICITY_GATE_VIOLATIONS}}"
+        },
+        "libraryFirstGate": {
+          "title": "Library-First Gate",
+          "status": "{{LIBRARY_FIRST_GATE_STATUS}}",
+          "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
+          "violations": "{{LIBRARY_FIRST_GATE_VIOLATIONS}}"
+        },
+        "cliInterfaceGate": {
+          "title": "CLI Interface Gate",
+          "status": "{{CLI_INTERFACE_GATE_STATUS}}",
+          "check": "{{CLI_INTERFACE_GATE_CHECK}}",
+          "violations": "{{CLI_INTERFACE_GATE_VIOLATIONS}}"
+        },
+        "testFirstGate": {
+          "title": "Test-First Gate",
+          "status": "{{TEST_FIRST_GATE_STATUS}}",
+          "check": "{{TEST_FIRST_GATE_CHECK}}",
+          "violations": "{{TEST_FIRST_GATE_VIOLATIONS}}"
+        },
+        "integrationFirstTestingGate": {
+          "title": "Integration-First Testing Gate",
+          "status": "{{INTEGRATION_FIRST_TESTING_GATE_STATUS}}",
+          "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
+          "violations": "{{INTEGRATION_FIRST_TESTING_GATE_VIOLATIONS}}"
+        },
+        "antiAbstractionGate": {
+          "title": "Anti-Abstraction Gate",
+          "status": "{{ANTI_ABSTRACTION_GATE_STATUS}}",
+          "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
+          "violations": "{{ANTI_ABSTRACTION_GATE_VIOLATIONS}}"
+        },
+        "traceabilityGate": {
+          "title": "Traceability Gate",
+          "status": "{{TRACEABILITY_GATE_STATUS}}",
+          "check": "{{TRACEABILITY_GATE_CHECK}}",
+          "violations": "{{TRACEABILITY_GATE_VIOLATIONS}}"
+        },
+        "platformSpecificGates": {
+          "title": "Platform-Specific Gates",
+          "content": "{{PLATFORM_SPECIFIC_GATES_STATUS}}",
+          "instruction": "Validate platform-specific gates based on selected platform (mobile, web, desktop, backend, ai)"
+        }
+      }
+    },
+    "implementationProgress": {
+      "title": "Implementation Progress",
+      "currentPhase": "{{CURRENT_PHASE}}",
+      "phaseProgress": "{{PHASE_PROGRESS}}",
+      "tddOrderStatus": {
+        "title": "TDD Order Status",
+        "contractTests": "{{CONTRACT_TESTS_STATUS}}",
+        "integrationTests": "{{INTEGRATION_TESTS_STATUS}}",
+        "e2eTests": "{{E2E_TESTS_STATUS}}",
+        "unitTests": "{{UNIT_TESTS_STATUS}}",
+        "implementation": "{{IMPLEMENTATION_STATUS}}"
+      },
+      "milestones": {
+        "title": "Key Milestones",
+        "completed": "{{COMPLETED_MILESTONES}}",
+        "inProgress": "{{IN_PROGRESS_MILESTONES}}",
+        "upcoming": "{{UPCOMING_MILESTONES}}"
+      }
+    },
+    "platformSpecificStatus": {
+      "title": "Platform-Specific Status",
+      "mobile": {
+        "title": "Mobile Platform Status",
+        "content": "{{MOBILE_PLATFORM_STATUS}}",
+        "instruction": "Track mobile-specific progress: native capabilities, offline functionality, performance, accessibility, security, store compliance"
+      },
+      "web": {
+        "title": "Web Platform Status",
+        "content": "{{WEB_PLATFORM_STATUS}}",
+        "instruction": "Track web-specific progress: progressive enhancement, responsive design, browser compatibility, performance, accessibility"
+      },
+      "desktop": {
+        "title": "Desktop Platform Status",
+        "content": "{{DESKTOP_PLATFORM_STATUS}}",
+        "instruction": "Track desktop-specific progress: OS integration, distribution, performance, accessibility, security"
+      },
+      "backend": {
+        "title": "Backend Platform Status",
+        "content": "{{BACKEND_PLATFORM_STATUS}}",
+        "instruction": "Track backend-specific progress: API design, database, monitoring, security, performance, scalability"
+      },
+      "ai": {
+        "title": "AI Platform Status",
+        "content": "{{AI_PLATFORM_STATUS}}",
+        "instruction": "Track AI-specific progress: data quality, model performance, reproducibility, ethics, deployment"
+      }
+    },
+    "apiFirstStatus": {
+      "title": "API-First Status (Web/Mobile/Backend)",
+      "description": "Track API-First implementation progress for applicable platforms",
+      "apiDesign": {
+        "title": "API Design Status",
+        "content": "{{API_DESIGN_STATUS}}",
+        "instruction": "Track API design progress: endpoint structure, resource modeling, HTTP methods, status codes"
+      },
+      "apiContracts": {
+        "title": "API Contracts Status",
+        "content": "{{API_CONTRACTS_STATUS}}",
+        "instruction": "Track API contracts progress: request/response schemas, validation rules, error handling"
+      },
+      "apiTesting": {
+        "title": "API Testing Status",
+        "content": "{{API_TESTING_STATUS}}",
+        "instruction": "Track API testing progress: contract testing, integration testing, performance testing"
+      },
+      "apiDocumentation": {
+        "title": "API Documentation Status",
+        "content": "{{API_DOCUMENTATION_STATUS}}",
+        "instruction": "Track API documentation progress: OpenAPI specs, versioning, developer experience"
+      }
+    },
+    "qualityMetrics": {
+      "title": "Quality Metrics",
+      "overallScore": "{{OVERALL_QUALITY_SCORE}}",
+      "dimensions": {
+        "clarity": {
+          "score": "{{CLARITY_SCORE}}",
+          "description": "{{CLARITY_DESCRIPTION}}"
+        },
+        "completeness": {
+          "score": "{{COMPLETENESS_SCORE}}",
+          "description": "{{COMPLETENESS_DESCRIPTION}}"
+        },
+        "structure": {
+          "score": "{{STRUCTURE_SCORE}}",
+          "description": "{{STRUCTURE_DESCRIPTION}}"
+        },
+        "bestPractice": {
+          "score": "{{BEST_PRACTICE_SCORE}}",
+          "description": "{{BEST_PRACTICE_DESCRIPTION}}"
+        },
+        "performance": {
+          "score": "{{PERFORMANCE_SCORE}}",
+          "description": "{{PERFORMANCE_DESCRIPTION}}"
+        }
+      }
+    },
+    "riskAssessment": {
+      "title": "Risk Assessment",
+      "highRisks": "{{HIGH_RISKS}}",
+      "mediumRisks": "{{MEDIUM_RISKS}}",
+      "lowRisks": "{{LOW_RISKS}}",
+      "mitigationStrategies": "{{MITIGATION_STRATEGIES}}"
+    },
+    "nextSteps": {
+      "title": "Next Steps",
+      "immediate": "{{IMMEDIATE_NEXT_STEPS}}",
+      "shortTerm": "{{SHORT_TERM_NEXT_STEPS}}",
+      "longTerm": "{{LONG_TERM_NEXT_STEPS}}",
+      "blockers": "{{CURRENT_BLOCKERS}}"
+    },
+    "mermaidDiagrams": {
+      "title": "Visual Status Diagrams",
+      "workflowDiagram": {
+        "title": "SDD Workflow Progress",
+        "content": "{{MERMAID_WORKFLOW_DIAGRAM}}",
+        "instruction": "Generate Mermaid flowchart showing current position in SDD workflow: specify → plan → tasks → implement → status"
+      },
+      "constitutionalGatesDiagram": {
+        "title": "Constitutional Gates Status",
+        "content": "{{MERMAID_GATES_DIAGRAM}}",
+        "instruction": "Generate Mermaid flowchart showing constitutional gates validation status with pass/fail indicators"
+      },
+      "implementationPhasesDiagram": {
+        "title": "Implementation Phases Progress",
+        "content": "{{MERMAID_PHASES_DIAGRAM}}",
+        "instruction": "Generate Mermaid Gantt chart showing implementation phases progress and timeline"
+      },
+      "platformArchitectureDiagram": {
+        "title": "Platform Architecture Status",
+        "content": "{{MERMAID_ARCHITECTURE_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing platform-specific architecture and component status"
+      },
+      "apiFirstDiagram": {
+        "title": "API-First Implementation Status",
+        "content": "{{MERMAID_API_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing API-First implementation progress and relationships"
+      },
+      "qualityMetricsDiagram": {
+        "title": "Quality Metrics Dashboard",
+        "content": "{{MERMAID_QUALITY_DIAGRAM}}",
+        "instruction": "Generate Mermaid diagram showing quality metrics and scores visualization"
+      }
+    },
+    "platformGates": {
+      "mobile": {
+        "gates": ["simplicity", "nativeFirst", "offlineFirst", "performance", "accessibility", "security", "storeCompliance", "apiFirst"],
+        "qualityGates": ["deviceCompatibility", "batteryOptimization", "memoryManagement", "touchInterface", "offlineSync", "apiTesting"]
+      },
+      "web": {
+        "gates": ["simplicity", "progressiveEnhancement", "responsiveDesign", "performance", "security", "accessibility", "browserCompatibility", "apiFirst"],
+        "qualityGates": ["crossBrowserTesting", "responsiveDesign", "seoOptimization", "progressiveWebApp", "coreWebVitals", "apiTesting"]
+      },
+      "desktop": {
+        "gates": ["simplicity", "nativeIntegration", "performance", "security", "accessibility", "distribution", "cliInterface"],
+        "qualityGates": ["osIntegration", "installerTesting", "autoUpdateTesting", "uninstallerTesting"]
+      },
+      "backend": {
+        "gates": ["simplicity", "apiFirst", "database", "security", "performance", "monitoring", "cliInterface"],
+        "qualityGates": ["apiTesting", "databaseTesting", "loadTesting", "securityTesting", "monitoringTesting"]
+      },
+      "ai": {
+        "gates": ["simplicity", "dataQuality", "modelPerformance", "reproducibility", "ethics", "deployment", "cliInterface"],
+        "qualityGates": ["dataValidation", "modelTesting", "biasTesting", "performanceTesting", "deploymentTesting"]
+      }
+    },
+    "constitutionalGates": {
+      "simplicityGate": {
+        "title": "Simplicity Gate",
+        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "check": "{{SIMPLICITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "libraryFirstGate": {
+        "title": "Library-First Gate",
+        "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
+        "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
+        "platforms": ["web", "desktop", "backend", "ai"]
+      },
+      "cliInterfaceGate": {
+        "title": "CLI Interface Gate",
+        "description": "Each developer/system tool library exposes a CLI with --json mode using stdin/stdout; errors go to stderr",
+        "check": "{{CLI_INTERFACE_GATE_CHECK}}",
+        "platforms": ["desktop", "backend", "ai"]
+      },
+      "testFirstGate": {
+        "title": "Test-First Gate",
+        "description": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation → UI-API Integration",
+        "check": "{{TEST_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "integrationFirstTestingGate": {
+        "title": "Integration-First Testing Gate",
+        "description": "Prefer real dependencies (DBs/services).",
+        "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "antiAbstractionGate": {
+        "title": "Anti-Abstraction Gate",
+        "description": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
+        "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "traceabilityGate": {
+        "title": "Traceability Gate",
+        "description": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec",
+        "check": "{{TRACEABILITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
+      },
+      "nativeFirstGate": {
+        "title": "Native-First Gate",
+        "description": "Use platform-native capabilities and patterns. Avoid cross-platform frameworks unless justified",
+        "check": "{{NATIVE_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "offlineFirstGate": {
+        "title": "Offline-First Gate",
+        "description": "Core functionality works without internet. Local data storage and sync when online",
+        "check": "{{OFFLINE_FIRST_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "performanceGate": {
+        "title": "Performance Gate",
+        "description": "Platform-specific performance requirements: Mobile (60fps, <3s launch, <100MB), Web (<3s load, <100ms interaction), Desktop (<2s startup, <50MB base)",
+        "check": "{{PERFORMANCE_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop"]
+      },
+      "accessibilityGate": {
+        "title": "Accessibility Gate",
+        "description": "Full accessibility support: Mobile (screen reader, touch), Web (WCAG 2.1 AA), Desktop (OS accessibility features)",
+        "check": "{{ACCESSIBILITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop"]
+      },
+      "securityGate": {
+        "title": "Security Gate",
+        "description": "Platform-specific security: Mobile (encryption, secure storage), Web (HTTPS, CSP, XSS/CSRF), Backend (auth, validation), Desktop (code signing, sandboxing)",
+        "check": "{{SECURITY_GATE_CHECK}}",
+        "platforms": ["mobile", "web", "desktop", "backend"]
+      },
+      "storeComplianceGate": {
+        "title": "Store Compliance Gate",
+        "description": "App store guidelines and review readiness for mobile apps",
+        "check": "{{STORE_COMPLIANCE_GATE_CHECK}}",
+        "platforms": ["mobile"]
+      },
+      "progressiveEnhancementGate": {
+        "title": "Progressive Enhancement Gate",
+        "description": "Works without JavaScript, then enhances with JS. Graceful degradation",
+        "check": "{{PROGRESSIVE_ENHANCEMENT_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "responsiveDesignGate": {
+        "title": "Responsive Design Gate",
+        "description": "Mobile-first design with breakpoints for tablet and desktop. All screen sizes supported",
+        "check": "{{RESPONSIVE_DESIGN_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "browserCompatibilityGate": {
+        "title": "Browser Compatibility Gate",
+        "description": "Works on Chrome, Firefox, Safari, and Edge. 95% of target browsers supported",
+        "check": "{{BROWSER_COMPATIBILITY_GATE_CHECK}}",
+        "platforms": ["web"]
+      },
+      "nativeIntegrationGate": {
+        "title": "Native Integration Gate",
+        "description": "Integrate with OS features: menus, notifications, file associations, system preferences",
+        "check": "{{NATIVE_INTEGRATION_GATE_CHECK}}",
+        "platforms": ["desktop"]
+      },
+      "distributionGate": {
+        "title": "Distribution Gate",
+        "description": "Installer, auto-updates, and uninstaller. Code signing and update mechanisms",
+        "check": "{{DISTRIBUTION_GATE_CHECK}}",
+        "platforms": ["desktop"]
+      },
+      "apiFirstGate": {
+        "title": "API-First Gate",
+        "description": "RESTful/GraphQL APIs with OpenAPI specs. API documentation and versioning. All features expose well-defined APIs",
+        "check": "{{API_FIRST_GATE_CHECK}}",
+        "platforms": ["backend", "web", "mobile"]
+      },
+      "databaseGate": {
+        "title": "Database Gate",
+        "description": "Proper schema design, migrations, indexing, and data integrity",
+        "check": "{{DATABASE_GATE_CHECK}}",
+        "platforms": ["backend"]
+      },
+      "monitoringGate": {
+        "title": "Monitoring Gate",
+        "description": "Logging, metrics, health checks, and observability",
+        "check": "{{MONITORING_GATE_CHECK}}",
+        "platforms": ["backend"]
+      },
+      "dataQualityGate": {
+        "title": "Data Quality Gate",
+        "description": "Clean, validated, representative datasets. Data preprocessing and validation",
+        "check": "{{DATA_QUALITY_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "modelPerformanceGate": {
+        "title": "Model Performance Gate",
+        "description": "Accuracy, precision, recall metrics. Model evaluation and benchmarking",
+        "check": "{{MODEL_PERFORMANCE_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "reproducibilityGate": {
+        "title": "Reproducibility Gate",
+        "description": "Deterministic training, version control, and experiment tracking",
+        "check": "{{REPRODUCIBILITY_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "ethicsGate": {
+        "title": "Ethics Gate",
+        "description": "Bias detection, fairness, explainability, and ethical AI principles",
+        "check": "{{ETHICS_GATE_CHECK}}",
+        "platforms": ["ai"]
+      },
+      "deploymentGate": {
+        "title": "Deployment Gate",
+        "description": "Model serving, monitoring, rollback, and production deployment",
+        "check": "{{DEPLOYMENT_GATE_CHECK}}",
+        "platforms": ["ai"]
+      }
+    },
+    "sddPrinciples": {
+      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
+      "multiStepRefinement": "Use iterative refinement over one-shot generation",
+      "libraryFirstTesting": "Prefer real dependencies over mocks",
+      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
+      "traceability": "Every line of code traces to numbered requirement",
+      "businessFacing": "Status reports are for technical stakeholders but business-aligned"
+    },
+    "sddVersion": {
+      "version": "SDD-Cursor-1.2",
+      "generated": "2025-09-20",
+      "description": "Status template based on asy-sdd.md with constitutional gates validation and Mermaid diagrams"
+    }
+  },
+  "is_active": true
+}
