@@ -28,27 +28,28 @@ export const ConstitutionalGatesSchema = z.object({
 });
 
 export const TechnicalContextSchema = z.object({
-  language: z.string().default("TypeScript"),
-  version: z.string().default("5.8.2"),
-  primaryDependencies: z.array(z.string()),
-  storage: z.string(),
-  testing: z.string(),
-  targetPlatform: z.string(),
-  performanceGoals: z.string().optional()
+  title: z.string(),
+  languageVersion: z.string().optional(),
+  primaryDependencies: z.string().optional(),
+  technologyStack: z.string().optional(),
+  frontendStack: z.string().optional(),
+  backendStack: z.string().optional(),
+  stylingApproach: z.string().optional(),
+  chartLibraries: z.string().optional(),
+  stateManagement: z.string().optional(),
+  storage: z.string().optional(),
+  testing: z.string().optional(),
+  targetPlatform: z.string().optional(),
+  performanceGoals: z.string().optional(),
+  instruction: z.string().optional()
 });
 
 export const ProjectStructureSchema = z.object({
-  root: z.string(),
-  src: z.object({
-    lib: z.string(),
-    contracts: z.string(),
-    tests: z.object({
-      contract: z.string(),
-      integration: z.string(),
-      unit: z.string()
-    })
-  }),
-  specs: z.string()
+  title: z.string(),
+  content: z.string().optional(),
+  instruction: z.string().optional(),
+  template: z.string().optional(),
+  enforcement: z.string().optional()
 });
 
 export const ImplementationPhaseSchema = z.object({
@@ -74,7 +75,11 @@ export const ImplementationPlanSchema = z.object({
   specPath: z.string(),
   
   // Summary
-  summary: z.string().min(20, "Summary must be at least 20 characters"),
+  summary: z.object({
+    title: z.string(),
+    content: z.string().min(20, "Summary content must be at least 20 characters"),
+    instruction: z.string().optional()
+  }),
   
   // Technical context
   technicalContext: TechnicalContextSchema,
@@ -86,7 +91,29 @@ export const ImplementationPlanSchema = z.object({
   projectStructure: ProjectStructureSchema,
   
   // Implementation phases
-  implementationPhases: z.array(ImplementationPhaseSchema).min(1, "At least one phase is required"),
+  implementationPhases: z.object({
+    title: z.string(),
+    phase1: z.object({
+      title: z.string(),
+      content: z.string().optional(),
+      instruction: z.string().optional()
+    }).optional(),
+    phase2: z.object({
+      title: z.string(),
+      content: z.string().optional(),
+      instruction: z.string().optional()
+    }).optional(),
+    phase3: z.object({
+      title: z.string(),
+      content: z.string().optional(),
+      instruction: z.string().optional()
+    }).optional(),
+    phase4: z.object({
+      title: z.string(),
+      content: z.string().optional(),
+      instruction: z.string().optional()
+    }).optional()
+  }),
   
   // Complexity tracking
   complexityTracking: ComplexityTrackingSchema,
@@ -118,11 +145,16 @@ export class ImplementationPlanHelper {
       featureName: spec.featureName || 'Unnamed Feature',
       date: now,
       specPath: spec.specPath || 'specs/001-feature/spec.md',
-      summary: `Implementation plan for ${spec.featureName || 'feature'}`,
+      summary: {
+        title: 'Summary',
+        content: `Implementation plan for ${spec.featureName || 'feature'}`,
+        instruction: 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.'
+      },
       technicalContext: {
-        language: 'TypeScript',
-        version: '5.8.2',
-        primaryDependencies: ['@modelcontextprotocol/sdk', 'zod', 'simple-git'],
+        title: 'Technical Context',
+        languageVersion: 'TypeScript 5.8.2',
+        primaryDependencies: '@modelcontextprotocol/sdk, zod, simple-git',
+        technologyStack: 'TypeScript, Node.js',
         storage: 'File system',
         testing: 'Test framework as specified in project configuration',
         targetPlatform: 'Node.js MCP Server',
@@ -152,41 +184,35 @@ export class ImplementationPlanHelper {
         }
       },
       projectStructure: {
-        root: 'src/',
-        src: {
-          lib: 'lib/sdd-mcp-server/',
-          contracts: 'contracts/',
-          tests: {
-            contract: 'tests/contract/',
-            integration: 'tests/integration/',
-            unit: 'tests/unit/'
-          }
-        },
-        specs: 'specs/'
+        title: 'Project Structure',
+        content: 'Standard SDD project structure',
+        instruction: 'Define the EXACT folder structure that MUST be followed during implementation',
+        template: 'src/\n├── lib/[feature-name]/\n│   ├── models/\n│   ├── services/\n│   └── cli.(ts|py|rs|go)\n├── contracts/\n└── tests/\n    ├── contract/\n    ├── integration/\n    └── unit/',
+        enforcement: 'This project structure is MANDATORY and must be followed exactly during implementation'
       },
-      implementationPhases: [
-        {
-          name: 'Phase 1: Contracts & Tests',
-          description: 'Define contracts and create failing tests',
-          tasks: ['Create MCP tool contracts', 'Create contract tests', 'Create integration tests'],
-          dependencies: [],
-          estimatedDuration: '1-2 hours'
+      implementationPhases: {
+        title: 'Implementation Phases (Balanced 4-Phase Structure)',
+        phase1: {
+          title: 'Phase 1: Foundations & Data (11 tasks)',
+          content: 'Essential foundation work: API contracts, database setup, data models, and core infrastructure.',
+          instruction: 'Essential foundation work: API contracts, database setup, data models, and core infrastructure. This phase establishes the fundamental building blocks that all other phases depend on.'
         },
-        {
-          name: 'Phase 2: Library Implementation',
-          description: 'Implement core library following TDD',
-          tasks: ['Implement data models', 'Implement services', 'Create MCP tools'],
-          dependencies: ['Phase 1: Contracts & Tests'],
-          estimatedDuration: '4-6 hours'
+        phase2: {
+          title: 'Phase 2: Core Implementation (11 tasks)',
+          content: 'Core library implementation, data models, business logic, and basic API structure.',
+          instruction: 'Core library implementation, data models, business logic, and basic API structure. This phase builds the core functionality that powers the application.'
         },
-        {
-          name: 'Phase 3: Integration & Validation',
-          description: 'Final integration and validation',
-          tasks: ['End-to-end testing', 'Performance validation', 'Documentation'],
-          dependencies: ['Phase 2: Library Implementation'],
-          estimatedDuration: '2-3 hours'
+        phase3: {
+          title: 'Phase 3: UI Development with Mock APIs (11 tasks)',
+          content: 'Create UI components with mock API services, platform setup, and complete user flow testing with simulated data.',
+          instruction: 'Create UI components with mock API services, platform setup, and complete user flow testing with simulated data. This phase enables parallel frontend development while backend is being implemented.'
+        },
+        phase4: {
+          title: 'Phase 4: Real API Integration & Verification (11 tasks)',
+          content: 'Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality.',
+          instruction: 'Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality. This phase delivers the final working application.'
         }
-      ],
+      },
       complexityTracking: {
         violations: []
       },
@@ -304,15 +330,10 @@ export class ImplementationPlanHelper {
   } {
     const constitutionalCompliant = this.isConstitutionallyCompliant(plan);
     const violations = this.getConstitutionalViolations(plan);
-    const phaseCount = plan.implementationPhases.length;
+    const phaseCount = 4; // Fixed 4 phases in the new structure
     
-    const totalHours = plan.implementationPhases.reduce((total, phase) => {
-      const hours = phase.estimatedDuration?.match(/(\d+)-(\d+)/);
-      if (hours) {
-        return total + (parseInt(hours[1]) + parseInt(hours[2])) / 2;
-      }
-      return total;
-    }, 0);
+    // Calculate total hours based on the 4-phase structure
+    const totalHours = 44; // 11 tasks per phase * 4 phases, estimated 1 hour per task
 
     return {
       constitutionalCompliant,

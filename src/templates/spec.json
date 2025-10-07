@@ -1,8 +1,8 @@
 {
   "id": "sdd-spec-perfect-v1",
-  "name": "SDD Specification Template",
-  "version": "1.2.4",
-  "description": "Comprehensive specification template based on SDD methodology from asy-sdd.md",
+  "name": "SDD Specification Template (Balanced 4-Phase Structure)",
+  "version": "2.0.0",
+  "description": "Comprehensive specification template based on SDD methodology with balanced 4-phase structure (11 tasks per phase) for optimal workload distribution",
   "template_data": {
     "title": "Feature Specification: {{FEATURE_NAME}}",
     "metadata": {
@@ -112,7 +112,7 @@
     "constitutionalGates": {
       "simplicityGate": {
         "title": "Simplicity Gate",
-        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "description": "≤ 10 projects for initial scope; otherwise, force simplification",
         "check": "{{SIMPLICITY_GATE_CHECK}}",
         "platforms": ["mobile", "web", "desktop", "backend", "ai"]
       },
@@ -288,7 +288,7 @@
       "constitutionalCompliance": {
         "title": "Constitutional Compliance",
         "items": [
-          "Simplicity Gate passed (≤5 projects)",
+          "Simplicity Gate passed (≤10 projects)",
           "Library-First approach planned (standalone library, thin UI veneer)",
           "CLI interface planned (--json mode, stdin/stdout, stderr errors) for developer/system tools",
           "Test-First approach planned (Contract → Integration → E2E → Unit → Implementation → UI-API Integration)",

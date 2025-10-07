@@ -10,140 +10,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
 import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
+import { EdgeCaseAnalyzer } from '../utils/EdgeCaseAnalyzer.js';
 
 export class SDDPlanTool {
   private basePath: string;
   private db: RobustDatabaseService;
+  private edgeCaseAnalyzer: EdgeCaseAnalyzer;
 
   constructor(basePath: string = process.cwd(), db?: RobustDatabaseService) {
     this.basePath = path.resolve(basePath);
     this.db = db || new RobustDatabaseService(path.join(this.basePath, 'sdd.db'));
+    this.edgeCaseAnalyzer = EdgeCaseAnalyzer.getInstance();
   }
 
-  /**
-   * Initialize database if needed (create schema and install templates)
-   */
-  private async initializeDatabaseIfNeeded(): Promise<void> {
-    try {
-      // Touch the database to ensure schema is created
-      await this.db.get_all_features();
-
-      // Install templates if needed
-      await this.ensureTemplatesInstalled();
-    } catch (error) {
-      console.error('SDDPlanTool: Database initialization failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Ensure all required templates are installed in the database
-   */
-  private async ensureTemplatesInstalled(): Promise<void> {
-    try {
-      // Check if we need to install templates
-      const needsTemplates = await this.checkIfTemplatesNeeded();
-
-      if (needsTemplates) {
-        await this.installTemplates();
-      }
-    } catch (error) {
-      console.error('SDDPlanTool: Error checking/installing templates:', error);
-    }
-  }
-
-  /**
-   * Check if templates need to be installed
-   */
-  private async checkIfTemplatesNeeded(): Promise<boolean> {
-    try {
-      // Check if plan template exists
-      const planTemplate = await this.db.get_plan_template('sdd-plan-perfect-v1');
-      return !planTemplate;
-    } catch (error) {
-      // If we can't check, assume we need templates
-      return true;
-    }
-  }
-
-  /**
-   * Install templates from JSON files
-   */
-  private async installTemplates(): Promise<void> {
-    try {
-      // Install spec template
-      await this.installTemplate('spec.json', 'spec_templates', 'sdd-spec-perfect-v1');
-
-      // Install plan template
-      await this.installTemplate('plan.json', 'plan_templates', 'sdd-plan-perfect-v1');
-
-      // Install status template
-      await this.installTemplate('status.json', 'status_templates', 'sdd-status-perfect-v1');
-
-      // Install tasks template
-      await this.installTemplate('tasks.json', 'task_templates', 'sdd-tasks-perfect-v1');
 
 
-      // Install implement template
-    } catch (error) {
-      console.error('SDDPlanTool: Error installing templates:', error);
-    }
-  }
-
-  /**
-   * Install a single template from JSON file
-   */
-  private async installTemplate(
-    fileName: string,
-    tableName: string,
-    _templateId: string
-  ): Promise<void> {
-    try {
-      // Look for template file in various locations
-      const templatePaths = [
-        path.join(this.basePath, 'src', 'templates', fileName),
-        path.join(this.basePath, fileName),
-        path.join(this.basePath, 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName),
-        path.join('/usr/local/lib/sdd-mcp', 'templates', fileName),
-        path.join(process.cwd(), 'src', 'templates', fileName)
-      ];
-
-      let templatePath = null;
-      for (const templatePathCandidate of templatePaths) {
-        if (fs.existsSync(templatePathCandidate)) {
-          templatePath = templatePathCandidate;
-          break;
-        }
-      }
-
-      if (!templatePath) {
-        // Template file not found - returning silently
-        return;
-      }
-
-      // Read and parse template
-      const templateContent = fs.readFileSync(templatePath, 'utf8');
-      const templateData = JSON.parse(templateContent);
-
-      // Insert template into database
-      this.db.install_template(
-        tableName,
-        templateData.id,
-        templateData.name,
-        templateData.version,
-        templateData.description,
-        templateData.template_data,
-        templateData.is_active
-      );
-    } catch (error) {
-      console.error(`SDDPlanTool: Error installing template ${fileName}:`, error);
-    }
-  }
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_plan',
-      description: 'Create an implementation plan from the current specification. This tool creates PLANNING DOCUMENTS only (plan.md) - does NOT create todo list or implementation tasks. This is a standalone tool - do not call other tools after completion.',
+      description: 'Create an implementation plan from the current specification. MUST create plan.md file in specs/ folder and save to database. This tool requires immediate file creation action.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -166,15 +52,12 @@ export class SDDPlanTool {
 
   async execute(input: any): Promise<any> {
     try {
-      // Initialize database if needed
-      await this.initializeDatabaseIfNeeded();
-
       // Validate input
       const validatedInput = this.validateInput(input);
 
       // Resolve feature ID
       const featureId = await this.resolveFeatureId(validatedInput.featureId);
-      const feature = await this.db.get_feature(featureId);
+      const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
       }
@@ -226,9 +109,6 @@ export class SDDPlanTool {
         console.error('SDDPlanTool: Error preparing template:', error);
         throw error;
       }
-     
-      // Stage changes
-      // Git operations removed - no longer needed
 
       // Extract template information for dynamic instructions
       const templateData = templateWithInstructions;
@@ -250,10 +130,19 @@ export class SDDPlanTool {
 
       // Report success
       const successMessage = `
-🚨 IMPORTANT: DO NOT call any other tools (sdd_tasks, sdd_implement, sdd_status, etc.) after this. Only complete the plan creation task.
-🚨 SCOPE: This tool creates PLANNING DOCUMENTS only. Do NOT create todo list, implementation tasks, or code. Only create the plan.md file.
+🎯 PLANNING TOOL OBJECTIVE:
+Create a comprehensive implementation plan that serves as the roadmap for your project. This plan will break down the specification into manageable phases, estimate timelines, and provide clear guidance for implementation.
 
-PROJECT TIMELINE ESTIMATE (Human Development):
+📋 WHAT THIS TOOL DOES:
+- Analyzes the specification to create a structured implementation plan
+- Breaks down work into balanced 4-phase structure (11 tasks per phase)
+- Provides realistic time estimates for human and AI-assisted development
+- Applies constitutional gates and quality standards to planning
+- Creates a foundation for task creation and implementation
+
+🚨 CRITICAL SCOPE: This tool creates PLANNING DOCUMENTS only. Do NOT create todo lists, implementation tasks, or code. Only create the plan.md file.
+
+📊 PROJECT TIMELINE ESTIMATE (Human Development):
    1.1. Total Estimated Duration: ${timeEstimate.totalDuration}
    1.2. Development Time: ${timeEstimate.developmentTime}
    1.3. Testing & Refinement: ${timeEstimate.testingTime}
@@ -296,19 +185,42 @@ ${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skil
    6.8. Placeholder content ({{...}}) ready for AI generation
    6.9. Structured template following complete SDD methodology
 
-7. CURSOR AI TASKS (MANDATORY COMPLIANCE):
-   7.1. Process the template data provided below to generate comprehensive implementation plan
-   7.2. Replace placeholders ({{...}}) with generated content based on the specific instructions provided
-   7.3. 🚨 IMPORTANT: DO NOT create todo list or implementation tasks. This is planning phase only - create the plan document only.
-   7.4. Follow the EXACT plan template structure:
-      7.4.1. Implementation Plan: [FEATURE] header
-      7.4.2. Date, Spec metadata
-      7.4.3. Summary section
-      7.4.4. Technical Context section
-      7.4.5. Constitution Check section
-      7.4.6. Project Structure section
-      7.4.7. Implementation Phases section
-      7.4.8. Complexity Tracking section
+7. DETAILED PLANNING INSTRUCTIONS FOR CURSOR AI (MANDATORY COMPLIANCE):
+
+📝 PLANNING CREATION PROCESS:
+   7.1. **ANALYZE SPECIFICATION**: Review the complete specification to understand requirements
+   7.2. **EXTRACT TECHNICAL CONTEXT**: Identify all technologies, platforms, and constraints
+   7.3. **APPLY CONSTITUTIONAL GATES**: Ensure all applicable gates are addressed in planning
+   7.4. **CREATE PHASE BREAKDOWN**: Structure work into balanced 4-phase approach
+   7.5. **ESTIMATE TIMELINES**: Provide realistic estimates for human and AI-assisted development
+   7.6. **DEFINE PROJECT STRUCTURE**: Specify exact folder structure and organization
+
+🎯 MANDATORY PLAN STRUCTURE:
+   7.7. **Implementation Plan Header**: Clear title with feature name
+   7.8. **Metadata Section**: Date, specification reference, platform details
+   7.9. **Summary Section**: High-level overview and approach
+   7.10. **Technical Context**: Complete technology stack and platform requirements
+   7.11. **Constitution Check**: Validation of all applicable constitutional gates
+   7.12. **Project Structure**: Mandatory folder structure and organization rules
+   7.13. **Implementation Phases**: Balanced 4-phase breakdown with clear descriptions
+   7.14. **Complexity Tracking**: Analysis of project complexity and risk factors
+
+🔧 CRITICAL PLANNING REQUIREMENTS:
+   7.15. **PHASE BALANCING (MANDATORY)**:
+       - Each phase must contain exactly 11 tasks for optimal workload distribution
+       - Phase 1: Foundations & Data (11 tasks) - Essential infrastructure
+       - Phase 2: Core Implementation (11 tasks) - Business logic and APIs
+       - Phase 3: UI Development with Mock APIs (11 tasks) - Frontend with simulated backend
+       - Phase 4: Real API Integration & Verification (11 tasks) - Final integration and testing
+   7.16. **TIME ESTIMATION (MANDATORY)**:
+       - Provide realistic human development estimates
+       - Include AI-assisted development time savings
+       - Break down estimates by phase and complexity level
+       - Consider team size and experience factors
+   7.17. **CONSTITUTIONAL COMPLIANCE (MANDATORY)**:
+       - Address all applicable constitutional gates for the platform
+       - Include platform-specific gates and quality requirements
+       - Ensure SDD principles are followed throughout planning
    7.5. Enforce ALL applicable constitutional gates for ${platform} platform:
        ${applicableConstitutionalGates.map(gate => `      7.5.${applicableConstitutionalGates.indexOf(gate) + 1}. ${gate}`).join('\n')}
    7.6. Enforce platform-specific gates:
@@ -327,10 +239,12 @@ ${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skil
       7.9.3. Time savings percentage and team composition recommendations
       7.9.4. Realistic phase-by-phase time breakdowns
    7.10. Use the detailed Cursor AI instructions provided in the template data
-   7.11. REQUIRED: Create the final plan.md file with filled content in specs/plan.md
-      7.11.1. The file MUST be created in the correct location: specs/plan.md
-      7.11.2. IMPORTANT: You must create the markdown file manually from the filled JSON template data using proper markdown formatting
-      7.11.3. Use the detailed markdown conversion guide provided below to convert JSON to markdown
+   7.11. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
+      7.11.1. Create file: specs/plan.md
+      7.11.2. Fill the template data below with actual content
+      7.11.3. Convert JSON template to proper markdown format
+      7.11.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
+      7.11.5. After creating plan.md, use sdd_db_filler to save to database
  
 
 8. AI-POWERED SIMPLICITY GATE ANALYSIS:
@@ -359,7 +273,7 @@ ${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skil
    Based on this complete analysis, how many distinct projects/components does this specification describe?
    Return only a number between 1-10. If unclear, default to 1.
    
-   If the count is > 5, this violates the Simplicity Gate and should be documented in Complexity Tracking."
+   If the count is > 10, this violates the Simplicity Gate and should be documented in Complexity Tracking."
    
    8.2. Use this AI analysis to:
       8.2.1. Determine if the specification violates the Simplicity Gate (≤5 projects)
@@ -390,11 +304,21 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    - Frontend Stack: [template_data.technicalContext.frontendStack]
    - Backend Stack: [template_data.technicalContext.backendStack]
    - Styling Approach: [template_data.technicalContext.stylingApproach]
+   - Chart Libraries: [template_data.technicalContext.chartLibraries]
    - State Management: [template_data.technicalContext.stateManagement]
    - Storage: [template_data.technicalContext.storage]
    - Testing: [template_data.technicalContext.testing]
    - Target Platform: [template_data.technicalContext.targetPlatform]
    - Performance Goals: [template_data.technicalContext.performanceGoals]
+   
+   ## Edge Case Analysis
+   [template_data.edgeCaseAnalysis.content]
+   
+   ## Constitution Check
+   [Convert template_data.constitutionCheck to markdown sections with proper formatting]
+   
+   ## Project Structure
+   [template_data.projectStructure.content]
    
    ## Implementation Phases
    ### Phase 1: Contracts & Tests
@@ -406,27 +330,38 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    ### Phase 3: Integration & Validation
    [template_data.implementationPhases.phase3.content]
    
-   ## Time Estimation
-   - Total Duration: [template_data.timeEstimation.totalDuration]
-   - Development Time: [template_data.timeEstimation.developmentTime]
-   - Testing Time: [template_data.timeEstimation.testingTime]
-   - Complexity Level: [template_data.timeEstimation.complexityLevel]
-   - Confidence Level: [template_data.timeEstimation.confidenceLevel]
+   ## Database Strategy
+   [Convert template_data.databaseStrategy to markdown sections with proper formatting]
    
-   ## Project Structure
-   [template_data.projectStructure.content]
+   ## API-First Planning
+   [Convert template_data.apiFirstPlanning to markdown sections with proper formatting]
+   
+   ## Platform-Specific Planning
+   [Convert template_data.platformSpecificPlanning to markdown sections with proper formatting]
    
    ## Constitutional Gates
    [Convert template_data.constitutionalGates to markdown sections with proper formatting]
    
-   ## Quality Gates
-   [Convert template_data.qualityGates to markdown sections with proper formatting]
+   ## Platform Gates
+   [Convert template_data.platformGates to markdown sections with proper formatting]
    
-   ## Risk Assessment
-   [template_data.riskAssessment.content]
+   **ENHANCED EXAMPLE FORMAT:**
    
-   ## Dependencies
-   [template_data.dependencies.content]
+   ### Platform-Specific Gates
+   **Description:** Validate platform-specific gates based on selected platform. Include API-First for web/mobile/backend platforms.
+   
+   **Status:**
+   - ✅ PASSED - Progressive Enhancement Gate: Basic room list and chat interface works without JS. WebRTC and real-time features enhance the experience with JavaScript enabled.
+   - ✅ PASSED - Responsive Design Gate: Mobile-first design with Tailwind breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px). Video grid adapts to screen size.
+   - ✅ PASSED - Performance Gate: Web performance targets: <3s initial load, <100ms interaction response, optimized WebRTC for smooth video, efficient WebSocket message handling.
+   - ✅ PASSED - Accessibility Gate: WCAG 2.1 AA compliance planned: keyboard navigation, screen reader support, high contrast mode, focus indicators, ARIA labels for video controls.
+   - ✅ PASSED - Security Gate: Web security measures: HTTPS enforcement, CSP headers, XSS/CSRF protection, input validation, secure WebRTC connections, message sanitization.
+   - ✅ PASSED - Browser Compatibility Gate: WebRTC support in all major browsers, WebSocket fallbacks, progressive enhancement for older browsers, polyfills for missing features.
+   - ✅ PASSED - API-First Gate: RESTful API with OpenAPI 3.0 spec, versioned endpoints (/api/v1/), comprehensive documentation, WebSocket API for real-time features.
+   
+   ## Complexity Tracking
+   [template_data.complexityTracking.description]
+   [template_data.complexityTracking.table.rows]
    
    ### CRITICAL FORMATTING RULES:
    - Always use blank lines between sections
@@ -453,9 +388,6 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
       }
    10.2. CRITICAL: Replace 'YOUR_FILLED_TEMPLATE_DATA_AS_JSON_OBJECT' with the actual filled template data from the template above
    10.3. The content should be the JSON object you created by filling the template, NOT the template with instructions
-
-11. FINAL REMINDER: DO NOT call sdd_tasks, sdd_implement, sdd_status, or any other tools. Only complete the plan creation task as described above.
-12. SCOPE REMINDER: This tool creates PLANNING DOCUMENTS only. Do NOT create todo list, implementation tasks, or code. Only create the plan.md file.
 `;
 
       const outputData = {
@@ -488,12 +420,29 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   }> {
     try {
       // Get the perfect template from database
-      const template = await this.db.get_plan_template('sdd-plan-perfect-v1');
+      const templateRecord = await this.db.get_plan_template_robust('sdd-plan-perfect-v1');
 
-      if (!template) {
+      if (!templateRecord) {
         return {
           success: false,
           error: 'Perfect SDD plan template not found in database'
+        };
+      }
+
+      // Extract and parse the template_data from the template record using JsonRepairUtility
+      const templateDataString = templateRecord.template_data;
+      if (!templateDataString) {
+        return {
+          success: false,
+          error: 'Template data not found in template record'
+        };
+      }
+
+      const template = JsonRepairUtility.extractDbJsonContent(templateDataString, 'SDDPlanTool');
+      if (!template) {
+        return {
+          success: false,
+          error: 'Failed to parse template data using JsonRepairUtility'
         };
       }
 
@@ -522,6 +471,12 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     filledTemplate.metadata.created = new Date().toISOString().split('T')[0];
     filledTemplate.metadata.platform = options.platform;
 
+    // Fill summary content
+    if (filledTemplate.summary && filledTemplate.summary.content) {
+      filledTemplate.summary.content = filledTemplate.summary.content.replace('{{SUMMARY}}', 
+        `Implementation plan for ${options.featureName}. Extract primary requirement and technical approach from specification. Focus on business value and user outcomes.`);
+    }
+
     // Add Cursor AI instructions for content generation
     filledTemplate._cursor_ai_instructions = {
       featureId: options.featureId,
@@ -536,6 +491,9 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
         summary: `Create a comprehensive summary for: ${options.featureName}. Extract primary requirement and technical approach from specification.`,
         technicalContext: `Define technical context for: ${options.featureName}. Include language/version, dependencies, storage, testing, target platform, and performance goals.`,
         constitutionCheck: `Validate constitutional gates for: ${options.featureName} on ${options.platform} platform. Check simplicity (≤5 projects), library-first, CLI interface, test-first, integration-first testing, anti-abstraction, and traceability gates.`,
+        languageAgnosticStandards: `CRITICAL LANGUAGE COMPLIANCE: Always use the correct comment syntax for the detected file type. JavaScript/TypeScript files MUST use // and /* */ comments, NEVER Python-style """ docstrings. Python files MUST use # and """ docstrings, NEVER JavaScript-style // comments. This is non-negotiable for professional code quality.
+
+CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json includes proper path mapping for @/ aliases. Configure baseUrl and paths to prevent "Cannot find module" errors. Example: {"compilerOptions": {"baseUrl": "./", "paths": {"@/*": ["src/*"]}}}.`,
         projectStructure: this.generateSmartPlatformStructureInstruction(options.featureName, options.specData, options.platform),
         implementationPhases: `Create implementation phases for: ${options.featureName}. Follow TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration. Include realistic time estimates for each phase.`,
         apiFirstPlanning: `Plan API-First approach for: ${options.featureName} on ${options.platform} platform. Include API design, contracts, testing, and documentation planning.`,
@@ -621,7 +579,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   private async resolveFeatureId(inputFeatureId?: string): Promise<string> {
     if (inputFeatureId && typeof inputFeatureId === 'string' && inputFeatureId.trim()) {
       // Validate that the feature exists in database
-      const feature = await this.db.get_feature(inputFeatureId.trim());
+      const feature = await this.db.get_feature_robust(inputFeatureId.trim());
       if (!feature) {
         throw new Error(`Feature '${inputFeatureId.trim()}' not found in database.`);
       }
@@ -629,7 +587,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     }
 
     // If no featureId provided, use most recent feature
-    const allFeatures = await this.db.get_all_features();
+    const allFeatures = await this.db.get_all_features_robust();
     if (!allFeatures.length) {
       throw new Error('No features found. Please provide featureId or create a feature first using /specify command.');
     }
@@ -1998,77 +1956,61 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    */
   private analyzeEdgeCases(specData: any): any {
     try {
-      const specContent = specData ? JSON.stringify(specData, null, 2) : '';
+      // Use EdgeCaseAnalyzer for consistent analysis
+      const content = JsonRepairUtility.extractDbJsonContent(specData, 'SDDPlanTool') || {};
+      const analysisResult = this.edgeCaseAnalyzer.analyzeEdgeCases(content, 1);
       
-      // Extract edge cases from specification
-      const edgeCaseMatch = specContent.match(/### Edge Cases\s*\n([\s\S]*?)(?=###|$)/i);
-      const edgeCases = edgeCaseMatch ? edgeCaseMatch[1].trim() : '';
+      // Extract edge cases from template_data if available
+      const edgeCasesContent = content.edgeCases || content.edgeCaseAnalysis?.content || '';
       
-      if (!edgeCases) {
+      if (!edgeCasesContent && analysisResult.totalEdgeCases === 0) {
         return {
           hasEdgeCases: false,
           edgeCaseCount: 0,
           complexity: 'low',
           estimatedAdditionalTime: 0,
-          edgeCases: []
+          edgeCases: [],
+          analysis: {
+            highComplexityCount: 0,
+            mediumComplexityCount: 0,
+            lowComplexityCount: 0
+          }
         };
       }
 
-      // Parse edge cases (look for bullet points or numbered lists)
-      const edgeCaseLines = edgeCases.split('\n')
+      // Parse edge cases from content
+      const edgeCaseLines = edgeCasesContent.split('\n')
         .map(line => line.trim())
         .filter(line => line && (line.startsWith('-') || line.startsWith('*') || line.startsWith('•') || /^\d+\./.test(line)))
         .map(line => line.replace(/^[-*•\d.\s]+/, '').trim());
 
-      // Analyze complexity based on edge case content
+      // Use EdgeCaseAnalyzer results for complexity analysis
+      const totalEdgeCases = Math.max(edgeCaseLines.length, analysisResult.totalEdgeCases);
+      
+      // Determine complexity based on critical and high impact edge cases
       let complexity = 'low';
-      let additionalTime = 0;
-
-      edgeCaseLines.forEach(edgeCase => {
-        const lowerCase = edgeCase.toLowerCase();
-        
-        // High complexity indicators
-        if (lowerCase.includes('concurrent') || lowerCase.includes('race condition') || 
-            lowerCase.includes('deadlock') || lowerCase.includes('timeout') ||
-            lowerCase.includes('memory') || lowerCase.includes('performance')) {
-          complexity = 'high';
-          additionalTime += 2; // 2 hours per high complexity edge case
-        }
-        // Medium complexity indicators
-        else if (lowerCase.includes('error') || lowerCase.includes('exception') ||
-                 lowerCase.includes('invalid') || lowerCase.includes('boundary') ||
-                 lowerCase.includes('limit') || lowerCase.includes('overflow')) {
-          if (complexity !== 'high') complexity = 'medium';
-          additionalTime += 1; // 1 hour per medium complexity edge case
-        }
-        // Low complexity indicators
-        else {
-          additionalTime += 0.5; // 30 minutes per low complexity edge case
-        }
-      });
+      if (analysisResult.criticalEdgeCases > 0 || analysisResult.highImpactEdgeCases > 2) {
+        complexity = 'high';
+      } else if (analysisResult.highImpactEdgeCases > 0 || analysisResult.totalEdgeCases > 3) {
+        complexity = 'medium';
+      }
+      
+      // Estimate additional time based on edge case count and complexity
+      const additionalTime = analysisResult.totalEdgeCases * (complexity === 'high' ? 2 : complexity === 'medium' ? 1 : 0.5);
 
       return {
         hasEdgeCases: true,
-        edgeCaseCount: edgeCaseLines.length,
+        edgeCaseCount: totalEdgeCases,
         complexity: complexity,
         estimatedAdditionalTime: additionalTime,
         edgeCases: edgeCaseLines,
         analysis: {
-          highComplexityCount: edgeCaseLines.filter(ec => 
-            ec.toLowerCase().includes('concurrent') || ec.toLowerCase().includes('race condition') ||
-            ec.toLowerCase().includes('deadlock') || ec.toLowerCase().includes('timeout')
-          ).length,
-          mediumComplexityCount: edgeCaseLines.filter(ec => 
-            ec.toLowerCase().includes('error') || ec.toLowerCase().includes('exception') ||
-            ec.toLowerCase().includes('invalid') || ec.toLowerCase().includes('boundary')
-          ).length,
-          lowComplexityCount: edgeCaseLines.length - edgeCaseLines.filter(ec => 
-            ec.toLowerCase().includes('concurrent') || ec.toLowerCase().includes('race condition') ||
-            ec.toLowerCase().includes('deadlock') || ec.toLowerCase().includes('timeout') ||
-            ec.toLowerCase().includes('error') || ec.toLowerCase().includes('exception') ||
-            ec.toLowerCase().includes('invalid') || ec.toLowerCase().includes('boundary')
-          ).length
-        }
+          highComplexityCount: analysisResult.criticalEdgeCases + analysisResult.highImpactEdgeCases,
+          mediumComplexityCount: Math.max(0, analysisResult.totalEdgeCases - analysisResult.criticalEdgeCases - analysisResult.highImpactEdgeCases),
+          lowComplexityCount: 0 // Will be calculated as remaining
+        },
+        source: 'json_data_repaired',
+        analysisResult: analysisResult
       };
     } catch (error) {
       console.error('Error analyzing edge cases:', error);
@@ -2078,6 +2020,11 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
         complexity: 'low',
         estimatedAdditionalTime: 0,
         edgeCases: [],
+        analysis: {
+          highComplexityCount: 0,
+          mediumComplexityCount: 0,
+          lowComplexityCount: 0
+        },
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
@@ -2247,489 +2194,975 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    */
   private generatePlatformSpecificStructureInstruction(featureName: string, platform: string): string {
     const platformInstructions = {
-      'nextjs': `🚨 MANDATORY NEXT.JS PROJECT STRUCTURE: Design the EXACT Next.js 14+ App Router structure for: ${featureName}. Follow industry best practices for React/TypeScript web applications.
+      'nextjs': `🎯 **NEXT.JS PROJECT STRUCTURE** - Design the EXACT Next.js 14+ App Router structure for: **${featureName}**
 
-**INDUSTRY STANDARDS FOR NEXT.JS:**
-- Use Next.js 14+ App Router pattern (app/ directory)
-- API routes in app/api/v1/ (NOT src/api/ - prevents conflicts)
-- Components organized by feature in src/lib/[feature-name]/
-- Services for business logic separation
-- Tests following industry patterns (contract/, integration/, e2e/, unit/)
-- OpenAPI specifications in contracts/
+> **Industry Best Practices for React/TypeScript Web Applications**
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-src/
-├── lib/[feature-name]/           # Feature library (industry standard)
-│   ├── components/               # Reusable UI components
-│   ├── services/                 # Business logic services
-│   ├── models/                   # Data models
-│   └── utils/                    # Feature utilities
-├── contracts/                    # API specifications (industry standard)
-│   ├── openapi.yaml             # OpenAPI 3.0 specification
-│   ├── schemas/                  # JSON schemas
-│   └── types/                    # TypeScript type definitions
-└── tests/                        # Test suites (industry standard)
-    ├── contract/                 # Contract tests (from OpenAPI)
-    ├── integration/              # Integration tests
-    ├── e2e/                      # End-to-end tests
-    └── unit/                     # Unit tests
+## 📋 **Core Standards**
+- ✅ Next.js 14+ App Router pattern (app/ directory)
+- ✅ API routes in app/api/v1/ (prevents conflicts)
+- ✅ Feature-based component organization
+- ✅ Service layer for business logic separation
+- ✅ Comprehensive testing strategy
+- ✅ OpenAPI specifications for contracts
 
-app/                              # Next.js App Router (industry standard)
-├── api/v1/                       # API routes (App Router pattern)
-│   └── [feature-endpoints]/     # Feature-specific endpoints
-├── (dashboard)/                  # Route groups (App Router feature)
-│   └── [feature-pages]/         # Feature pages
-├── globals.css                   # Global styles
-└── layout.tsx                    # Root layout
+## 🏗️ **Project Structure**
 
-public/                           # Static assets (industry standard)
-├── icons/                        # App icons
-└── images/                       # Images
-\`\`\`
+\`\`\`text
+📁 src/
+├── 📁 lib/[feature-name]/           🎨 Feature library (industry standard)
+│   ├── 📁 components/               🧩 Reusable UI components
+│   │   ├── 📁 common/              🔄 Shared components
+│   │   ├── 📁 forms/               📝 Form components
+│   │   └── 📁 layout/              🎨 Layout components
+│   ├── 📁 services/                 ⚙️ Business logic services
+│   │   ├── 📄 api.service.ts       🌐 API communication
+│   │   └── 📄 [feature].service.ts 🎯 Feature services
+│   ├── 📁 models/                   📊 Data models & types
+│   │   ├── 📄 types.ts             🔧 TypeScript definitions
+│   │   └── 📄 [feature].model.ts   📋 Feature models
+│   ├── 📁 hooks/                    🎣 Custom React hooks
+│   │   └── 📄 use[feature].ts      🪝 Feature hooks
+│   └── 📁 utils/                    🛠️ Feature utilities
+│       └── 📄 helpers.ts           🔧 Helper functions
+├── 📁 contracts/                    📋 API specifications (industry standard)
+│   ├── 📄 openapi.yaml             📜 OpenAPI 3.0 specification
+│   ├── 📁 schemas/                  📄 JSON schemas
+│   │   └── 📄 [feature].schema.json 📋 Feature schemas
+│   └── 📁 types/                    🔧 TypeScript type definitions
+│       └── 📄 api.types.ts         🌐 API types
+└── 📁 tests/                        🧪 Test suites (industry standard)
+    ├── 📁 contract/                 📋 Contract tests (from OpenAPI)
+    ├── 📁 integration/              🔗 Integration tests
+    ├── 📁 e2e/                      🎭 End-to-end tests
+    └── 📁 unit/                     ⚡ Unit tests
 
-**CRITICAL INDUSTRY RULES:**
-- NO duplicate API structures (src/api/ AND app/api/) - use ONLY app/api/v1/
-- Follow Next.js App Router conventions exactly
-- Use TypeScript throughout (industry standard)
-- Implement proper error boundaries and loading states`,
+📁 app/                              🚀 Next.js App Router (industry standard)
+├── 📁 api/v1/                       🌐 API routes (App Router pattern)
+│   └── 📁 [feature-endpoints]/     🎯 Feature-specific endpoints
+│       ├── 📄 route.ts             🛣️ API route handler
+│       └── 📄 [action]/route.ts    ⚡ Action handlers
+├── 📁 (dashboard)/                  📊 Route groups (App Router feature)
+│   └── 📁 [feature-pages]/         📄 Feature pages
+│       ├── 📄 page.tsx             🏠 Main page
+│       ├── 📄 loading.tsx          ⏳ Loading UI
+│       └── 📄 error.tsx            ❌ Error UI
+├── 📄 globals.css                   🎨 Global styles + Tailwind CSS
+├── 📄 layout.tsx                    🏗️ Root layout
+└── 📄 page.tsx                      🏠 Home page
 
-      'ios-native': `🚨 MANDATORY NATIVE iOS PROJECT STRUCTURE: Design the EXACT native iOS structure for: ${featureName}. Follow iOS development best practices and Apple guidelines.
+📁 config/                           ⚙️ Configuration files
+├── 📄 tailwind.config.js            🎨 Tailwind CSS configuration
+├── 📄 postcss.config.js             🔧 PostCSS configuration
+└── 📄 next.config.js                ⚙️ Next.js configuration
 
-**INDUSTRY STANDARDS FOR NATIVE iOS:**
-- Feature-based organization (iOS best practice)
-- Multi-layer architecture (UI, Business Logic, Data)
-- Consistent folder structure mirroring Xcode project
-- Modularized storyboards for maintainability
-- MVVM or MVC pattern implementation
+📁 public/                           📁 Static assets (industry standard)
+├── 📁 icons/                        🎨 App icons
+│   ├── 📄 favicon.ico              🌟 Favicon
+│   └── 📄 apple-touch-icon.png     🍎 Apple touch icon
+├── 📁 images/                       🖼️ Images
+│   ├── 📁 [feature]/               📁 Feature images
+│   └── 📄 logo.svg                 🏷️ Logo
+└── 📁 manifest.json                 📱 PWA manifest
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-[ProjectName]/
-├── [ProjectName]/                # Main app target
-│   ├── App/                      # App-level files
-│   │   ├── AppDelegate.swift     # App delegate
-│   │   ├── SceneDelegate.swift   # Scene delegate (iOS 13+)
-│   │   └── Info.plist            # App configuration
-│   ├── Features/                 # Feature-based organization (iOS best practice)
-│   │   ├── Authentication/       # Authentication feature
-│   │   │   ├── Models/           # Data models
-│   │   │   │   └── User.swift    # User model
-│   │   │   ├── Views/            # View controllers
-│   │   │   │   ├── LoginViewController.swift
-│   │   │   │   └── RegisterViewController.swift
-│   │   │   ├── ViewModels/       # View models (MVVM)
-│   │   │   │   └── LoginViewModel.swift
-│   │   │   ├── Controllers/      # Business logic controllers
-│   │   │   │   └── AuthController.swift
-│   │   │   └── Services/         # API services
-│   │   │       └── AuthService.swift
-│   │   ├── [FeatureName]/        # Other features
-│   │   │   ├── Models/
-│   │   │   ├── Views/
-│   │   │   ├── ViewModels/
-│   │   │   ├── Controllers/
-│   │   │   └── Services/
-│   │   └── Shared/               # Shared components
-│   │       ├── Extensions/       # Swift extensions
-│   │       ├── Utilities/        # Utility classes
-│   │       ├── Constants/        # App constants
-│   │       └── Protocols/        # Protocol definitions
-│   ├── Resources/                 # App resources
-│   │   ├── Assets.xcassets       # Image assets
-│   │   ├── Storyboards/          # Modularized storyboards
-│   │   │   ├── Main.storyboard   # Main storyboard
-│   │   │   ├── Authentication.storyboard
-│   │   │   └── [Feature].storyboard
-│   │   ├── Localizable.strings   # Localization files
-│   │   └── LaunchScreen.storyboard
-│   └── Supporting Files/         # Supporting files
-│       ├── Bridging-Header.h     # Objective-C bridging
-│       └── [ProjectName]-Bridging-Header.h
-├── [ProjectName]Tests/           # Unit tests (iOS standard)
-│   ├── [FeatureName]Tests/
-│   └── MockData/
-├── [ProjectName]UITests/         # UI tests (iOS standard)
-│   └── [FeatureName]UITests/
-├── Pods/                         # CocoaPods dependencies
-├── Podfile                       # CocoaPods configuration
-├── Podfile.lock                  # Locked dependencies
-└── [ProjectName].xcodeproj       # Xcode project file
+📁 docs/                             📚 Documentation
+├── 📄 README.md                     📖 Project documentation
+├── 📄 API.md                        🌐 API documentation
+└── 📁 architecture/                 🏗️ Architecture docs
+    └── 📄 project-structure.md     📋 Structure documentation
 \`\`\`
 
-**CRITICAL iOS RULES:**
-- Organize by feature with Models/Views/ViewModels/Controllers subfolders
-- Use MVVM or MVC architecture pattern consistently
-- Modularize storyboards to avoid conflicts
-- Keep physical file system consistent with Xcode project structure
-- Use CocoaPods or Swift Package Manager for dependencies`,
+## ⚠️ **Critical Rules**
+- 🚫 **NO duplicate API structures** (src/api/ AND app/api/) - use ONLY app/api/v1/
+- ✅ **Follow Next.js App Router conventions** exactly
+- ✅ **Use TypeScript throughout** (industry standard)
+- ✅ **Implement proper error boundaries** and loading states
+- ✅ **Feature-based organization** for maintainability
+- ✅ **Comprehensive testing** at all levels`,
 
-      'android-native': `🚨 MANDATORY NATIVE ANDROID PROJECT STRUCTURE: Design the EXACT native Android structure for: ${featureName}. Follow Android development best practices and Google guidelines.
+      'ios-native': `🍎 **NATIVE iOS PROJECT STRUCTURE** - Design the EXACT native iOS structure for: **${featureName}**
 
-**INDUSTRY STANDARDS FOR NATIVE ANDROID:**
-- Module-based organization (Android best practice)
-- MVVM architecture pattern (Android standard)
-- Resource qualifiers for different configurations
-- Consistent package structure by feature/layer
-- Gradle for dependency management
+> **iOS Development Best Practices & Apple Guidelines**
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-app/                              # Main app module (Android standard)
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/company/project/
-│   │   │       ├── ui/           # UI layer (Android best practice)
-│   │   │       │   ├── main/    # Main activity
-│   │   │       │   │   ├── MainActivity.java
-│   │   │       │   │   └── MainViewModel.java
-│   │   │       │   ├── auth/    # Authentication feature
-│   │   │       │   │   ├── LoginActivity.java
-│   │   │       │   │   ├── LoginViewModel.java
-│   │   │       │   │   └── RegisterActivity.java
-│   │   │       │   └── [feature]/ # Other features
-│   │   │       │       ├── [Feature]Activity.java
-│   │   │       │       └── [Feature]ViewModel.java
-│   │   │       ├── data/         # Data layer (Android best practice)
-│   │   │       │   ├── repository/
-│   │   │       │   │   ├── UserRepository.java
-│   │   │       │   │   └── [Feature]Repository.java
-│   │   │       │   ├── local/    # Local data sources
-│   │   │       │   │   ├── database/
-│   │   │       │   │   │   ├── AppDatabase.java
-│   │   │       │   │   │   └── entities/
-│   │   │       │   │   │       └── User.java
-│   │   │       │   │   └── preferences/
-│   │   │       │   │       └── SharedPreferencesManager.java
-│   │   │       │   └── remote/   # Remote data sources
-│   │   │       │       ├── api/
-│   │   │       │       │   ├── ApiService.java
-│   │   │       │       │   └── AuthApiService.java
-│   │   │       │       └── dto/
-│   │   │       │           └── UserDto.java
-│   │   │       ├── domain/       # Domain layer (Android best practice)
-│   │   │       │   ├── model/
-│   │   │       │   │   └── User.java
-│   │   │       │   ├── usecase/
-│   │   │       │   │   ├── LoginUseCase.java
-│   │   │       │   │   └── [Feature]UseCase.java
-│   │   │       │   └── repository/
-│   │   │       │       └── UserRepository.java
-│   │   │       ├── di/           # Dependency injection (Android best practice)
-│   │   │       │   ├── AppModule.java
-│   │   │       │   ├── NetworkModule.java
-│   │   │       │   └── DatabaseModule.java
-│   │   │       └── utils/        # Utility classes
-│   │   │           ├── Constants.java
-│   │   │           └── Extensions.java
-│   │   ├── res/                  # Resources (Android standard)
-│   │   │   ├── layout/           # Layout files
-│   │   │   │   ├── activity_main.xml
-│   │   │   │   ├── activity_login.xml
-│   │   │   │   └── fragment_[feature].xml
-│   │   │   ├── values/           # Values (Android standard)
-│   │   │   │   ├── strings.xml   # String resources
-│   │   │   │   ├── colors.xml    # Color resources
-│   │   │   │   ├── dimens.xml    # Dimension resources
-│   │   │   │   └── styles.xml    # Style resources
-│   │   │   ├── drawable/         # Drawable resources
-│   │   │   │   ├── ic_launcher.xml
-│   │   │   │   └── background.xml
-│   │   │   ├── mipmap/           # App icons
-│   │   │   └── values-[qualifier]/ # Resource qualifiers
-│   │   │       ├── values-land/  # Landscape orientation
-│   │   │       ├── values-sw600dp/ # Tablet screens
-│   │   │       └── values-night/ # Dark theme
-│   │   └── AndroidManifest.xml   # App manifest
-│   └── test/                     # Unit tests (Android standard)
-│       └── java/
-│           └── com/company/project/
-│               ├── ui/
-│               ├── data/
-│               └── domain/
-├── data/                         # Data module (Android best practice)
-│   ├── src/main/java/
-│   └── build.gradle
-├── domain/                       # Domain module (Android best practice)
-│   ├── src/main/java/
-│   └── build.gradle
-├── build.gradle                  # App module build file
-└── proguard-rules.pro            # ProGuard rules
+## 📋 **Core Standards**
+- ✅ Feature-based organization (iOS best practice)
+- ✅ Multi-layer architecture (UI, Business Logic, Data)
+- ✅ Consistent folder structure mirroring Xcode project
+- ✅ Modularized storyboards for maintainability
+- ✅ MVVM or MVC pattern implementation
 
-gradle/                           # Gradle wrapper (Android standard)
-├── wrapper/
-│   ├── gradle-wrapper.jar
-│   └── gradle-wrapper.properties
-└── gradle.properties
+## 🏗️ **Project Structure**
 
-build.gradle                      # Project build file
-settings.gradle                   # Project settings
-gradlew                          # Gradle wrapper script
-gradlew.bat                      # Gradle wrapper script (Windows)
+\`\`\`text
+📁 [ProjectName]/
+├── 📁 [ProjectName]/                📱 Main app target
+│   ├── 📁 App/                      🚀 App-level files
+│   │   ├── 📄 AppDelegate.swift     🎯 App delegate
+│   │   ├── 📄 SceneDelegate.swift   🎬 Scene delegate (iOS 13+)
+│   │   └── 📄 Info.plist            ⚙️ App configuration
+│   ├── 📁 Features/                 🎨 Feature-based organization (iOS best practice)
+│   │   ├── 📁 Authentication/       🔐 Authentication feature
+│   │   │   ├── 📁 Models/           📊 Data models
+│   │   │   │   ├── 📄 User.swift    👤 User model
+│   │   │   │   └── 📄 AuthToken.swift 🔑 Auth token model
+│   │   │   ├── 📁 Views/            🖼️ View controllers
+│   │   │   │   ├── 📄 LoginViewController.swift 🔑 Login screen
+│   │   │   │   ├── 📄 RegisterViewController.swift 📝 Register screen
+│   │   │   │   └── 📄 ForgotPasswordViewController.swift 🔄 Forgot password
+│   │   │   ├── 📁 ViewModels/       🧠 View models (MVVM)
+│   │   │   │   ├── 📄 LoginViewModel.swift 🔑 Login logic
+│   │   │   │   └── 📄 RegisterViewModel.swift 📝 Register logic
+│   │   │   ├── 📁 Controllers/      ⚙️ Business logic controllers
+│   │   │   │   └── 📄 AuthController.swift 🔐 Auth controller
+│   │   │   └── 📁 Services/         🌐 API services
+│   │   │       ├── 📄 AuthService.swift 🔐 Auth service
+│   │   │       └── 📄 NetworkService.swift 🌐 Network service
+│   │   ├── 📁 [FeatureName]/        🎯 Other features
+│   │   │   ├── 📁 Models/           📊 Feature models
+│   │   │   ├── 📁 Views/            🖼️ Feature views
+│   │   │   ├── 📁 ViewModels/       🧠 Feature view models
+│   │   │   ├── 📁 Controllers/      ⚙️ Feature controllers
+│   │   │   └── 📁 Services/         🌐 Feature services
+│   │   └── 📁 Shared/               🔄 Shared components
+│   │       ├── 📁 Extensions/       🔧 Swift extensions
+│   │       │   ├── 📄 UIView+Extensions.swift 🖼️ UIView extensions
+│   │       │   └── 📄 String+Extensions.swift 📝 String extensions
+│   │       ├── 📁 Utilities/        🛠️ Utility classes
+│   │       │   ├── 📄 DateHelper.swift 📅 Date utilities
+│   │       │   └── 📄 ValidationHelper.swift ✅ Validation utilities
+│   │       ├── 📁 Constants/        📋 App constants
+│   │       │   ├── 📄 AppConstants.swift ⚙️ App constants
+│   │       │   └── 📄 APIEndpoints.swift 🌐 API endpoints
+│   │       └── 📁 Protocols/        📜 Protocol definitions
+│   │           └── 📄 NetworkProtocol.swift 🌐 Network protocol
+│   ├── 📁 Resources/                 📦 App resources
+│   │   ├── 📁 Assets.xcassets       🎨 Image assets
+│   │   │   ├── 📁 AppIcon.appiconset/ 🎯 App icons
+│   │   │   └── 📁 Images.imageset/  🖼️ Image sets
+│   │   ├── 📁 Storyboards/          📱 Modularized storyboards
+│   │   │   ├── 📄 Main.storyboard   🏠 Main storyboard
+│   │   │   ├── 📄 Authentication.storyboard 🔐 Auth storyboard
+│   │   │   └── 📄 [Feature].storyboard 🎯 Feature storyboards
+│   │   ├── 📁 Localization/         🌍 Localization files
+│   │   │   ├── 📄 Localizable.strings 🌐 English strings
+│   │   │   └── 📄 Localizable.strings (Spanish) 🇪🇸 Spanish strings
+│   │   └── 📄 LaunchScreen.storyboard 🚀 Launch screen
+│   └── 📁 Supporting Files/         📄 Supporting files
+│       ├── 📄 Bridging-Header.h     🔗 Objective-C bridging
+│       └── 📄 [ProjectName]-Bridging-Header.h 🔗 Project bridging
+├── 📁 [ProjectName]Tests/           🧪 Unit tests (iOS standard)
+│   ├── 📁 [FeatureName]Tests/       🎯 Feature tests
+│   │   ├── 📄 [Feature]ViewModelTests.swift 🧠 ViewModel tests
+│   │   └── 📄 [Feature]ServiceTests.swift 🌐 Service tests
+│   └── 📁 MockData/                 🎭 Mock data
+│       └── 📄 MockUserData.swift    👤 Mock user data
+├── 📁 [ProjectName]UITests/         🎭 UI tests (iOS standard)
+│   └── 📁 [FeatureName]UITests/     🎯 Feature UI tests
+│       └── 📄 [Feature]UITests.swift 🖼️ UI test cases
+├── 📁 Pods/                         📦 CocoaPods dependencies
+├── 📄 Podfile                       ⚙️ CocoaPods configuration
+├── 📄 Podfile.lock                  🔒 Locked dependencies
+└── 📄 [ProjectName].xcodeproj       📱 Xcode project file
 \`\`\`
 
-**CRITICAL ANDROID RULES:**
-- Organize by modules (app, data, domain) for better separation
-- Use MVVM architecture with ViewModels
-- Structure packages by feature: com.company.app.feature.login
-- Use resource qualifiers for different configurations
-- Leverage Gradle for dependency management
-- Follow Android naming conventions (camelCase for Java, snake_case for XML)`,
+## ⚠️ **Critical iOS Rules**
+- 🎯 **Organize by feature** with Models/Views/ViewModels/Controllers subfolders
+- 🏗️ **Use MVVM or MVC architecture** pattern consistently
+- 📱 **Modularize storyboards** to avoid conflicts
+- 📁 **Keep physical file system** consistent with Xcode project structure
+- 📦 **Use CocoaPods or Swift Package Manager** for dependencies
+- 🧪 **Comprehensive testing** at all levels
+- 🌍 **Support localization** from the start`,
 
-      'react-native': `🚨 MANDATORY REACT NATIVE PROJECT STRUCTURE: Design the EXACT React Native structure for: ${featureName}. Follow industry best practices for cross-platform mobile applications.
+      'android-native': `🤖 **NATIVE ANDROID PROJECT STRUCTURE** - Design the EXACT native Android structure for: **${featureName}**
 
-**INDUSTRY STANDARDS FOR REACT NATIVE:**
-- Feature-based organization (industry best practice)
-- Platform-specific code separation (iOS/Android)
-- Navigation structure following React Navigation patterns
-- Services for API communication
-- Custom hooks for reusable logic
+> **Android Development Best Practices & Google Guidelines**
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
+## 📋 **Core Standards**
+- ✅ Module-based organization (Android best practice)
+- ✅ MVVM architecture pattern (Android standard)
+- ✅ Resource qualifiers for different configurations
+- ✅ Consistent package structure by feature/layer
+- ✅ Gradle for dependency management
+
+## 🏗️ **Project Structure**
+
+\`\`\`text
+📁 app/                              📱 Main app module (Android standard)
+├── 📁 src/
+│   ├── 📁 main/
+│   │   ├── 📁 java/
+│   │   │   └── 📁 com/company/project/
+│   │   │       ├── 📁 ui/           🖼️ UI layer (Android best practice)
+│   │   │       │   ├── 📁 main/     🏠 Main activity
+│   │   │       │   │   ├── 📄 MainActivity.java 🏠 Main activity
+│   │   │       │   │   └── 📄 MainViewModel.java 🧠 Main view model
+│   │   │       │   ├── 📁 auth/     🔐 Authentication feature
+│   │   │       │   │   ├── 📄 LoginActivity.java 🔑 Login activity
+│   │   │       │   │   ├── 📄 LoginViewModel.java 🧠 Login view model
+│   │   │       │   │   ├── 📄 RegisterActivity.java 📝 Register activity
+│   │   │       │   │   └── 📄 RegisterViewModel.java 🧠 Register view model
+│   │   │       │   └── 📁 [feature]/ 🎯 Other features
+│   │   │       │       ├── 📄 [Feature]Activity.java 🎯 Feature activity
+│   │   │       │       └── 📄 [Feature]ViewModel.java 🧠 Feature view model
+│   │   │       ├── 📁 data/         💾 Data layer (Android best practice)
+│   │   │       │   ├── 📁 repository/ 📚 Repository pattern
+│   │   │       │   │   ├── 📄 UserRepository.java 👤 User repository
+│   │   │       │   │   └── 📄 [Feature]Repository.java 🎯 Feature repository
+│   │   │       │   ├── 📁 local/    💾 Local data sources
+│   │   │       │   │   ├── 📁 database/ 🗄️ Room database
+│   │   │       │   │   │   ├── 📄 AppDatabase.java 🗄️ Database class
+│   │   │       │   │   │   ├── 📁 entities/ 📊 Database entities
+│   │   │       │   │   │   │   ├── 📄 User.java 👤 User entity
+│   │   │       │   │   │   │   └── 📄 [Feature].java 🎯 Feature entity
+│   │   │       │   │   │   └── 📁 dao/ 🔍 Data Access Objects
+│   │   │       │   │   │       └── 📄 UserDao.java 👤 User DAO
+│   │   │       │   │   └── 📁 preferences/ ⚙️ Shared preferences
+│   │   │       │   │       └── 📄 SharedPreferencesManager.java ⚙️ Prefs manager
+│   │   │       │   └── 📁 remote/   🌐 Remote data sources
+│   │   │       │       ├── 📁 api/  🌐 API services
+│   │   │       │       │   ├── 📄 ApiService.java 🌐 Main API service
+│   │   │       │       │   ├── 📄 AuthApiService.java 🔐 Auth API service
+│   │   │       │       │   └── 📄 [Feature]ApiService.java 🎯 Feature API
+│   │   │       │       └── 📁 dto/  📦 Data Transfer Objects
+│   │   │       │           ├── 📄 UserDto.java 👤 User DTO
+│   │   │       │           └── 📄 [Feature]Dto.java 🎯 Feature DTO
+│   │   │       ├── 📁 domain/       🎯 Domain layer (Android best practice)
+│   │   │       │   ├── 📁 model/    📊 Domain models
+│   │   │       │   │   ├── 📄 User.java 👤 User model
+│   │   │       │   │   └── 📄 [Feature].java 🎯 Feature model
+│   │   │       │   ├── 📁 usecase/  ⚙️ Use cases
+│   │   │       │   │   ├── 📄 LoginUseCase.java 🔑 Login use case
+│   │   │       │   │   └── 📄 [Feature]UseCase.java 🎯 Feature use case
+│   │   │       │   └── 📁 repository/ 📚 Repository interfaces
+│   │   │       │       └── 📄 UserRepository.java 👤 User repository interface
+│   │   │       ├── 📁 di/           💉 Dependency injection (Android best practice)
+│   │   │       │   ├── 📄 AppModule.java 📱 App module
+│   │   │       │   ├── 📄 NetworkModule.java 🌐 Network module
+│   │   │       │   ├── 📄 DatabaseModule.java 🗄️ Database module
+│   │   │       │   └── 📄 ViewModelModule.java 🧠 ViewModel module
+│   │   │       └── 📁 utils/        🛠️ Utility classes
+│   │   │           ├── 📄 Constants.java 📋 App constants
+│   │   │           ├── 📄 Extensions.java 🔧 Kotlin extensions
+│   │   │           └── 📄 DateUtils.java 📅 Date utilities
+│   │   ├── 📁 res/                  📦 Resources (Android standard)
+│   │   │   ├── 📁 layout/           🖼️ Layout files
+│   │   │   │   ├── 📄 activity_main.xml 🏠 Main activity layout
+│   │   │   │   ├── 📄 activity_login.xml 🔑 Login activity layout
+│   │   │   │   ├── 📄 fragment_[feature].xml 🎯 Feature fragment layout
+│   │   │   │   └── 📄 item_[feature].xml 📋 Feature list item layout
+│   │   │   ├── 📁 values/           📋 Values (Android standard)
+│   │   │   │   ├── 📄 strings.xml   📝 String resources
+│   │   │   │   ├── 📄 colors.xml    🎨 Color resources
+│   │   │   │   ├── 📄 dimens.xml    📏 Dimension resources
+│   │   │   │   ├── 📄 styles.xml    🎨 Style resources
+│   │   │   │   └── 📄 themes.xml    🎨 Theme resources
+│   │   │   ├── 📁 drawable/         🎨 Drawable resources
+│   │   │   │   ├── 📄 ic_launcher.xml 🎯 App launcher icon
+│   │   │   │   ├── 📄 background.xml 🖼️ Background drawable
+│   │   │   │   └── 📄 button_selector.xml 🔘 Button selector
+│   │   │   ├── 📁 mipmap/           🎯 App icons
+│   │   │   │   ├── 📁 ic_launcher/  🎯 Launcher icon set
+│   │   │   │   └── 📁 ic_launcher_round/ 🔵 Round launcher icon
+│   │   │   └── 📁 values-[qualifier]/ 📱 Resource qualifiers
+│   │   │       ├── 📁 values-land/  📱 Landscape orientation
+│   │   │       ├── 📁 values-sw600dp/ 📱 Tablet screens
+│   │   │       ├── 📁 values-night/ 🌙 Dark theme
+│   │   │       └── 📁 values-v21/   📱 API 21+ specific
+│   │   └── 📄 AndroidManifest.xml   📋 App manifest
+│   └── 📁 test/                     🧪 Unit tests (Android standard)
+│       └── 📁 java/
+│           └── 📁 com/company/project/
+│               ├── 📁 ui/           🖼️ UI tests
+│               ├── 📁 data/         💾 Data tests
+│               └── 📁 domain/       🎯 Domain tests
+├── 📁 data/                         💾 Data module (Android best practice)
+│   ├── 📁 src/main/java/
+│   └── 📄 build.gradle
+├── 📁 domain/                       🎯 Domain module (Android best practice)
+│   ├── 📁 src/main/java/
+│   └── 📄 build.gradle
+├── 📄 build.gradle                  ⚙️ App module build file
+└── 📄 proguard-rules.pro            🔒 ProGuard rules
+
+📁 gradle/                           ⚙️ Gradle wrapper (Android standard)
+├── 📁 wrapper/
+│   ├── 📄 gradle-wrapper.jar       ⚙️ Gradle wrapper JAR
+│   └── 📄 gradle-wrapper.properties ⚙️ Gradle wrapper properties
+└── 📄 gradle.properties             ⚙️ Gradle properties
+
+📄 build.gradle                      ⚙️ Project build file
+📄 settings.gradle                   ⚙️ Project settings
+📄 gradlew                          ⚙️ Gradle wrapper script (Unix)
+📄 gradlew.bat                      ⚙️ Gradle wrapper script (Windows)
 \`\`\`
-src/
-├── components/                   # Reusable UI components (industry standard)
-│   ├── common/                  # Shared components
-│   └── [feature-name]/          # Feature-specific components
-├── screens/                      # Screen components (React Native standard)
-│   └── [feature-screens]/      # Feature screens
-├── navigation/                   # Navigation setup (React Navigation)
-├── services/                     # API services (industry standard)
-│   └── [feature-services]/     # Feature services
-├── models/                       # Data models
-├── utils/                        # Utility functions
-├── hooks/                        # Custom React hooks (industry standard)
-└── constants/                    # App constants
 
-ios/                              # iOS-specific code (React Native standard)
-android/                          # Android-specific code (React Native standard)
+## ⚠️ **Critical Android Rules**
+- 🏗️ **Organize by modules** (app, data, domain) for better separation
+- 🧠 **Use MVVM architecture** with ViewModels
+- 📦 **Structure packages by feature**: com.company.app.feature.login
+- 📱 **Use resource qualifiers** for different configurations
+- ⚙️ **Leverage Gradle** for dependency management
+- 📝 **Follow Android naming conventions** (camelCase for Java, snake_case for XML)
+- 🧪 **Comprehensive testing** at all levels
+- 🌍 **Support localization** from the start`,
+
+      'react-native': `⚛️ **REACT NATIVE PROJECT STRUCTURE** - Design the EXACT React Native structure for: **${featureName}**
+
+> **Industry Best Practices for React/TypeScript Web Applications**
+
+## 📋 **Core Standards**
+- ✅ Next.js 14+ App Router pattern (app/ directory)
+- ✅ API routes in app/api/v1/ (prevents conflicts)
+- ✅ Feature-based component organization
+- ✅ Service layer for business logic separation
+- ✅ Comprehensive testing strategy
+- ✅ OpenAPI specifications for contracts
+
+## 🏗️ **Project Structure**
+
+\`\`\`text
+📁 src/
+├── 📁 lib/[feature-name]/           🎨 Feature library (industry standard)
+│   ├── 📁 components/               🧩 Reusable UI components
+│   │   ├── 📁 common/              🔄 Shared components
+│   │   ├── 📁 forms/               📝 Form components
+│   │   └── 📁 layout/              🎨 Layout components
+│   ├── 📁 services/                🔧 Business logic layer
+│   │   ├── 📁 api/                 🌐 API service layer
+│   │   ├── 📁 utils/               🛠️ Utility functions
+│   │   └── 📁 types/               📝 TypeScript definitions
+│   ├── 📁 hooks/                   🎣 Custom React hooks
+│   ├── 📁 constants/               📋 Application constants
+│   └── 📁 __tests__/               🧪 Feature tests
+│       ├── 📁 components/          🧩 Component tests
+│       ├── 📁 services/            🔧 Service tests
+│       └── 📁 integration/         🔗 Integration tests
+
+📁 app/                              🏠 Next.js App Router (industry standard)
+├── 📁 api/                          🌐 API routes
+│   └── 📁 v1/                      📡 API version 1
+│       └── 📁 [feature]/           🎯 Feature endpoints
+│           ├── 📄 route.ts         🛣️ API route handler
+│           └── 📄 types.ts         📝 API types
+├── 📁 (dashboard)/                  📊 Route groups (App Router feature)
+│   └── 📁 [feature-pages]/         📄 Feature pages
+│       ├── 📄 page.tsx             🏠 Main page
+│       ├── 📄 loading.tsx          ⏳ Loading UI
+│       └── 📄 error.tsx            ❌ Error UI
+├── 📄 globals.css                   🎨 Global styles + Tailwind CSS
+├── 📄 layout.tsx                    🏗️ Root layout
+└── 📄 page.tsx                      🏠 Home page
+
+📁 config/                           ⚙️ Configuration files
+├── 📄 tailwind.config.js            🎨 Tailwind CSS configuration
+├── 📄 postcss.config.js             🔧 PostCSS configuration
+└── 📄 next.config.js                ⚙️ Next.js configuration
+
+📁 public/                           📁 Static assets (industry standard)
+├── 📁 icons/                        🎨 App icons
+│   ├── 📄 favicon.ico              🌟 Favicon
+│   └── 📄 apple-touch-icon.png     🍎 Apple touch icon
+├── 📁 images/                       🖼️ Images
+│   ├── 📁 [feature]/               📁 Feature images
+│   └── 📄 logo.svg                 🏷️ Logo
+└── 📁 manifest.json                 📱 PWA manifest
+
+📁 docs/                             📚 Documentation
+├── 📄 README.md                     📖 Project documentation
+├── 📄 API.md                        🌐 API documentation
+├── 📄 DEPLOYMENT.md                 🚀 Deployment guide
+└── 📁 openapi/                      📋 OpenAPI specifications
+    └── 📄 [feature]-api.yaml       📝 API specification
+
+📁 __tests__/                        🧪 Global tests
+├── 📁 e2e/                         🌐 End-to-end tests
+│   ├── 📄 [feature].e2e.test.ts   🧪 E2E test files
+│   └── 📄 setup.ts                 ⚙️ E2E test setup
+├── 📁 integration/                 🔗 Integration tests
+│   └── 📄 [feature].integration.test.ts 🧪 Integration test files
+└── 📁 setup/                       ⚙️ Test configuration
+    ├── 📄 jest.config.js           🧪 Jest configuration
+    ├── 📄 jest.e2e.config.js       🌐 E2E Jest configuration
+    └── 📄 test-utils.tsx           🛠️ Test utilities
+
+📄 package.json                      📦 Dependencies & scripts
+📄 tsconfig.json                     ⚙️ TypeScript configuration
+📄 .eslintrc.js                      🔍 ESLint configuration
+📄 .prettierrc                       🎨 Prettier configuration
+📄 .gitignore                        🚫 Git ignore rules
+📄 .env.local                        🔐 Environment variables
+📄 .env.example                      📋 Environment template
+\`\`\`
+
+## 🎨 **CSS Framework Configuration (CRITICAL)**
+
+### **Tailwind CSS Setup**
+\`\`\`javascript
+// tailwind.config.js
+module.exports = {
+  content: [
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#3B82F6',
+        secondary: '#10B981',
+        accent: '#F59E0B',
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+    },
+  },
+  plugins: [],
+};
+\`\`\`
+
+### **PostCSS Configuration**
+\`\`\`javascript
+// postcss.config.js
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+\`\`\`
+
+### **Global CSS Setup**
+\`\`\`css
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+  }
+}
+\`\`\`
+
+### **Next.js Configuration**
+\`\`\`javascript
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+  },
+  images: {
+    domains: ['localhost'],
+  },
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+};
+
+module.exports = nextConfig;
+\`\`\`
+
+## ⚠️ **Critical Next.js Rules**
+- 🎨 **CSS Framework First**: Always configure Tailwind CSS before generating UI components
+- 🏗️ **App Router Pattern**: Use app/ directory structure (Next.js 13+)
+- 📱 **Mobile-First Design**: Start with mobile layouts, then desktop
+- 🔧 **TypeScript Strict**: Enable strict mode for better type safety
+- 🧪 **Test Coverage**: Minimum 80% coverage for all components
+- 🌐 **API Versioning**: Use /api/v1/ for all API routes
+- 📦 **Feature Modules**: Organize by feature, not by file type
+- 🎯 **Performance**: Optimize for Core Web Vitals
+- 🔒 **Security**: Implement proper authentication and authorization
+- 📱 **PWA Ready**: Include manifest.json and service worker
+
+## 🚀 **Quick Start Commands**
+\`\`\`bash
+# Install dependencies
+npm install
+
+# Install Tailwind CSS
+npm install -D tailwindcss postcss autoprefixer
+
+# Initialize Tailwind
+npx tailwindcss init -p
+
+# Run development server
+npm run dev
+
+# Run tests
+npm test
+
+# Run E2E tests
+npm run test:e2e
+
+# Build for production
+npm run build
 \`\`\``,
 
-      'java-spring': `🚨 MANDATORY JAVA SPRING PROJECT STRUCTURE: Design the EXACT Java Spring Boot structure for: ${featureName}. Follow Maven/Gradle industry standards.
+      'java-spring': `☕ **JAVA SPRING PROJECT STRUCTURE** - Design the EXACT Java Spring Boot structure for: **${featureName}**
 
-**INDUSTRY STANDARDS FOR JAVA SPRING:**
-- Maven/Gradle directory layout (industry standard)
-- Package structure reflecting domain hierarchy
-- Separation of concerns (Controller/Service/Repository)
-- Test structure mirroring main structure
+> **Maven/Gradle Industry Standards & Spring Best Practices**
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-src/
-├── main/
-│   ├── java/
-│   │   └── com/company/project/
-│   │       ├── controller/        # REST controllers (Spring standard)
-│   │       ├── service/           # Business logic (Spring standard)
-│   │       ├── repository/       # Data access (Spring standard)
-│   │       ├── model/             # Data models
-│   │       ├── config/            # Configuration classes
-│   │       ├── dto/               # Data Transfer Objects
-│   │       └── util/              # Utility classes
-│   └── resources/
-│       ├── application.yml        # Configuration (Spring standard)
-│       ├── static/                # Static resources
-│       └── templates/             # Templates
-└── test/
-    ├── java/                      # Test classes (mirrors main structure)
-    └── resources/                 # Test resources
+## 📋 **Core Standards**
+- ✅ Maven/Gradle dependency management
+- ✅ Spring Boot auto-configuration
+- ✅ RESTful API design patterns
+- ✅ Service layer architecture
+- ✅ Repository pattern for data access
+- ✅ Comprehensive testing strategy
 
-pom.xml                           # Maven configuration (industry standard)
-\`\`\``,
+## 🏗️ **Project Structure**
 
-      'python-django': `🚨 MANDATORY PYTHON DJANGO PROJECT STRUCTURE: Design the EXACT Django structure for: ${featureName}. Follow Django industry best practices.
+\`\`\`text
+📁 src/
+├── 📁 components/                   🧩 Reusable UI components (industry standard)
+│   ├── 📁 common/                  🔄 Shared components
+│   │   ├── 📄 Button.tsx           🔘 Custom button component
+│   │   ├── 📄 Input.tsx            📝 Custom input component
+│   │   ├── 📄 Card.tsx             🃏 Card component
+│   │   └── 📄 LoadingSpinner.tsx   ⏳ Loading spinner
+│   └── 📁 [feature-name]/          🎯 Feature-specific components
+│       ├── 📄 [Feature]Card.tsx    🃏 Feature card component
+│       └── 📄 [Feature]List.tsx    📋 Feature list component
+├── 📁 screens/                      📱 Screen components (React Native standard)
+│   ├── 📁 auth/                     🔐 Authentication screens
+│   │   ├── 📄 LoginScreen.tsx       🔑 Login screen
+│   │   ├── 📄 RegisterScreen.tsx    📝 Register screen
+│   │   └── 📄 ForgotPasswordScreen.tsx 🔄 Forgot password screen
+│   └── 📁 [feature-screens]/        🎯 Feature screens
+│       ├── 📄 [Feature]HomeScreen.tsx 🏠 Feature home screen
+│       └── 📄 [Feature]DetailScreen.tsx 📄 Feature detail screen
+├── 📁 navigation/                   🧭 Navigation setup (React Navigation)
+│   ├── 📄 AppNavigator.tsx          🧭 Main app navigator
+│   ├── 📄 AuthNavigator.tsx         🔐 Auth stack navigator
+│   ├── 📄 TabNavigator.tsx          📱 Tab navigator
+│   └── 📄 [Feature]Navigator.tsx    🎯 Feature navigator
+├── 📁 services/                     🌐 API services (industry standard)
+│   ├── 📄 api.ts                    🌐 Main API service
+│   ├── 📄 authService.ts            🔐 Authentication service
+│   └── 📁 [feature-services]/       🎯 Feature services
+│       └── 📄 [Feature]Service.ts   🎯 Feature API service
+├── 📁 models/                       📊 Data models
+│   ├── 📄 User.ts                   👤 User model
+│   ├── 📄 [Feature].ts              🎯 Feature model
+│   └── 📄 types.ts                  🔧 TypeScript types
+├── 📁 utils/                        🛠️ Utility functions
+│   ├── 📄 validation.ts             ✅ Validation utilities
+│   ├── 📄 dateUtils.ts              📅 Date utilities
+│   └── 📄 storage.ts                💾 AsyncStorage utilities
+├── 📁 hooks/                        🎣 Custom React hooks (industry standard)
+│   ├── 📄 useAuth.ts                🔐 Authentication hook
+│   ├── 📄 useApi.ts                 🌐 API hook
+│   └── 📄 use[Feature].ts           🎯 Feature-specific hook
+├── 📁 constants/                    📋 App constants
+│   ├── 📄 colors.ts                 🎨 Color constants
+│   ├── 📄 dimensions.ts             📏 Dimension constants
+│   ├── 📄 apiEndpoints.ts           🌐 API endpoints
+│   └── 📄 config.ts                 ⚙️ App configuration
+└── 📁 assets/                       📦 Static assets
+    ├── 📁 images/                   🖼️ Image assets
+    ├── 📁 icons/                    🎯 Icon assets
+    └── 📁 fonts/                    🔤 Font assets
 
-**INDUSTRY STANDARDS FOR DJANGO:**
-- App-based modular structure (Django standard)
-- Separation of concerns (models/views/urls)
-- Settings for different environments
-- Static files organization
+📁 ios/                              🍎 iOS-specific code (React Native standard)
+├── 📁 [ProjectName]/                📱 iOS project files
+├── 📁 [ProjectName].xcodeproj       📱 Xcode project
+└── 📄 Podfile                       📦 CocoaPods dependencies
 
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-project_name/
-├── settings/                     # Settings for different environments
-│   ├── __init__.py
-│   ├── base.py                   # Base settings
-│   ├── development.py            # Development settings
-│   ├── production.py             # Production settings
-│   └── testing.py                # Testing settings
-├── [feature_app]/                # Feature-specific Django app
-│   ├── migrations/               # Database migrations
-│   ├── templates/                # Templates
-│   ├── static/                   # Static files
-│   ├── models.py                 # Data models
-│   ├── views.py                  # Views
-│   ├── urls.py                   # URL patterns
-│   ├── admin.py                  # Admin interface
-│   ├── forms.py                  # Forms
-│   └── tests.py                  # Tests
-├── manage.py                     # Django management script
-├── requirements.txt              # Dependencies (industry standard)
-└── README.md                     # Documentation
-\`\`\``,
+📁 android/                          🤖 Android-specific code (React Native standard)
+├── 📁 app/                          📱 Android app module
+├── 📁 gradle/                       ⚙️ Gradle configuration
+└── 📄 build.gradle                  ⚙️ Build configuration
 
-      'nodejs-express': `🚨 MANDATORY NODE.JS EXPRESS PROJECT STRUCTURE: Design the EXACT Node.js/Express structure for: ${featureName}. Follow industry best practices for Node.js applications.
+📁 __tests__/                        🧪 Test files
+├── 📁 components/                   🧩 Component tests
+├── 📁 screens/                      📱 Screen tests
+└── 📁 services/                     🌐 Service tests
 
-**INDUSTRY STANDARDS FOR NODE.JS:**
-- MVC pattern with clear separation
-- Middleware organization
-- Environment-based configuration
-- Test structure mirroring source structure
-
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-src/
-├── controllers/                  # Route controllers (Express standard)
-│   └── [feature-controllers]/   # Feature controllers
-├── services/                     # Business logic (industry standard)
-│   └── [feature-services]/      # Feature services
-├── models/                       # Data models
-│   └── [feature-models]/        # Feature models
-├── middleware/                   # Express middleware
-├── routes/                       # API routes
-│   └── [feature-routes]/        # Feature routes
-├── utils/                        # Utility functions
-├── config/                       # Configuration (industry standard)
-│   ├── database.js               # Database config
-│   ├── environment.js            # Environment config
-│   └── index.js                  # Main config
-└── index.js                      # Application entry point
-
-tests/                            # Test suites (mirrors src structure)
-├── unit/                         # Unit tests
-├── integration/                  # Integration tests
-└── e2e/                          # End-to-end tests
-
-package.json                      # Dependencies (industry standard)
-\`\`\``,
-
-      'go': `🚨 MANDATORY GO PROJECT STRUCTURE: Design the EXACT Go project structure for: ${featureName}. Follow Go community best practices and industry standards.
-
-**INDUSTRY STANDARDS FOR GO:**
-- Use cmd/ for main applications (Go community standard)
-- Use internal/ for private application code (Go standard)
-- Use pkg/ for reusable library code (Go standard)
-- Define interfaces where consumed, not implemented (Go best practice)
-- Embrace dependency injection patterns (Go best practice)
-
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
-\`\`\`
-cmd/                              # Main applications (Go community standard)
-├── api/                          # API server executable
-│   └── main.go                   # API server entry point
-├── worker/                       # Background worker executable
-│   └── main.go                   # Worker entry point
-└── cli/                          # CLI tool executable
-    └── main.go                   # CLI entry point
-
-internal/                         # Private application code (Go standard)
-├── handlers/                     # HTTP handlers
-│   ├── user.go                  # User HTTP handlers
-│   └── [feature]_handler.go    # Feature handlers
-├── services/                     # Business logic services
-│   ├── user_service.go          # User business logic
-│   └── [feature]_service.go     # Feature services
-├── repository/                   # Data access layer
-│   ├── user_repository.go        # User data access
-│   └── [feature]_repository.go  # Feature repositories
-├── models/                       # Data models
-│   ├── user.go                  # User model
-│   └── [feature].go             # Feature models
-├── middleware/                   # HTTP middleware
-│   ├── auth.go                  # Authentication middleware
-│   └── logging.go               # Logging middleware
-└── config/                       # Configuration
-    ├── config.go                # Configuration structs
-    └── env.go                   # Environment variables
-
-pkg/                              # Reusable library code (Go standard)
-├── logger/                       # Logging utilities
-│   └── logger.go                # Logger implementation
-├── database/                     # Database utilities
-│   └── connection.go            # Database connection
-└── utils/                        # Utility functions
-    └── helpers.go                # Helper functions
-
-configs/                          # Configuration files (Go best practice)
-├── dev.yaml                     # Development config
-├── prod.yaml                    # Production config
-└── test.yaml                    # Test config
-
-docs/                             # Documentation (Go best practice)
-├── api.md                       # API documentation
-├── architecture.md              # Architecture documentation
-└── README.md                    # Project documentation
-
-migrations/                       # Database migrations (Go best practice)
-├── 001_create_users_table.sql   # User table migration
-└── 002_add_[feature]_table.sql  # Feature table migration
-
-scripts/                          # Build and deployment scripts
-├── build.sh                     # Build script
-├── deploy.sh                    # Deployment script
-└── test.sh                      # Test script
-
-tests/                           # Test suites (Go best practice)
-├── integration/                 # Integration tests
-│   └── [feature]_test.go       # Feature integration tests
-├── e2e/                         # End-to-end tests
-│   └── [feature]_e2e_test.go   # Feature E2E tests
-└── unit/                        # Unit tests
-    └── [feature]_unit_test.go  # Feature unit tests
-
-Makefile                         # Build automation (Go best practice)
-go.mod                           # Go module definition (Go standard)
-go.sum                           # Go module checksums (Go standard)
+📄 package.json                      📦 Dependencies
+📄 metro.config.js                   ⚙️ Metro bundler config
+📄 babel.config.js                   ⚙️ Babel configuration
+📄 tsconfig.json                     ⚙️ TypeScript configuration
+📄 .eslintrc.js                      ⚙️ ESLint configuration
+📄 tailwind.config.js                🎨 NativeWind configuration
+📄 src/global.css                    🎨 Global styles + NativeWind
 \`\`\`
 
-**CRITICAL GO RULES:**
-- Use cmd/ for executables, internal/ for private code, pkg/ for reusable libraries
-- Define interfaces in the package where they're consumed (not implemented)
-- Use dependency injection for better testability
-- Follow Go naming conventions (camelCase for private, PascalCase for public)
-- Use go.mod for dependency management`,
+## 🎨 **CSS Framework Configuration (NativeWind)**
 
-      'multi-language': `🚨 MANDATORY MULTI-LANGUAGE PROJECT STRUCTURE: Design the EXACT multi-language structure for: ${featureName}. Follow industry best practices for polyglot applications.
-
-**INDUSTRY STANDARDS FOR MULTI-LANGUAGE:**
-- Separate directories for each language
-- Shared resources and documentation
-- Language-specific build tools
-- Unified testing strategy
-
-**MANDATORY INDUSTRY-ALIGNED STRUCTURE:**
+### **NativeWind Setup**
+\`\`\`javascript
+// tailwind.config.js
+module.exports = {
+  content: [
+    './src/**/*.{js,ts,jsx,tsx}',
+    './App.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#3B82F6',
+        secondary: '#10B981',
+        accent: '#F59E0B',
+      },
+    },
+  },
+  plugins: [],
+};
 \`\`\`
-src/
-├── main/
-│   ├── java/                     # Java source code
-│   │   └── com/company/project/
-│   ├── python/                   # Python source code
-│   │   └── project_name/
-│   ├── javascript/               # JavaScript/TypeScript source code
-│   │   └── src/
-│   ├── go/                       # Go source code
-│   │   ├── cmd/                  # Go executables
-│   │   ├── internal/             # Go private code
-│   │   └── pkg/                  # Go reusable libraries
-│   └── shared/                   # Shared resources
-│       ├── schemas/              # Shared data schemas
-│       ├── docs/                 # Shared documentation
-│       └── config/               # Shared configuration
-├── test/
-│   ├── java/                     # Java tests
-│   ├── python/                   # Python tests
-│   ├── javascript/               # JavaScript tests
-│   └── go/                       # Go tests
-├── build/                        # Build artifacts
-├── libs/                         # External libraries
-└── README.md                     # Project documentation
-\`\`\``
 
+### **Metro Configuration**
+\`\`\`javascript
+// metro.config.js
+const { getDefaultConfig } = require('expo/metro-config');
+const { withNativeWind } = require('nativewind/metro');
+
+const config = getDefaultConfig(__dirname);
+
+module.exports = withNativeWind(config, { input: './src/global.css' });
+\`\`\`
+
+### **Global CSS Setup**
+\`\`\`css
+/* src/global.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+\`\`\`
+
+### **App.tsx Integration**
+\`\`\`typescript
+// App.tsx
+import './src/global.css';
+import { NavigationContainer } from '@react-navigation/native';
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      {/* Your app content */}
+    </NavigationContainer>
+  );
+}
+\`\`\`
+
+## ⚠️ **Critical React Native Rules**
+- 🎯 **Feature-based organization** for maintainability
+- 📱 **Platform-specific code** in ios/ and android/ directories
+- 🧭 **Use React Navigation** for navigation patterns
+- 🎣 **Custom hooks** for reusable logic
+- 🌐 **Service layer** for API communication
+- 🧪 **Comprehensive testing** at all levels
+- 📱 **Platform-specific optimizations** for iOS and Android`,
+
+      'python-django': `🐍 **PYTHON DJANGO PROJECT STRUCTURE** - Design the EXACT Django structure for: **${featureName}**
+
+> **Django Best Practices & Python Standards**
+
+## 📋 **Core Standards**
+- ✅ Django project structure (industry standard)
+- ✅ Virtual environment management
+- ✅ Settings configuration for different environments
+- ✅ Model-View-Template (MVT) pattern
+- ✅ Django REST framework for APIs
+- ✅ Comprehensive testing strategy
+
+## 🏗️ **Project Structure**
+
+\`\`\`text
+📁 src/
+├── 📁 main/
+│   ├── 📁 java/
+│   │   └── 📁 com/company/project/
+│   │       ├── 📁 controller/        🌐 REST controllers (Spring standard)
+│   │       │   ├── 📄 UserController.java 👤 User REST controller
+│   │       │   ├── 📄 AuthController.java 🔐 Auth REST controller
+│   │       │   └── 📄 [Feature]Controller.java 🎯 Feature controller
+│   │       ├── 📁 service/           ⚙️ Business logic (Spring standard)
+│   │       │   ├── 📄 UserService.java 👤 User business logic
+│   │       │   ├── 📄 AuthService.java 🔐 Auth business logic
+│   │       │   └── 📄 [Feature]Service.java 🎯 Feature service
+│   │       ├── 📁 repository/        💾 Data access (Spring standard)
+│   │       │   ├── 📄 UserRepository.java 👤 User data access
+│   │       │   ├── 📄 AuthRepository.java 🔐 Auth data access
+│   │       │   └── 📄 [Feature]Repository.java 🎯 Feature repository
+│   │       ├── 📁 model/             📊 Data models
+│   │       │   ├── 📄 User.java      👤 User entity
+│   │       │   ├── 📄 [Feature].java 🎯 Feature entity
+│   │       │   └── 📄 BaseEntity.java 📋 Base entity class
+│   │       ├── 📁 config/            ⚙️ Configuration classes
+│   │       │   ├── 📄 DatabaseConfig.java 🗄️ Database configuration
+│   │       │   ├── 📄 SecurityConfig.java 🔒 Security configuration
+│   │       │   └── 📄 WebConfig.java 🌐 Web configuration
+│   │       ├── 📁 dto/               📦 Data Transfer Objects
+│   │       │   ├── 📄 UserDto.java   👤 User DTO
+│   │       │   ├── 📄 LoginDto.java  🔑 Login DTO
+│   │       │   └── 📄 [Feature]Dto.java 🎯 Feature DTO
+│   │       ├── 📁 exception/         ❌ Exception handling
+│   │       │   ├── 📄 GlobalExceptionHandler.java 🌐 Global exception handler
+│   │       │   ├── 📄 UserNotFoundException.java 👤 User not found exception
+│   │       │   └── 📄 [Feature]Exception.java 🎯 Feature exception
+│   │       ├── 📁 security/          🔒 Security components
+│   │       │   ├── 📄 JwtUtil.java   🔑 JWT utility
+│   │       │   └── 📄 SecurityFilter.java 🔒 Security filter
+│   │       └── 📁 util/              🛠️ Utility classes
+│   │           ├── 📄 DateUtils.java 📅 Date utilities
+│   │           └── 📄 ValidationUtils.java ✅ Validation utilities
+│   └── 📁 resources/
+│       ├── 📄 application.yml        ⚙️ Configuration (Spring standard)
+│       ├── 📄 application-dev.yml    🛠️ Development configuration
+│       ├── 📄 application-prod.yml   🚀 Production configuration
+│       ├── 📁 static/                📁 Static resources
+│       │   ├── 📁 css/               🎨 CSS files
+│       │   ├── 📁 js/                📜 JavaScript files
+│       │   └── 📁 images/            🖼️ Image files
+│       ├── 📁 templates/             📄 Templates
+│       │   └── 📄 index.html         🏠 Main template
+│       └── 📁 db/migration/          🗄️ Database migrations
+│           ├── 📄 V1__Create_users_table.sql 👤 Create users table
+│           └── 📄 V2__Create_[feature]_table.sql 🎯 Create feature table
+└── 📁 test/
+    ├── 📁 java/                      🧪 Test classes (mirrors main structure)
+    │   └── 📁 com/company/project/
+    │       ├── 📁 controller/        🌐 Controller tests
+    │       │   └── 📄 UserControllerTest.java 👤 User controller test
+    │       ├── 📁 service/           ⚙️ Service tests
+    │       │   └── 📄 UserServiceTest.java 👤 User service test
+    │       ├── 📁 repository/        💾 Repository tests
+    │       │   └── 📄 UserRepositoryTest.java 👤 User repository test
+    │       └── 📁 integration/       🔗 Integration tests
+    │           └── 📄 [Feature]IntegrationTest.java 🎯 Feature integration test
+    └── 📁 resources/                 📦 Test resources
+        ├── 📄 application-test.yml   🧪 Test configuration
+        └── 📁 test-data/             📊 Test data files
+            └── 📄 test-users.json    👤 Test user data
+
+📄 pom.xml                           📦 Maven configuration (industry standard)
+📄 README.md                         📖 Project documentation
+📄 .gitignore                        🚫 Git ignore file
+📄 Dockerfile                        🐳 Docker configuration
+📄 docker-compose.yml                🐳 Docker Compose configuration
+\`\`\`
+
+## ⚠️ **Critical Java Spring Rules**
+- 🏗️ **Follow Maven/Gradle** directory layout exactly
+- 📦 **Package structure** reflecting domain hierarchy
+- 🎯 **Separation of concerns** (Controller/Service/Repository)
+- 🧪 **Test structure** mirroring main structure
+- ⚙️ **Configuration management** for different environments
+- 🔒 **Security configuration** from the start
+- 🗄️ **Database migrations** for schema management`,
+
+      'nodejs-express': `🟢 **NODE.JS EXPRESS PROJECT STRUCTURE** - Design the EXACT Node.js/Express structure for: **${featureName}**
+
+> **Node.js/Express Best Practices & JavaScript Standards**
+
+## 📋 **Core Standards**
+- ✅ Express.js framework structure
+- ✅ NPM package management
+- ✅ Environment variable configuration
+- ✅ RESTful API design patterns
+- ✅ Middleware architecture
+- ✅ Comprehensive testing strategy
+
+## 🏗️ **Project Structure**
+
+\`\`\`text
+📁 project_name/
+├── 📁 settings/                     ⚙️ Settings for different environments
+│   ├── 📄 __init__.py              📦 Package initialization
+│   ├── 📄 base.py                  ⚙️ Base settings
+│   ├── 📄 development.py           🛠️ Development settings
+│   ├── 📄 production.py            🚀 Production settings
+│   ├── 📄 testing.py               🧪 Testing settings
+│   └── 📄 local.py                 💻 Local development settings
+├── 📁 [feature_app]/                🎯 Feature-specific Django app
+│   ├── 📁 migrations/               🗄️ Database migrations
+│   │   ├── 📄 __init__.py          📦 Migrations package
+│   │   └── 📄 0001_initial.py      🗄️ Initial migration
+│   ├── 📁 templates/                📄 Templates
+│   │   └── 📁 [feature_app]/        🎯 Feature templates
+│   │       ├── 📄 [feature]_list.html 📋 Feature list template
+│   │       └── 📄 [feature]_detail.html 📄 Feature detail template
+│   ├── 📁 static/                   📁 Static files
+│   │   └── 📁 [feature_app]/        🎯 Feature static files
+│   │       ├── 📁 css/              🎨 CSS files
+│   │       ├── 📁 js/               📜 JavaScript files
+│   │       └── 📁 images/           🖼️ Image files
+│   ├── 📁 management/               ⚙️ Management commands
+│   │   └── 📁 commands/             🎯 Custom commands
+│   │       └── 📄 [feature]_command.py 🎯 Feature command
+│   ├── 📄 models.py                 📊 Data models
+│   ├── 📄 views.py                  🖼️ Views
+│   ├── 📄 urls.py                   🛣️ URL patterns
+│   ├── 📄 admin.py                  👨‍💼 Admin interface
+│   ├── 📄 forms.py                  📝 Forms
+│   ├── 📄 serializers.py            📦 API serializers
+│   ├── 📄 permissions.py            🔒 Permissions
+│   ├── 📄 signals.py                📡 Django signals
+│   ├── 📄 apps.py                   📱 App configuration
+│   └── 📄 tests.py                  🧪 Tests
+├── 📁 templates/                    📄 Global templates
+│   ├── 📄 base.html                 🏠 Base template
+│   ├── 📄 navbar.html               🧭 Navigation template
+│   └── 📄 footer.html               🦶 Footer template
+├── 📁 static/                       📁 Global static files
+│   ├── 📁 css/                      🎨 Global CSS
+│   ├── 📁 js/                       📜 Global JavaScript
+│   └── 📁 images/                   🖼️ Global images
+├── 📁 media/                        📁 Media files (user uploads)
+├── 📁 staticfiles/                  📁 Collected static files
+├── 📁 locale/                       🌍 Internationalization files
+├── 📁 logs/                         📝 Log files
+├── 📁 requirements/                 📦 Requirements files
+│   ├── 📄 base.txt                  📦 Base requirements
+│   ├── 📄 development.txt           🛠️ Development requirements
+│   ├── 📄 production.txt            🚀 Production requirements
+│   └── 📄 testing.txt               🧪 Testing requirements
+├── 📁 docs/                         📚 Documentation
+│   ├── 📄 README.md                 📖 Project documentation
+│   └── 📄 API.md                    🌐 API documentation
+├── 📄 manage.py                     ⚙️ Django management script
+├── 📄 requirements.txt              📦 Dependencies (industry standard)
+├── 📄 .env                          🔐 Environment variables
+├── 📄 .gitignore                    🚫 Git ignore file
+├── 📄 Dockerfile                    🐳 Docker configuration
+├── 📄 docker-compose.yml            🐳 Docker Compose configuration
+├── 📄 README.md                     📖 Project documentation
+└── 📄 wsgi.py                       🌐 WSGI configuration
+\`\`\`
+
+## ⚠️ **Critical Django Rules**
+- 🎯 **App-based modular structure** for maintainability
+- 🏗️ **Separation of concerns** (models/views/urls)
+- ⚙️ **Environment-specific settings** for different deployments
+- 📁 **Static files organization** for production
+- 🧪 **Comprehensive testing** at all levels
+- 🌍 **Internationalization support** from the start
+- 🔒 **Security best practices** implementation`,
+
+      'go': `🐹 **GO PROJECT STRUCTURE** - Design the EXACT Go project structure for: **${featureName}**
+
+> **Go Best Practices & Industry Standards**
+
+## 📋 **Core Standards**
+- ✅ Go module structure (go.mod)
+- ✅ Package organization following Go conventions
+- ✅ Interface-driven design
+- ✅ Error handling patterns
+- ✅ Testing with Go's built-in testing
+- ✅ Comprehensive documentation
+
+## 🏗️ **Project Structure**
+
+\`\`\`text
+📁 src/
+├── 📁 controllers/                  🌐 Route controllers (Express standard)
+│   ├── 📄 authController.js         🔐 Authentication controller
+│   ├── 📄 userController.js         👤 User controller
+│   └── 📁 [feature-controllers]/    🎯 Feature controllers
+│       └── 📄 [Feature]Controller.js 🎯 Feature controller
+├── 📁 services/                     ⚙️ Business logic (industry standard)
+│   ├── 📄 authService.js            🔐 Authentication service
+│   ├── 📄 userService.js            👤 User service
+│   └── 📁 [feature-services]/       🎯 Feature services
+│       └── 📄 [Feature]Service.js   🎯 Feature service
+├── 📁 models/                       📊 Data models
+│   ├── 📄 User.js                   👤 User model
+│   ├── 📄 [Feature].js              🎯 Feature model
+│   └── 📄 index.js                  📊 Models index
+├── 📁 middleware/                   🔧 Express middleware
+│   ├── 📄 auth.js                   🔐 Authentication middleware
+│   ├── 📄 validation.js             ✅ Validation middleware
+│   ├── 📄 errorHandler.js           ❌ Error handling middleware
+│   └── 📄 logging.js                📝 Logging middleware
+├── 📁 routes/                       🛣️ API routes
+│   ├── 📄 auth.js                   🔐 Authentication routes
+│   ├── 📄 user.js                   👤 User routes
+│   ├── 📄 index.js                  🛣️ Routes index
+│   └── 📁 [feature-routes]/         🎯 Feature routes
+│       └── 📄 [feature].js          🎯 Feature routes
+├── 📁 utils/                        🛠️ Utility functions
+│   ├── 📄 validation.js             ✅ Validation utilities
+│   ├── 📄 dateUtils.js              📅 Date utilities
+│   ├── 📄 crypto.js                 🔐 Cryptographic utilities
+│   └── 📄 helpers.js                🔧 Helper functions
+├── 📁 config/                       ⚙️ Configuration (industry standard)
+│   ├── 📄 database.js               🗄️ Database configuration
+│   ├── 📄 environment.js            🌍 Environment configuration
+│   ├── 📄 redis.js                  🔴 Redis configuration
+│   └── 📄 index.js                  ⚙️ Main configuration
+├── 📁 types/                        🔧 TypeScript type definitions
+│   ├── 📄 user.ts                   👤 User types
+│   ├── 📄 [feature].ts              🎯 Feature types
+│   └── 📄 index.ts                  🔧 Types index
+├── 📁 constants/                    📋 Application constants
+│   ├── 📄 statusCodes.js            📊 HTTP status codes
+│   ├── 📄 messages.js               💬 Response messages
+│   └── 📄 config.js                 ⚙️ Configuration constants
+└── 📄 index.js                      🚀 Application entry point
+
+📁 tests/                            🧪 Test suites (mirrors src structure)
+├── 📁 unit/                         ⚡ Unit tests
+│   ├── 📁 controllers/              🌐 Controller tests
+│   ├── 📁 services/                 ⚙️ Service tests
+│   └── 📁 utils/                    🛠️ Utility tests
+├── 📁 integration/                  🔗 Integration tests
+│   ├── 📁 api/                      🌐 API integration tests
+│   └── 📁 database/                 🗄️ Database integration tests
+├── 📁 e2e/                          🎭 End-to-end tests
+│   └── 📄 [feature].e2e.js          🎯 Feature E2E tests
+└── 📁 fixtures/                     📊 Test fixtures
+    └── 📄 testData.js               📊 Test data
+
+📁 docs/                             📚 Documentation
+├── 📄 README.md                     📖 Project documentation
+├── 📄 API.md                        🌐 API documentation
+└── 📁 architecture/                 🏗️ Architecture documentation
+
+📄 package.json                      📦 Dependencies (industry standard)
+📄 .env                              🔐 Environment variables
+📄 .env.example                      📋 Environment variables example
+📄 .gitignore                        🚫 Git ignore file
+📄 .eslintrc.js                      ⚙️ ESLint configuration
+📄 .prettierrc                       🎨 Prettier configuration
+📄 jest.config.js                    🧪 Jest configuration
+📄 nodemon.json                      🔄 Nodemon configuration
+📄 Dockerfile                        🐳 Docker configuration
+📄 docker-compose.yml                🐳 Docker Compose configuration
+\`\`\`
+
+## ⚠️ **Critical Node.js Express Rules**
+- 🏗️ **MVC pattern** with clear separation of concerns
+- 🔧 **Middleware organization** for reusable logic
+- 🌍 **Environment-based configuration** for different deployments
+- 🧪 **Test structure** mirroring source structure
+- 📦 **Dependency management** with package.json
+- 🔒 **Security best practices** implementation
+- 📝 **Comprehensive logging** and error handling`
     };
 
-    return platformInstructions[platform as keyof typeof platformInstructions] || platformInstructions['nextjs'];
+    return platformInstructions[platform] || platformInstructions['nextjs'];
   }
 
   private error(message: string) {

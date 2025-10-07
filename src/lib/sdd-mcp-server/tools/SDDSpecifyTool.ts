@@ -9,12 +9,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
 import { SpecificationTemplate } from '../templates/SpecificationTemplate.js';
-import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
+
 
 export class SDDSpecifyTool {
   private basePath: string;
   private db: RobustDatabaseService;
-
   private specTemplate: SpecificationTemplate;
 
   constructor(basePath: string = process.cwd(), db?: RobustDatabaseService) {
@@ -26,14 +25,19 @@ export class SDDSpecifyTool {
   /**
    * Initialize database if it doesn't exist
    * This ensures the database is created in the project root where the user is working
+   * SDDSpecifyTool is the primary template installer since it's typically called first
    */
   private async initializeDatabaseIfNeeded(): Promise<void> {
     try {
       // Touch the database to ensure schema is created
-      await this.db.get_all_features();
+      await this.db.get_all_features_robust();
       
-      // Install templates if needed
-      await this.ensureTemplatesInstalled();
+      // Check if templates exist, install if missing (SDDSpecifyTool is primary installer)
+      const specTemplate = await this.db.get_spec_template_robust('sdd-spec-perfect-v1');
+      if (!specTemplate) {
+        console.error('SDDSpecifyTool: Templates not found, installing all templates...');
+        await this.ensureTemplatesInstalled();
+      }
     } catch (error) {
       console.error('SDDSpecifyTool: Database initialization failed:', error);
       throw error;
@@ -45,30 +49,15 @@ export class SDDSpecifyTool {
    */
   private async ensureTemplatesInstalled(): Promise<void> {
     try {
-      // Check if we need to install templates
-      const needsTemplates = await this.checkIfTemplatesNeeded();
-      
-      if (needsTemplates) {  
-        await this.installTemplates();
-      }
+      console.error('SDDSpecifyTool: Installing all templates...');
+      await this.installTemplates();
+      console.error('SDDSpecifyTool: All templates installed successfully');
     } catch (error) {
-      console.error('SDDSpecifyTool: Error checking/installing templates:', error);
+      console.error('SDDSpecifyTool: Error installing templates:', error);
+      throw error;
     }
   }
 
-  /**
-   * Check if templates need to be installed
-   */
-  private async checkIfTemplatesNeeded(): Promise<boolean> {
-    try {
-      // Check if spec template exists
-      const specTemplate = await this.db.get_spec_template('sdd-spec-perfect-v1');
-      return !specTemplate;
-    } catch (error) {
-      // If we can't check, assume we need templates
-      return true;
-    }
-  }
 
   /**
    * Install templates from JSON files
@@ -108,8 +97,8 @@ export class SDDSpecifyTool {
         path.join(this.basePath, 'src', 'templates', fileName),
         path.join(this.basePath, fileName),
         path.join(this.basePath, 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName),
-        path.join('/usr/local/lib/sdd-mcp', 'templates', fileName),
-        path.join(process.cwd(), 'src', 'templates', fileName)
+        path.join(process.cwd(), 'src', 'templates', fileName),
+        path.join(process.cwd(), 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName)
       ];
 
       let templatePath = null;
@@ -147,7 +136,7 @@ export class SDDSpecifyTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'Create a feature specification from user input. Generates spec.md in specs/ folder. This is a standalone tool - do not call other tools after completion.',
+      description: 'Create a feature specification from user input. MUST create spec.md file in specs/ folder and save to database. This tool requires immediate file creation action.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -221,14 +210,16 @@ export class SDDSpecifyTool {
 
   async execute(input: any): Promise<any> {
     try {
+
       // Initialize database if needed (creates sdd.db in project root)
       await this.initializeDatabaseIfNeeded();
+
+   
       
       // Validate input
       const validatedInput = SpecifyInputSchema.parse(input);
-      // PROJECT_ROOT env var logged silently
 
-      // If no featureName provided, get the most recent feature from database
+   
       let featureName: string;
       let featureId: string;
       
@@ -236,6 +227,8 @@ export class SDDSpecifyTool {
         // Use provided featureName
         featureName = validatedInput.featureName;
         featureId = this.createFeatureId(featureName);
+    
+
       } else {
         // Get most recent feature from database
         const recentFeature = await this.getMostRecentFeature();
@@ -264,18 +257,18 @@ export class SDDSpecifyTool {
         featureName: featureName,
         platform: platform
       });
-
+     
       if (!fillResult.success) {
         return this.error(`Failed to prepare specification template: ${fillResult.error}`);
       }
-
+  
       // Validate constitutional gates compliance
       const gatesValidation = this.validateConstitutionalGates(platform, validatedInput.input, fillResult.data);
       if (!gatesValidation.valid) {
         return this.error(`Constitutional Gates Violation: ${gatesValidation.violations.join(', ')}. Please simplify your feature or document violations in Complexity Tracking.`);
       }
    
-      // Note: Specification will be saved via sdd_db_filler tool after filling
+      // Note: Specification will be saved via sdd_db_filler tool after AI fills the template
 
       // Extract template information for dynamic instructions
       const templateData = fillResult.data;
@@ -305,20 +298,28 @@ export class SDDSpecifyTool {
         `     * ${key}: ${principle}`
       ).join('\n');
 
+  
+
       const successMessage = `
-🚨 CRITICAL: You MUST create a spec.md file in specs/spec.md
+🚨🚨🚨 CRITICAL: YOU MUST CREATE THE spec.md FILE NOW! 🚨🚨🚨
 
-🚨 IMPORTANT: DO NOT call any other tools (sdd_plan, sdd_tasks, sdd_implement, etc.) after this. Only complete the specification creation task.
+🎯 SPECIFICATION TOOL OBJECTIVE:
+Create a comprehensive, production-ready specification document that serves as the single source of truth for your project. This specification will guide all subsequent planning, task creation, and implementation phases.
 
-🚨 CRITICAL: DO NOT create todo lists, task lists, or tracking lists. This is specification creation only.
+📋 WHAT THIS TOOL DOES:
+- Analyzes your input to extract requirements and technical context
+- Applies SDD methodology with constitutional gates and quality standards
+- Generates a structured specification following industry best practices
+- Creates a foundation for all future development phases
 
-🚨 FORBIDDEN: Do NOT say "Now I'll create a todo list" or similar phrases. Do NOT call sdd_plan tool. This is SPECIFICATION CREATION ONLY.
+⚠️  MANDATORY ACTION: You must create the spec.md file in specs/spec.md directory. Do not just acknowledge - ACTUALLY CREATE THE FILE!
 
 1. FEATURE DETAILS:
    1.1. Feature Name: ${featureName}
    1.2. Platform: ${platform.toUpperCase()}
+   1.3. Input Analysis: "${validatedInput.input.replace(/"/g, '\\"')}"
 
-2. ENHANCED SDD TEMPLATE PROVIDED:The specification template has been prepared with complete SDD compliance:
+2. TEMPLATE PREPARED WITH COMPREHENSIVE GUIDANCE:
    2.1. User input and context: "${validatedInput.input.replace(/"/g, '\\"')}"
    2.2. Platform-specific constitutional gates: ${platformSpecificGates.length > 0 ? platformSpecificGates.join(', ') : 'None'}
    2.3. Platform-specific quality gates: ${platformQualityGates.length > 0 ? platformQualityGates.join(', ') : 'None'}
@@ -330,26 +331,39 @@ ${constitutionalGatesList}
    2.8. Placeholder content ({{...}}) ready for AI generation
    2.9. Structured template following complete SDD methodology
 
-3. CURSOR AI TASKS (MANDATORY COMPLIANCE):
-   4.1. Process the template data provided to generate comprehensive specification
-   4.2. Replace placeholders ({{...}}) with generated content based on the specific instructions provided
-   4.3. DO NOT create todo lists, task lists, or tracking lists - this is specification creation only
-   4.4. DO NOT say "Now I'll create a todo list" or call sdd_plan tool - this is SPECIFICATION CREATION ONLY
-   4.5. Follow the EXACT specification template structure:
-      4.5.1. Feature Specification: [FEATURE NAME] header
-      4.5.2. User Scenarios & Testing (mandatory) section
-      4.5.3. Requirements (mandatory) with FR-001, FR-002, etc.
-      4.5.4. Key Entities section if data involved
-      4.5.5. Review & Acceptance Checklist
-      4.5.6. Execution Status (auto-maintained during /specify)
-   4.6. **MANDATORY TECH STACK EXTRACTION:**
-      4.6.1. Extract ALL technologies mentioned in the user input
-      4.6.2. Categorize technologies by type (frontend, backend, styling, charts, etc.)
-      4.6.3. Create comprehensive tech stack requirements section
-      4.6.4. Ensure NO technologies are added that weren't mentioned
-      4.6.5. Ensure NO technologies are omitted that were mentioned
-      4.6.6. **MANDATORY UI/INTERFACE STYLING**: Include styling frameworks and UI requirements
-      4.6.7. **MANDATORY UI-API INTEGRATION**: Ensure frontend connects to backend APIs
+3. DETAILED INSTRUCTIONS FOR CURSOR AI (MANDATORY COMPLIANCE):
+
+📝 SPECIFICATION CREATION PROCESS:
+   3.1. **ANALYZE INPUT**: Carefully analyze the user input to understand the complete feature requirements
+   3.2. **EXTRACT REQUIREMENTS**: Identify all functional and non-functional requirements
+   3.3. **DEFINE USER SCENARIOS**: Create comprehensive user stories and acceptance criteria
+   3.4. **IDENTIFY EDGE CASES**: Consider boundary conditions and error scenarios
+   3.5. **TECH STACK ANALYSIS**: Extract and categorize all mentioned technologies
+   3.6. **CONSTITUTIONAL COMPLIANCE**: Ensure all applicable gates are addressed
+
+🎯 MANDATORY SPECIFICATION STRUCTURE:
+   3.7. **Feature Specification Header**: Clear, descriptive title
+   3.8. **User Scenarios & Testing**: Primary user story, acceptance scenarios, edge cases
+   3.9. **Requirements Section**: Functional requirements (FR-001, FR-002, etc.), key entities, database requirements
+   3.10. **Technical Context**: Complete technology stack, platform requirements, performance goals
+   3.11. **Review & Acceptance**: Clear criteria for specification approval
+   3.12. **Execution Status**: Auto-maintained during specification process
+
+🔧 CRITICAL REQUIREMENTS EXTRACTION:
+   3.13. **TECH STACK EXTRACTION (MANDATORY)**:
+       - Extract ALL technologies mentioned in user input
+       - Categorize by type: frontend, backend, database, styling, testing, deployment
+       - Include version numbers and specific configurations when mentioned
+       - Ensure NO technologies are added that weren't mentioned
+       - Ensure NO technologies are omitted that were mentioned
+   3.14. **UI/INTERFACE REQUIREMENTS (MANDATORY)**:
+       - Include styling frameworks and UI requirements
+       - Specify responsive design requirements
+       - Define user interaction patterns
+   3.15. **API INTEGRATION REQUIREMENTS (MANDATORY)**:
+       - Ensure frontend connects to backend APIs
+       - Define data flow and communication patterns
+       - Specify authentication and authorization requirements
    4.7. Enforce ALL applicable constitutional gates for ${platform} platform:
 ${constitutionalGatesList}
    4.8. Enforce platform-specific gates:
@@ -359,16 +373,12 @@ ${qualityGatesList}
    4.10. Follow SDD principles:
 ${sddPrinciplesList}
    4.11. Use the detailed Cursor AI instructions provided in the template data
-   4.12. MANDATORY FILE CREATION: Create the final spec.md file with filled content in specs/spec.md
-      4.12.1. The file MUST be created in the correct location: specs/spec.md
-      4.12.2. IMPORTANT: You must create the markdown file manually from the filled JSON template data using proper markdown formatting
-      4.13.2. CRITICAL: The 'data' parameter must be a JSON object with these exact properties:
-         4.13.2.1. feature_id: string
-         4.13.2.2. template_id: string  
-         4.13.2.3. content: JSON object (the filled template data as JSON, NOT markdown)
-         4.13.2.4. ai_generated: true
-      4.13.3. Do NOT pass data as a string or array. It must be a proper JSON object.
-      4.13.4. IMPORTANT: Store the filled template data as JSON in the content field, not as markdown text.
+   4.12. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE spec.md FILE NOW
+      4.12.1. Create file: specs/spec.md
+      4.12.2. Fill the template data below with actual content
+      4.12.3. Convert JSON template to proper markdown format
+      4.12.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
+      4.12.5. After creating spec.md, use sdd_db_filler to save to database
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(fillResult.data, null, 2)}
@@ -416,18 +426,30 @@ ${JSON.stringify(fillResult.data, null, 2)}
    ### OpenAPI Specification
    [template_data.apiSpecification.openApiSpec.content]
    
+   ### API Versioning Strategy
+   [template_data.apiSpecification.versioning.content]
+   
+   ### API Testing Strategy
+   [template_data.apiSpecification.testing.content]
+   
    ## Constitutional Gates
    [Convert template_data.constitutionalGates to markdown sections with proper formatting]
+   
+   ## Platform Gates
+   [Convert template_data.platformGates to markdown sections with proper formatting]
    
    ## Quality Gates (Enforcement Rules)
    [Convert template_data.qualityGates to markdown sections with proper formatting]
    
+   ## Review Checklist
+   [Convert template_data.reviewChecklist to markdown sections with proper formatting]
+   
+   ## Execution Status
+   [Convert template_data.executionStatus to markdown sections with proper formatting]
+   
    ## Complexity Tracking
    [template_data.complexityTracking.description]
    [template_data.complexityTracking.table.rows]
-   
-   ## SDD Principles
-   [Convert template_data.sddPrinciples to markdown list]
    
    ### CRITICAL FORMATTING RULES:
    - Always use blank lines between sections
@@ -440,20 +462,28 @@ ${JSON.stringify(fillResult.data, null, 2)}
    - Use proper markdown formatting with **bold** for labels
    - Add blank lines between different gates for readability
 
-7. FINAL REMINDER: DO NOT call sdd_plan, sdd_tasks, sdd_implement, or any other tools. Only complete the specification creation task as described above.
+7. MANDATORY LAST STEP After creating the spec.md file: Use sdd_db_filler tool to save the filled specification to database with this exact data structure:
+      7.1. Data structure:
+        {
+          "operation": "upsert",
+          "table": "specifications",
+          "data": {
+            "feature_id": "${featureId}",
+            "template_id": "sdd-spec-perfect-v1",
+            "content": [THE_FILLED_SPECIFICATION_DATA_AS_JSON],
+            "ai_generated": true
+          }
+        }
 
-8. Mandatory Last Step: Use sdd_db_filler tool to save the filled specification to database with this exact data structure:
-      8.1. Data structure:
-         {
-           "operation": "upsert",
-           "table": "specifications",
-           "data": {
-             "feature_id": "${featureId}",
-             "template_id": "sdd-spec-perfect-v1",
-            "content": fillResult.data,
-             "ai_generated": true
-           }
-         }
+🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
+DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
+YOU MUST:
+1. CREATE the spec.md file in specs/spec.md
+2. FILL the template with actual content
+3. SAVE it to the database using sdd_db_filler
+4. THEN respond with confirmation
+
+STOP READING AND START CREATING THE FILE NOW!
 `;
 
       const outputData = {
@@ -497,8 +527,11 @@ ${JSON.stringify(fillResult.data, null, 2)}
     const libraryDetection = this.detectLibraryRequirements(input);
 
     const featureData = {
-      id: featureId,
       name: featureName,
+      status: 'not_started',
+      completionPercentage: 0,
+      currentPhase: 'Specification',
+      constitutionalCompliant: false,
       cliRequired: cliDetection.requiresCLI,
       cliDetected: cliDetection.hasCLI,
       cliConfidence: cliDetection.confidence,
@@ -506,10 +539,12 @@ ${JSON.stringify(fillResult.data, null, 2)}
       libraryRequired: libraryDetection.requiresLibrary,
       libraryDetected: libraryDetection.hasLibrary,
       libraryConfidence: libraryDetection.confidence,
-      libraryComplexity: libraryDetection.libraryComplexity
+      libraryComplexity: libraryDetection.libraryComplexity,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    await this.db.create_feature(featureData);
+    await this.db.create_feature_robust(featureId, featureData);
   }
 
   /**
@@ -1421,7 +1456,7 @@ ${JSON.stringify(fillResult.data, null, 2)}
 
   private async getMostRecentFeature(): Promise<{ id: string; name: string } | null> {
     try {
-      const features = await this.db.get_all_features();
+      const features = await this.db.get_all_features_robust();
       if (features.length === 0) {
         return null;
       }

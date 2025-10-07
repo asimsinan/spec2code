@@ -236,6 +236,74 @@ export class ConstitutionalGateHelper {
       violations.push('Mock usage requires written justification');
     }
 
+    // Check for mock implementations in code
+    if (context.codeContent) {
+      const mockPatterns = [
+        /mock\s*\(/gi,
+        /fake\s*\(/gi,
+        /stub\s*\(/gi,
+        /placeholder/gi,
+        /not\s+implemented/gi,
+        /TODO.*implement/gi,
+        /console\.log.*mock/gi,
+        /return\s+null\s*;?\s*$/gm,
+        /return\s+undefined\s*;?\s*$/gm,
+        /return\s*\{\}\s*;?\s*$/gm,
+        /return\s*\[\]\s*;?\s*$/gm
+      ];
+      
+      const mockMatches = mockPatterns.filter(pattern => pattern.test(context.codeContent));
+      if (mockMatches.length > 0) {
+        violations.push('Code contains mock implementations or placeholder code');
+      }
+    }
+
+    // Check for mock data in tests
+    if (context.testContent) {
+      const mockTestPatterns = [
+        /mock\s+data/gi,
+        /fake\s+data/gi,
+        /stub\s+data/gi,
+        /hardcoded\s+data/gi,
+        /placeholder\s+data/gi
+      ];
+      
+      const mockTestMatches = mockTestPatterns.filter(pattern => pattern.test(context.testContent));
+      if (mockTestMatches.length > 0) {
+        violations.push('Tests contain mock data instead of real test scenarios');
+      }
+    }
+
+    // Check for mock API endpoints
+    if (context.apiEndpoints) {
+      const mockEndpoints = context.apiEndpoints.filter((endpoint: any) => 
+        endpoint.mock || endpoint.placeholder || endpoint.todo
+      );
+      if (mockEndpoints.length > 0) {
+        violations.push('API endpoints should be real implementations, not mocks');
+      }
+    }
+
+    // Check for mock database connections
+    if (context.databaseConnections) {
+      const mockConnections = context.databaseConnections.filter((conn: any) => 
+        conn.mock || conn.inMemory || conn.test
+      );
+      if (mockConnections.length > 0) {
+        violations.push('Database connections should be real, not mock connections');
+      }
+    }
+
+    // Check for mock authentication
+    if (context.authentication && context.authentication.mock) {
+      violations.push('Authentication should be real implementation, not mock auth');
+    }
+
+    // Check for mock real-time subscriptions
+    if (context.subscriptions && context.subscriptions.mock) {
+      violations.push('Real-time subscriptions should be real implementations, not mocks');
+    }
+
     return {
       principle: 'integration-first',
       passed: violations.length === 0,
@@ -251,9 +319,9 @@ export class ConstitutionalGateHelper {
     const violations: string[] = [];
     const now = new Date().toISOString();
 
-    // Check project count (≤ 5)
-    if (context.projectCount && context.projectCount > 5) {
-      violations.push(`Project count ${context.projectCount} exceeds limit of 5`);
+    // Check project count (≤ 10)
+    if (context.projectCount && context.projectCount > 10) {
+      violations.push(`Project count ${context.projectCount} exceeds limit of 10`);
     }
 
     // Check if framework features are used directly

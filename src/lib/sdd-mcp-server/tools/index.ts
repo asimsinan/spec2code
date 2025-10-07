@@ -8,7 +8,7 @@
 export { SDDSpecifyTool } from './SDDSpecifyTool.js';
 export { SDDPlanTool } from './SDDPlanTool.js';
 export { SDDTasksTool } from './SDDTasksTool.js';
-export { SDDStatusTool } from './SDDStatusTool.js';
+// export { SDDStatusTool } from './SDDStatusTool.js'; // Disabled for now
 
 // PHASE 7: Advanced Features & Intelligence
 export { SDDImplementTool } from './SDDImplementTool.js';

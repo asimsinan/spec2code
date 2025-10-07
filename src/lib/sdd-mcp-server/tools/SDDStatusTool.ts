@@ -24,129 +24,23 @@ export class SDDStatusTool {
   }
 
   /**
-   * Initialize database if needed (create schema and install templates)
+   * Initialize database if needed (create schema only)
    */
   private async initializeDatabaseIfNeeded(): Promise<void> {
     try {
       // Touch the database to ensure schema is created
-      await this.db.get_all_features();
-      
-      // Install templates if needed
-      await this.ensureTemplatesInstalled();
+      await this.db.get_all_features_robust();
     } catch (error) {
       console.error('SDDStatusTool: Database initialization failed:', error);
       throw error;
     }
   }
 
-  /**
-   * Ensure all required templates are installed in the database
-   */
-  private async ensureTemplatesInstalled(): Promise<void> {
-    try {
-      // Check if we need to install templates
-      const needsTemplates = await this.checkIfTemplatesNeeded();
-      
-      if (needsTemplates) {  
-        await this.installTemplates();
-      }
-    } catch (error) {
-      console.error('SDDStatusTool: Error checking/installing templates:', error);
-    }
-  }
-
-  /**
-   * Check if templates need to be installed
-   */
-  private async checkIfTemplatesNeeded(): Promise<boolean> {
-    try {
-      // Check if status template exists
-      const statusTemplate = await this.db.get_status_template('sdd-status-perfect-v1');
-      return !statusTemplate;
-    } catch (error) {
-      // If we can't check, assume we need templates
-      return true;
-    }
-  }
-
-  /**
-   * Install templates from JSON files
-   */
-  private async installTemplates(): Promise<void> {
-    try {
-      // Install spec template
-      await this.installTemplate('spec.json', 'spec_templates', 'sdd-spec-perfect-v1');
-      
-      // Install plan template
-      await this.installTemplate('plan.json', 'plan_templates', 'sdd-plan-perfect-v1');
-      
-      // Install status template
-      await this.installTemplate('status.json', 'status_templates', 'sdd-status-perfect-v1');
-      
-      // Install tasks template
-      await this.installTemplate('tasks.json', 'task_templates', 'sdd-tasks-perfect-v1');
-      
-      
-      // Install implement template
-    } catch (error) {
-      console.error('SDDStatusTool: Error installing templates:', error);
-    }
-  }
-
-  /**
-   * Install a single template from JSON file
-   */
-  private async installTemplate(
-    fileName: string, 
-    tableName: string, 
-    _templateId: string
-  ): Promise<void> {
-    try {
-      // Look for template file in various locations
-      const templatePaths = [
-        path.join(this.basePath, 'src', 'templates', fileName),
-        path.join(this.basePath, fileName),
-        path.join(this.basePath, 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName),
-        path.join('/usr/local/lib/sdd-mcp', 'templates', fileName),
-        path.join(process.cwd(), 'src', 'templates', fileName)
-      ];
-
-      let templatePath = null;
-      for (const templatePathCandidate of templatePaths) {
-        if (fs.existsSync(templatePathCandidate)) {
-          templatePath = templatePathCandidate;
-          break;
-        }
-      }
-
-      if (!templatePath) {
-        // Template file not found - returning silently
-        return;
-      }
-
-      // Read and parse template
-      const templateContent = fs.readFileSync(templatePath, 'utf8');
-      const templateData = JSON.parse(templateContent);
-
-      // Insert template into database
-      this.db.install_template(
-        tableName,
-        templateData.id,
-        templateData.name,
-        templateData.version,
-        templateData.description,
-        templateData.template_data,
-        templateData.is_active
-      );
-    } catch (error) {
-      console.error(`SDDStatusTool: Error installing template ${fileName}:`, error);
-    }
-  }
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_status',
-      description: 'STATUS REPORTING TOOL - Get comprehensive status report for a feature. DO NOT call this before sdd_implement. Only call when user specifically requests status or /sdd_status.',
+      description: 'Status reporting tool - Get status report for a feature. Only call when user specifically requests status. Do NOT call before sdd_implement.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -197,7 +91,7 @@ export class SDDStatusTool {
 
       // Resolve feature ID
       const featureId = await this.resolveFeatureId(validatedInput.featureId);
-      const feature = await this.db.get_feature(featureId);
+      const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
       }
@@ -219,7 +113,7 @@ Please create a comprehensive status report in specs/status.md file with beautif
       const spec = await this.db.get_specification_robust(featureId);
       const tasks = await this.db.get_tasks_robust(featureId);
       const plan = await this.db.get_plan_robust(featureId);
-      const status = await this.db.get_status(featureId);
+      const status = await this.db.get_status_robust(featureId);
 
       // Use shared utility to safely extract and repair JSON content
       const repairedSpec = JsonRepairUtility.extractDbJsonContent(spec, 'SDDStatusTool');
@@ -369,19 +263,36 @@ Please create a comprehensive status report in specs/status.md file with beautif
   private async resolveFeatureId(inputFeatureId?: string): Promise<string> {
     if (inputFeatureId && typeof inputFeatureId === 'string' && inputFeatureId.trim()) {
       // Validate that the feature exists in database
-      const feature = await this.db.get_feature(inputFeatureId.trim());
+      const feature = await this.db.get_feature_robust(inputFeatureId.trim());
       if (!feature) {
         throw new Error(`Feature '${inputFeatureId.trim()}' not found in database.`);
       }
       return inputFeatureId.trim();
     }
     
-    // If no featureId provided, use most recent feature
-    const allFeatures = await this.db.get_all_features();
+    // If no featureId provided, find most recent feature that has all required components
+    const allFeatures = await this.db.get_all_features_robust();
     if (!allFeatures.length) {
       throw new Error('No features found. Please provide featureId or create a feature first using /specify command.');
     }
-    
+
+    // Find a feature that has specification, plan, and tasks (like implement tool)
+    for (const feature of allFeatures) {
+      try {
+        const hasSpec = await this.db.get_specification_robust(feature.id);
+        const hasPlan = await this.db.get_plan_robust(feature.id);
+        const hasTasks = await this.db.get_tasks_robust(feature.id);
+        
+        if (hasSpec && hasPlan && hasTasks) {
+          return feature.id;
+        }
+      } catch (error) {
+        console.log(`[SDDStatusTool] Error checking feature ${feature.id}:`, error.message);
+        continue;
+      }
+    }
+
+    // If no complete feature found, return the most recent one
     const mostRecentFeature = allFeatures[0];
     return mostRecentFeature.id;
   }

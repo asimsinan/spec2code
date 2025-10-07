@@ -171,7 +171,7 @@ export class SDDGenericDBFillerTool {
         case 'status': {
           assert(data.feature_id, 'status requires data.feature_id');
           assert('content' in data, 'status requires data.content');
-          await this.db.save_status(data.feature_id, data.content, data.template_id);
+          await this.db.save_status_robust(data.feature_id, data.content, data.template_id);
           affected = 1;
           break;
         }
@@ -199,7 +199,7 @@ export class SDDGenericDBFillerTool {
             createdAt: f.createdAt ?? new Date().toISOString(),
             updatedAt: f.updatedAt ?? new Date().toISOString(),
           };
-          await this.db.create_feature(payload);
+          await this.db.create_feature_robust(payload.id, payload);
           affected = 1;
           break;
         }

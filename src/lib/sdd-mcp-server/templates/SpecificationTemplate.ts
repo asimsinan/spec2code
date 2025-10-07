@@ -1,4 +1,5 @@
 import { BaseTemplate } from './BaseTemplate.js';
+import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
 
 export class SpecificationTemplate extends BaseTemplate {
   constructor(db: any) {
@@ -11,7 +12,7 @@ export class SpecificationTemplate extends BaseTemplate {
    */
   async getPerfectTemplate(): Promise<any> {
     try {
-      const template = await this.db.get_spec_template('sdd-spec-perfect-v1');
+      const template = await this.db.get_spec_template_robust('sdd-spec-perfect-v1');
       if (!template) {
         return null;
       }
@@ -36,26 +37,44 @@ export class SpecificationTemplate extends BaseTemplate {
   }> {
     try {
       // Get the perfect template from database
-      const template = await this.db.get_spec_template('sdd-spec-perfect-v1');
+      const templateRecord = await this.db.get_spec_template_robust('sdd-spec-perfect-v1');
 
-      if (!template) {
+      if (!templateRecord) {
         return {
           success: false,
           error: 'Perfect SDD template not found in database'
         };
       }
 
-      // Validate template structure
-      const validation = await this.validateTemplateStructure(template);
+      // Extract and parse the template_data from the template record
+      const templateDataString = templateRecord.template_data;
+      if (!templateDataString) {
+        return {
+          success: false,
+          error: 'Template data not found in template record'
+        };
+      }
+
+      // Parse the JSON string to get the actual template object using JsonRepairUtility
+      const template = JsonRepairUtility.extractDbJsonContent(templateDataString, 'SpecificationTemplate');
+      if (!template) {
+        return {
+          success: false,
+          error: 'Failed to parse template data using JsonRepairUtility'
+        };
+      }
+
+      // Fill the template with user input and Cursor AI instructions (no AI generation)
+      const filledTemplate = this.fillTemplateWithUserInput(template, options);
+      
+      // Validate template structure AFTER filling
+      const validation = await this.validateTemplateStructure(filledTemplate);
       if (!validation.isValid) {
         return {
           success: false,
           error: `Template validation failed: ${validation.errors.join(', ')}`
         };
       }
-      
-      // Fill the template with user input and Cursor AI instructions (no AI generation)
-      const filledTemplate = this.fillTemplateWithUserInput(template, options);
       
       // Apply platform-specific gate filtering
       const platformFilteredTemplate = this.applyPlatformGates(filledTemplate, options.platform || 'web');
@@ -359,12 +378,12 @@ export class SpecificationTemplate extends BaseTemplate {
     const baseInstructions = {
       // User Scenarios (common to all platforms)
       primaryUserStory: `Generate a primary user story for: ${userInput}. Focus on the main value proposition and user benefit.`,
-      acceptanceScenarios: `Generate 3-5 acceptance scenarios for: ${userInput}. Use Given-When-Then format. Include happy path, error cases, and edge cases.`,
-      edgeCases: `Generate 2-3 edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
+      acceptanceScenarios: `Generate acceptance scenarios for: ${userInput}. Use Given-When-Then format. Include happy path, error cases, and edge cases.`,
+      edgeCases: `Generate edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
       
       // Requirements (common to all platforms)
-      functionalRequirements: `Generate 5-7 functional requirements for: ${userInput}. Use FR-001, FR-002 format. Be specific about what the system must do.`,
-      keyEntities: `Identify 2-4 key data entities for: ${userInput}. Include their attributes and relationships. Only include if the feature involves data.`,
+      functionalRequirements: `Generate functional requirements for: ${userInput}. Use FR-001, FR-002 format. Be specific about what the system must do.`,
+      keyEntities: `Identify key data entities for: ${userInput}. Include their attributes and relationships. Only include if the feature involves data.`,
       databaseRequirements: `Define database requirements for: ${userInput}. Choose appropriate database type: PostgreSQL for relational data with ACID compliance, MySQL for web applications, MongoDB for document data, Redis for caching. For appointment schedulers: PostgreSQL with proper indexing for time-based queries, real-time updates, and data integrity. Include data volume, performance, consistency, security, scalability, and backup requirements.`,
       
       // API-First requirements
@@ -395,7 +414,7 @@ export class SpecificationTemplate extends BaseTemplate {
         `No library requirements detected for ${userInput}. Consider library approach for better reusability and testability.`,
       
       // Common gates
-      simplicityGate: `Validate that ${userInput} can be implemented with ≤5 projects. If not, suggest simplifications.`,
+      simplicityGate: `Validate that ${userInput} can be implemented with ≤10 projects. If not, suggest simplifications.`,
       testFirstGate: `Plan test-first approach for ${userInput}: Contract → Integration → E2E → Unit → Implementation → UI-API Integration.`,
       integrationFirstTestingGate: `Plan integration-first testing for ${userInput} using real dependencies. Justify any mocks needed.`,
       antiAbstractionGate: `Plan single domain model approach for ${userInput}. Avoid DTO/Repository/Unit-of-Work unless necessary.`,

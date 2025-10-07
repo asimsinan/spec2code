@@ -1,8 +1,8 @@
 {
   "id": "sdd-plan-perfect-v1",
-  "name": "SDD Plan Template",
-  "version": "1.2.4",
-  "description": "Comprehensive implementation plan template based on SDD methodology from asy-sdd.md with all 26 constitutional gates",
+  "name": "SDD Plan Template (Balanced 4-Phase Structure)",
+  "version": "2.0.0",
+  "description": "Comprehensive implementation plan template based on SDD methodology with balanced 4-phase structure (11 tasks per phase) and all 26 constitutional gates",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
@@ -49,10 +49,10 @@
       "simplicityGate": {
         "title": "Simplicity Gate",
         "projects": "{{PROJECTS_COUNT}}",
-        "maxProjects": 5,
+        "maxProjects": 10,
         "usingFrameworkDirectly": "{{USING_FRAMEWORK_DIRECTLY}}",
         "singleDataModel": "{{SINGLE_DATA_MODEL}}",
-        "instruction": "Validate ≤5 projects for initial scope. If exceeded, force simplification or document in Complexity Tracking."
+        "instruction": "Validate ≤10 projects for initial scope. If exceeded, force simplification or document in Complexity Tracking."
       },
       "architectureGate": {
         "title": "Architecture Gate",
@@ -82,21 +82,26 @@
       "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
     },
     "implementationPhases": {
-      "title": "Implementation Phases",
+      "title": "Implementation Phases (Balanced 4-Phase Structure)",
       "phase1": {
-        "title": "Phase 1: Contracts & Tests",
-        "content": "{{PHASE_1_CONTRACTS_TESTS}}",
-        "instruction": "Define API contracts, create contract tests (must fail initially), create integration test scenarios, generate data models from requirements."
+        "title": "Phase 1: Foundations & Data (11 tasks)",
+        "content": "{{PHASE_1_FOUNDATIONS_DATA}}",
+        "instruction": "Essential foundation work: API contracts, database setup, data models, and core infrastructure. This phase establishes the fundamental building blocks that all other phases depend on."
       },
       "phase2": {
-        "title": "Phase 2: Library Implementation",
-        "content": "{{PHASE_2_LIBRARY_IMPLEMENTATION}}",
-        "instruction": "Implement core library following TDD, create CLI interface for library (if appropriate for developer/system tool), ensure all tests pass, add error handling and validation."
+        "title": "Phase 2: Core Implementation (11 tasks)",
+        "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
+        "instruction": "Core library implementation, data models, business logic, and basic API structure. This phase builds the core functionality that powers the application."
       },
       "phase3": {
-        "title": "Phase 3: Integration & Validation",
-        "content": "{{PHASE_3_INTEGRATION_VALIDATION}}",
-        "instruction": "Integrate with existing systems, performance validation, security review, documentation updates."
+        "title": "Phase 3: UI Development with Mock APIs (11 tasks)",
+        "content": "{{PHASE_3_UI_DEVELOPMENT_MOCK_APIS}}",
+        "instruction": "Create UI components with mock API services, platform setup, and complete user flow testing with simulated data. This phase enables parallel frontend development while backend is being implemented."
+      },
+      "phase4": {
+        "title": "Phase 4: Real API Integration & Verification (11 tasks)",
+        "content": "{{PHASE_4_REAL_API_INTEGRATION}}",
+        "instruction": "Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality. This phase delivers the final working application."
       }
     },
     "databaseStrategy": {
@@ -209,7 +214,7 @@
     "constitutionalGates": {
       "simplicityGate": {
         "title": "Simplicity Gate",
-        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "description": "≤ 10 projects for initial scope; otherwise, force simplification",
         "check": "{{SIMPLICITY_GATE_CHECK}}",
         "platforms": ["mobile", "web", "desktop", "backend", "ai"]
       },

@@ -1,157 +1,52 @@
 /**
- * SDD Tasks Tool - Template-based approach with TDD ordering
- * - Uses pre-installed tasks template from database
+ * SDD Tasks Tool - Enhanced template-based approach with TDD ordering
+ * - Uses pre-installed enhanced tasks template from database (4-phase structure)
  * - Returns template with Cursor AI instructions for filling
- * - Cursor AI fills template and saves using sdd_db_filler
+ * - Cursor AI fills template with duration estimates and parallel execution data
  * - Generates beautiful Mermaid diagrams for task flow visualization
- * - Enforces TDD ordering: Contract → Integration → E2E → Unit → Implementation → UI-API Integration
+ * - Enforces TDD ordering: Contract → Integration → E2E → Unit → Implementation
+ * - Provides duration estimation guide and project planning capabilities
+ * - Identifies parallel execution opportunities (60-70% of tasks can run concurrently)
+ * - Includes 49 atomic tasks across 4 phases with Implement-Run-Verify pattern
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import * as fs from 'fs';
 import * as path from 'path';
 import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
 import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
+import { EdgeCaseAnalyzer } from '../utils/EdgeCaseAnalyzer.js';
 
 export class SDDTasksTool {
   private basePath: string;
   private db: RobustDatabaseService;
+  private edgeCaseAnalyzer: EdgeCaseAnalyzer;
 
   constructor(basePath: string = process.cwd(), db?: RobustDatabaseService) {
     this.basePath = path.resolve(basePath);
     this.db = db || new RobustDatabaseService(path.join(this.basePath, 'sdd.db'));
+    this.edgeCaseAnalyzer = EdgeCaseAnalyzer.getInstance();
   }
+  
 
   /**
-   * Initialize database if needed (create schema and install templates)
+   * Standard error response method
    */
-  private async initializeDatabaseIfNeeded(): Promise<void> {
-    try {
-      // Touch the database to ensure schema is created
-      await this.db.get_all_features();
-      
-      // Install templates if needed
-      await this.ensureTemplatesInstalled();
-    } catch (error) {
-      console.error('SDDTasksTool: Database initialization failed:', error);
-      throw error;
-    }
+  private error(message: string) {
+    return { success: false, error: 'TASKS_FAILED', message };
   }
 
-  /**
-   * Ensure all required templates are installed in the database
-   */
-  private async ensureTemplatesInstalled(): Promise<void> {
-    try {
-      // Check if we need to install templates
-      const needsTemplates = await this.checkIfTemplatesNeeded();
-      
-      if (needsTemplates) {  
-        await this.installTemplates();
-      }
-    } catch (error) {
-      console.error('SDDTasksTool: Error checking/installing templates:', error);
-    }
-  }
 
-  /**
-   * Check if templates need to be installed
-   */
-  private async checkIfTemplatesNeeded(): Promise<boolean> {
-    try {
-      // Check if tasks template exists
-      const tasksTemplate = await this.db.get_task_template('sdd-tasks-perfect-v1');
-      return !tasksTemplate;
-    } catch (error) {
-      // If we can't check, assume we need templates
-      return true;
-    }
-  }
-
-  /**
-   * Install templates from JSON files
-   */
-  private async installTemplates(): Promise<void> {
-    try {
-      // Install spec template
-      await this.installTemplate('spec.json', 'spec_templates', 'sdd-spec-perfect-v1');
-      
-      // Install plan template
-      await this.installTemplate('plan.json', 'plan_templates', 'sdd-plan-perfect-v1');
-      
-      // Install status template
-      await this.installTemplate('status.json', 'status_templates', 'sdd-status-perfect-v1');
-      
-      // Install tasks template
-      await this.installTemplate('tasks.json', 'task_templates', 'sdd-tasks-perfect-v1');
-      
-      
-      // Install implement template
-    } catch (error) {
-      console.error('SDDTasksTool: Error installing templates:', error);
-    }
-  }
-
-  /**
-   * Install a single template from JSON file
-   */
-  private async installTemplate(
-    fileName: string, 
-    tableName: string, 
-    _templateId: string
-  ): Promise<void> {
-    try {
-      // Look for template file in various locations
-      const templatePaths = [
-        path.join(this.basePath, 'src', 'templates', fileName),
-        path.join(this.basePath, fileName),
-        path.join(this.basePath, 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName),
-        path.join('/usr/local/lib/sdd-mcp', 'templates', fileName),
-        path.join(process.cwd(), 'src', 'templates', fileName)
-      ];
-
-      let templatePath = null;
-      for (const templatePathCandidate of templatePaths) {
-        if (fs.existsSync(templatePathCandidate)) {
-          templatePath = templatePathCandidate;
-          break;
-        }
-      }
-
-      if (!templatePath) {
-        // Template file not found - returning silently
-        return;
-      }
-
-      // Read and parse template
-      const templateContent = fs.readFileSync(templatePath, 'utf8');
-      const templateData = JSON.parse(templateContent);
-
-      // Insert template into database
-      this.db.install_template(
-        tableName,
-        templateData.id,
-        templateData.name,
-        templateData.version,
-        templateData.description,
-        templateData.template_data,
-        templateData.is_active
-      );
-    } catch (error) {
-      console.error(`SDDTasksTool: Error installing template ${fileName}:`, error);
-    }
-  }
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_tasks',
-      description: 'Generate comprehensive task breakdown with TDD ordering, constitutional gates validation, and platform-aware task planning. This tool creates TASK PLANNING DOCUMENTS only (tasks.md) - does NOT create todo list or implementation tasks. This is a standalone tool - do not call other tools after completion.',
+      description: 'Generate comprehensive task breakdown with TDD ordering, constitutional gates validation, platform-aware task planning, duration estimates, and parallel execution opportunities. MUST create tasks.md file in specs/ folder and save to database. This tool requires immediate file creation action.',
       inputSchema: {
         type: 'object',
         properties: {
           featureId: {
             type: 'string',
-            description: 'Feature ID to generate tasks for (optional: uses most recent feature if not provided)',
+            description: 'Feature ID to generate tasks)',
             pattern: '^[a-zA-Z0-9-_]+$'
           },
           platform: {
@@ -171,17 +66,16 @@ export class SDDTasksTool {
     };
   }
 
-  async execute(input: any): Promise<any> {
-    try {
-      // Initialize database if needed
-      await this.initializeDatabaseIfNeeded();
+  async execute(input: any): Promise<any> {       
+        // Initialize database if needed
+     
 
-      // Validate input
-      const validatedInput = this.validateInput(input);
+        // Validate input
+        const validatedInput = this.validateInput(input);
 
       // Resolve feature ID
       const featureId = await this.resolveFeatureId(validatedInput.featureId);
-      const feature = await this.db.get_feature(featureId);
+      const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
       }
@@ -200,6 +94,8 @@ export class SDDTasksTool {
       if (!specData) {
         return this.error(`Specification not found for feature: ${featureId}. Please create a specification first using /specify command.`);
       }
+
+      
 
       // Get plan estimates for inheritance (raw data from database)
       const planEstimates = this.extractPlanEstimates(planData);
@@ -225,6 +121,7 @@ export class SDDTasksTool {
           edgeCaseAnalysis: edgeCaseAnalysis
         });
 
+
         if (!fillResult.success) {
           throw new Error(`Failed to prepare tasks template: ${fillResult.error}`);
         }
@@ -236,32 +133,80 @@ export class SDDTasksTool {
       }
 
       const successMessage = `
-🚨 IMPORTANT: DO NOT call any other tools (sdd_implement, sdd_status, etc.) after this. Only complete the tasks creation task.
-🚨 SCOPE: This tool creates TASK PLANNING DOCUMENTS only. Do NOT create todo lists, implementation tasks, or code. Only create the tasks.md file.
+🎯 TASKS TOOL OBJECTIVE:
+Create a comprehensive task breakdown document that provides detailed, actionable tasks for implementing your project. This document will serve as the execution guide for developers and AI assistants.
 
-Template data ready for Cursor AI processing
+📋 WHAT THIS TOOL DOES:
+- Breaks down the implementation plan into specific, actionable tasks
+- Organizes tasks into balanced 4-phase structure (11 tasks per phase)
+- Provides clear task descriptions, acceptance criteria, and dependencies
+- Includes time estimates, priorities, and parallel execution opportunities
+- Creates visual diagrams for task flow and dependencies
 
-1. FEATURE DETAILS:
-   1.2. Feature Name: ${feature.name}
+🚨 CRITICAL SCOPE: This tool creates TASK PLANNING DOCUMENTS only. Do NOT create todo lists, implementation tasks, or code. Only create the tasks.md file.
+
+📊 FEATURE DETAILS:
+   1.1. Feature Name: ${feature.name}
    1.2. Platform: ${platform.toUpperCase()}
    1.3. Include Diagrams: ${includeDiagrams ? 'Yes' : 'No'}
+   1.4. Task Distribution: Balanced 4-phase structure (11 tasks per phase)
 
-2. ENHANCED TASKS TEMPLATE PROVIDED:
-   The tasks template has been prepared with complete SDD compliance:
-   2.1. TDD ordering enforcement (Contract → Integration → E2E → Unit → Implementation → UI-API Integration)
-   2.2. All applicable constitutional gates with validation
-   2.3. Platform-specific task planning
-   2.4. API-First task planning (if applicable)
-   2.5. Task dependencies and parallelization markers [P]
-   2.6. Beautiful Mermaid diagrams for task flow visualization
-   2.7. Definition of Done criteria
-   2.8. Traceability to FR-XXX requirements
+2. ENHANCED TASKS TEMPLATE WITH COMPREHENSIVE GUIDANCE:
+   The tasks template has been prepared with complete SDD compliance and enhanced task management features:
+   2.1. **TDD Ordering Enforcement**: Contract → Integration → E2E → Unit → Implementation → UI-API Integration
+   2.2. **Constitutional Gates Validation**: All applicable gates with specific compliance requirements
+   2.3. **Platform-Specific Planning**: Tasks tailored to ${platform.toUpperCase()} platform requirements
+   2.4. **API-First Task Planning**: Comprehensive API development and integration tasks
+   2.5. **Task Dependencies & Parallelization**: Clear dependency chains and parallel execution opportunities
+   2.6. **Visual Task Flow**: Beautiful Mermaid diagrams for task flow visualization
+   2.7. **Definition of Done**: Clear criteria for task completion
+   2.8. **Traceability**: Direct links to FR-XXX requirements from specification
+   2.9. **Time Estimates**: Realistic duration estimates for each task
+   2.10. **Priority Levels**: Clear priority indicators for task sequencing
+   2.11. **Resource Requirements**: Specific skills and tools needed for each task
 
-3. DATABASE STATUS:
-   3.1. Feature: ${featureId} (${feature.name})
-   3.2. Specification: Available (JSON data from database)
-   3.3. Plan: Available (JSON data from database)
-   3.4. Plan Estimates: ${planEstimates ? 'Available (JSON data)' : 'Not available'}
+3. TASK MANAGEMENT GUIDANCE:
+
+📝 TASK CREATION PROCESS:
+   3.1. **ANALYZE IMPLEMENTATION PLAN**: Review the complete plan to understand phase structure
+   3.2. **EXTRACT REQUIREMENTS**: Identify all functional and technical requirements
+   3.3. **CREATE TASK BREAKDOWN**: Break down each phase into specific, actionable tasks
+   3.4. **DEFINE DEPENDENCIES**: Establish clear task dependencies and parallel execution opportunities
+   3.5. **ESTIMATE DURATIONS**: Provide realistic time estimates for each task
+   3.6. **ASSIGN PRIORITIES**: Set clear priority levels for task sequencing
+
+🎯 MANDATORY TASK STRUCTURE:
+   3.7. **Task ID**: Unique identifier (TASK-001, TASK-002, etc.)
+   3.8. **Task Title**: Clear, descriptive title with action verb
+   3.9. **Description**: Detailed description of what needs to be accomplished
+   3.10. **Acceptance Criteria**: Specific, measurable criteria for task completion
+   3.11. **Dependencies**: Clear list of prerequisite tasks
+   3.12. **Time Estimate**: Realistic duration estimate
+   3.13. **Priority Level**: High, Medium, or Low priority
+   3.14. **Constitutional Compliance**: Specific gates that must be satisfied
+   3.15. **Resource Requirements**: Skills, tools, and resources needed
+
+🔧 CRITICAL TASK REQUIREMENTS:
+   3.16. **BALANCED DISTRIBUTION (MANDATORY)**:
+       - Phase 1: Foundations & Data (11 tasks) - Infrastructure and data setup
+       - Phase 2: Core Implementation (11 tasks) - Business logic and API development
+       - Phase 3: UI Development with Mock APIs (11 tasks) - Frontend with simulated backend
+       - Phase 4: Real API Integration & Verification (11 tasks) - Final integration and testing
+   3.17. **TDD ORDERING (MANDATORY)**:
+       - Contract tests must be created before implementation
+       - Integration tests must be defined before unit tests
+       - E2E tests must be planned before implementation
+       - Unit tests must be written before implementation
+   3.18. **PARALLEL EXECUTION (OPTIMIZATION)**:
+       - Tasks with no dependencies can run in parallel
+       - Mark parallelizable tasks with [P] indicator
+       - Optimize task sequencing for maximum efficiency
+
+4. DATABASE STATUS:
+   4.1. Feature: ${featureId} (${feature.name})
+   4.2. Specification: Available (JSON data from database)
+   4.3. Plan: Available (JSON data from database)
+   4.4. Plan Estimates: ${planEstimates ? 'Available (JSON data)' : 'Not available'}
    3.5. Phase Data: Available (8 phases with detailed information)
    3.6. Tasks: Ready for generation
 
@@ -283,10 +228,12 @@ Template data ready for Cursor AI processing
          4.5.7.3. Task Dependencies Diagram
       4.5.8. **MANDATORY UI/INTERFACE STYLING TASKS**: Include styling framework setup and UI component styling tasks
       4.5.9. **MANDATORY UI-API INTEGRATION TASKS**: Include frontend-backend connection and API integration tasks
-   4.6. MANDATORY FILE CREATION: Create the final tasks.md file with filled content in specs/tasks.md
-       4.6.1. The file MUST be created in the correct location: specs/tasks.md
-       4.6.2. IMPORTANT: You must create the markdown file manually from the filled JSON template data using proper markdown formatting
-       4.6.3. Use the markdown conversion guide below to format the content properly
+   4.6. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE tasks.md FILE NOW
+       4.6.1. Create file: specs/tasks.md
+       4.6.2. Fill the template data below with actual content
+       4.6.3. Convert JSON template to proper markdown format
+       4.6.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
+       4.6.5. After creating tasks.md, use sdd_db_filler to save to database
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(templateWithInstructions, null, 2)}
@@ -294,7 +241,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
 6. MARKDOWN CONVERSION GUIDE:
    To create the tasks.md file from the JSON template data above, follow this ENHANCED structure for maximum visibility:
    
-   # 📋 [template_data.title]
+   # 📋 [template_data.name]
    
    ## 📊 Task Summary
    ---
@@ -303,13 +250,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    
    **Total Tasks:** [Count] tasks with clear dependencies and parallelization opportunities.
    
-   **Core Phases:** Phase 1-5 covering core implementation ([TASK-001] to [TASK-013]).
-   
-   **Integration Phases:** Phase 6 covering comprehensive UI-API integration ([TASK-014] to [TASK-018]).
-   
-   **Platform Phases:** Phase 7 covering platform-specific implementation ([TASK-019] to [TASK-021]).
-   
-   **API Phases:** Phase 8 covering API-first integration ([TASK-022] to [TASK-025]).
+   **Core Phases:** Phase 1-4 covering complete implementation following TDD order.
    
    ---
    
@@ -317,71 +258,30 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    
    ## ⏱️ Time Estimation
    ---
-   **Human Development:** [X] days total ([X] days development + [X] days testing).
-   **AI-Assisted Development:** [X] hours total ([X]% time savings).
-   **Team Composition:** [X] developers ([Backend], [Frontend], [Full-Stack], [DevOps]).
+   [Convert template_data.durationEstimationGuide to markdown sections with enhanced formatting]
    
    ## 🎯 Project Overview
-   [template_data.projectOverview.content]
+   [Convert template_data.projectPlanning to markdown sections with enhanced formatting]
    
    ## 📝 Task Breakdown
    
-   ### 🔬 Phase 1: Contract Testing
-   **Duration:** [X] hours | **Tasks:** [TASK-001] to [TASK-003] | **Focus:** API contracts and failing tests
-   
-   [Convert template_data.taskBreakdown.phase1 to markdown sections with enhanced formatting]
+   ### 🔬 Phase 1: Foundations & Data (Atomic)
+   [Convert template_data.taskPhases.phase1 to markdown sections with enhanced formatting]
    
    ---
    
-   ### 🔗 Phase 2: Integration Testing  
-   **Duration:** [X] hours | **Tasks:** [TASK-004] to [TASK-006] | **Focus:** Real dependency integration
-   
-   [Convert template_data.taskBreakdown.phase2 to markdown sections with enhanced formatting]
+   ### 🔗 Phase 2: Integration & E2E Testing
+   [Convert template_data.taskPhases.phase2 to markdown sections with enhanced formatting]
    
    ---
    
-   ### 🎭 Phase 3: End-to-End Testing
-   **Duration:** [X] hours | **Tasks:** [TASK-007] to [TASK-009] | **Focus:** Complete user workflows
-   
-   [Convert template_data.taskBreakdown.phase3 to markdown sections with enhanced formatting]
+   ### 🧪 Phase 3: Unit Testing & Verification
+   [Convert template_data.taskPhases.phase3 to markdown sections with enhanced formatting]
    
    ---
    
-   ### 🧪 Phase 4: Unit Testing
-   **Duration:** [X] hours | **Tasks:** [TASK-010] to [TASK-012] | **Focus:** Individual component testing
-   
-   [Convert template_data.taskBreakdown.phase4 to markdown sections with enhanced formatting]
-   
-   ---
-   
-   ### 🚀 Phase 5: Implementation
-   **Duration:** [X] hours | **Tasks:** [TASK-013] to [TASK-015] | **Focus:** Core functionality development
-   
-   [Convert template_data.taskBreakdown.phase5 to markdown sections with enhanced formatting]
-   
-   ---
-   
-   ### 🎨 Phase 6: UI-API Integration
-   **Duration:** [X] hours | **Tasks:** [TASK-016] to [TASK-018] | **Focus:** Frontend-backend connection
-   
-   [Convert template_data.taskBreakdown.phase6 to markdown sections with enhanced formatting]
-   
-   ---
-   
-   ### 📚 Phase 7: Documentation & Deployment
-   **Duration:** [X] hours | **Tasks:** [TASK-019] to [TASK-021] | **Focus:** Documentation and deployment
-   
-   [Convert template_data.taskBreakdown.phase7 to markdown sections with enhanced formatting]
-   
-   ---
-   
-   ### 🌐 Phase 8: Platform-Specific Tasks
-   **Duration:** [X] hours | **Tasks:** [TASK-022] to [TASK-025] | **Focus:** Platform optimization
-   
-   [Convert template_data.taskBreakdown.phase8 to markdown sections with enhanced formatting]
-   
-   ## 🔗 Task Dependencies
-   [Convert template_data.taskDependencies to markdown sections with enhanced formatting]
+   ### 🚀 Phase 4: Implementation & Deployment
+   [Convert template_data.taskPhases.phase4 to markdown sections with enhanced formatting]
    
    ## ✅ Definition of Done
    [Convert template_data.definitionOfDone to markdown sections with enhanced formatting]
@@ -410,9 +310,9 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    ---
    
    ### 🎯 Simplicity Gate
-   **Description:** ≤ 5 projects for initial scope; otherwise, force simplification
+   **Description:** ≤ 10 projects for initial scope; otherwise, force simplification
    
-   **Check:** ✅ PASSED - Project scope limited to 3 core components with clear boundaries
+   **Check:** ✅ PASSED - Project scope limited to 5 core components with clear boundaries
    
    **Platforms:** mobile, web, desktop, backend, ai
    
@@ -452,29 +352,17 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    
    **Platforms:** mobile, web, desktop, backend, ai
    
-   ## 🛡️ Quality Gates (Enforcement Rules)
-   [Convert template_data.qualityGates to markdown sections with proper formatting]
+   ## 📋 Execution Policy
+   [Convert template_data.executionPolicy to markdown sections with enhanced formatting]
    
-   **ENHANCED EXAMPLE FORMAT:**
+   ## 📄 Output Artifacts
+   [Convert template_data.outputArtifacts to markdown sections with enhanced formatting]
    
-   ### 🔍 Code Quality Gate
-   **Description:** All code must pass linting, formatting, and security checks
+   ## 📊 Mermaid Diagrams
+   [Convert template_data.mermaidDiagrams to markdown sections with enhanced formatting]
    
-   **Check:** ✅ PASSED - Code passes ESLint, Prettier, and security audit
-   
-   **Platforms:** mobile, web, desktop, backend, ai
-   
-   ---
-   
-   ### ⚡ Performance Gate
-   **Description:** Application must meet performance benchmarks
-   
-   **Check:** ✅ PASSED - Load times under 2 seconds, memory usage optimized
-   
-   **Platforms:** mobile, web, desktop, backend, ai
-   
-   ## SDD Principles
-   [Convert template_data.sddPrinciples to markdown list]
+   ## 🏛️ Governance
+   [Convert template_data.governance to markdown sections with enhanced formatting]
    
    ### 🎨 CRITICAL FORMATTING RULES FOR MAXIMUM VISIBILITY:
    
@@ -537,15 +425,15 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     7.9. If you save empty data, the Implement Tool will fail with "No phase-specific tasks available"
 `;
 
-      const outputData = {
-        success: true,
-        nextStep: successMessage
-      };
-      return outputData;
-    } catch (error) {
-      console.error('[sdd_tasks] ERROR:', error);
-      return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
-    }
+        const outputData = {
+          success: true,
+          nextStep: successMessage
+        };
+        return outputData;
+       
+    
+  
+ 
   }
 
   // -----------------------
@@ -569,12 +457,31 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   }> {
     try {
       // Get the perfect template from database
-      const template = await this.db.get_task_template('sdd-tasks-perfect-v1');
+      const templateRecord = await this.db.get_task_template_robust('sdd-tasks-perfect-v1');
 
+  
+
+      if (!templateRecord) {
+        return {
+          success: false,
+          error: 'Perfect SDD tasks template not found in database. Please run sdd_specify first to install templates.'
+        };
+      }
+
+      // Extract and parse the template_data from the template record using JsonRepairUtility
+      const templateDataString = templateRecord.template_data;
+      if (!templateDataString) {
+        return {
+          success: false,
+          error: 'Template data not found in template record'
+        };
+      }
+
+      const template = JsonRepairUtility.extractDbJsonContent(templateDataString, 'SDDTasksTool');
       if (!template) {
         return {
           success: false,
-          error: 'Perfect SDD tasks template not found in database'
+          error: 'Failed to parse template data using JsonRepairUtility'
         };
       }
 
@@ -617,11 +524,17 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     const filledTemplate = JSON.parse(JSON.stringify(template)); // Deep copy
 
     // Fill basic placeholders with actual values
-    filledTemplate.title = filledTemplate.title.replace('{{FEATURE_NAME}}', options.featureName);
+    // Note: The template structure has 'name' at the top level, not 'title' in template_data
+    if (filledTemplate.name) {
+      filledTemplate.name = filledTemplate.name.replace('{{FEATURE_NAME}}', options.featureName);
+    }
 
-    filledTemplate.metadata.generated = new Date().toISOString().split('T')[0];
-    filledTemplate.metadata.platform = options.platform;
-    filledTemplate.metadata.generatedFrom = `specs/plan.md`;
+    // Update metadata if it exists
+    if (filledTemplate.metadata) {
+      filledTemplate.metadata.generated = new Date().toISOString().split('T')[0];
+      filledTemplate.metadata.platform = options.platform;
+      filledTemplate.metadata.generatedFrom = `database (${options.featureId})`;
+    }
 
     // Add Cursor AI instructions for content generation
     filledTemplate._cursor_ai_instructions = {
@@ -633,19 +546,23 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
       planData: options.planData,
       planEstimates: options.planEstimates,
       instructions: {
-        executiveSummary: `Create task planning summary for: ${options.featureName}. Include total tasks, phases, parallelization opportunities, and key dependencies.`,
+        executiveSummary: `Create task planning summary for: ${options.featureName}. Include total tasks (49), phases (4), parallelization opportunities (60-70%), and key dependencies. Use the enhanced template structure with duration estimates and parallel execution.`,
         constitutionalGatesValidation: `Validate constitutional gates for task planning: ${options.featureName} on ${options.platform} platform. Check all applicable gates and report violations.`,
-        tddTaskOrdering: `Enforce TDD ordering for: ${options.featureName}. Ensure tasks follow Contract → Integration → E2E → Unit → Implementation → UI-API Integration sequence.`,
-        taskPhases: `Generate task phases for: ${options.featureName} on ${options.platform} platform. Include all 8 phases: Phase 1 (Contract Testing), Phase 2 (Integration Testing), Phase 3 (End-to-End Testing), Phase 4 (Unit Testing), Phase 5 (Implementation), Phase 6 (UI-API Integration), Phase 7 (Documentation & Deployment), Phase 8 (Platform-Specific Tasks).`,
+        tddTaskOrdering: `Enforce TDD ordering for: ${options.featureName}. Ensure tasks follow Contract → Integration → E2E → Unit → Implementation sequence as defined in the template metadata.`,
+        taskPhases: `Generate task phases for: ${options.featureName} on ${options.platform} platform. Use the 4-phase structure: Phase 1 (Foundations & Data - 23 tasks), Phase 2 (Application & Core Integration - 8 tasks), Phase 3 (API-First, Platform & Smoke - 12 tasks), Phase 4 (Full Integration & Verification - 6 tasks).`,
         platformSpecificTasks: `Create platform-specific tasks for: ${options.featureName} on ${options.platform} platform. Include platform-specific requirements and considerations.`,
         apiFirstTasks: `Generate API-First tasks for: ${options.featureName} on ${options.platform} platform. Include API design, contracts, testing, and documentation tasks.`,
-        taskDependencies: `Analyze task dependencies for: ${options.featureName}. Identify parallelizable tasks [P] and critical path.`,
+        taskDependencies: `Analyze task dependencies for: ${options.featureName}. Identify parallelizable tasks [P] and critical path. Use the parallelExecution data structure to mark tasks that can run concurrently.`,
         definitionOfDone: `Define completion criteria for: ${options.featureName}. Include code review, testing, documentation, and constitutional compliance.`,
         mermaidDiagrams: `Generate beautiful Mermaid diagrams for: ${options.featureName}. Include task flow, TDD order, dependencies, platform tasks, and constitutional gates validation.`,
-        timeEstimation: `Include comprehensive time estimation for each task based on plan estimates. Show both human development time and AI-assisted development time. Use plan estimates as baseline and refine based on task complexity.`,
+        timeEstimation: `Fill duration placeholders for each task based on project complexity and context. Use the durationEstimationGuide ranges: Contract (10-45min), Integration (15-60min), Unit (5-30min), Implementation (20-120min), E2E (30-180min). Consider project complexity, tech stack, team size, and scope.`,
+        durationEstimation: `CRITICAL: Fill all {{TASK-XXX_DURATION}} placeholders with realistic estimates in minutes. Use the durationEstimationGuide factors: project complexity, technology stack familiarity, team size, project scope, infrastructure complexity, integration requirements. Calculate project-level placeholders from task durations.`,
+        parallelExecution: `CRITICAL: Use the parallelExecution data structure to identify tasks that can run concurrently. Mark parallelizable tasks with [P] and include parallel execution opportunities in the project planning section.`,
+        projectPlanning: `CRITICAL: Fill the projectPlanning section with calculated values: total duration, parallel savings, critical path, and phase breakdown. Use the durationEstimationGuide.projectLevelCalculation instructions.`,
         edgeCaseAnalysis: `Analyze edge cases from specification for: ${options.featureName}. Extract edge cases, categorize by complexity (high/medium/low), and create specific tasks for handling them. Include edge case tasks in the appropriate TDD phases (usually Unit Testing phase).`,
         dataSourceInstructions: `IMPORTANT: The specData and planData are provided as JSON objects from the database. Parse and use the structured data to extract requirements, estimates, and other information needed for task generation. Access data like specData.template_data.userScenarios, planData.template_data.timelineEstimates, etc.`,
-        planEstimatesInstructions: `The planEstimates contains structured JSON data with time estimation information. Extract time estimates from the JSON structure (look for timelineEstimates.human and timelineEstimates.ai) and use them as baseline for task time estimates.`
+        planEstimatesInstructions: `The planEstimates contains structured JSON data with time estimation information. Extract time estimates from the JSON structure (look for timelineEstimates.human and timelineEstimates.ai) and use them as baseline for task time estimates.`,
+        languageAgnosticStandards: `CRITICAL LANGUAGE COMPLIANCE: Always use the correct comment syntax for the detected file type. JavaScript/TypeScript files MUST use // and /* */ comments, NEVER Python-style """ docstrings. Python files MUST use # and """ docstrings, NEVER JavaScript-style // comments. This is non-negotiable for professional code quality.`
       },
       placeholders: {
         '{{TASK_PLANNING_SUMMARY}}': 'Replace with generated task planning summary',
@@ -724,8 +641,18 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
         '{{API_TESTING_TASKS}}': 'Replace with API testing tasks',
         '{{API_DOCUMENTATION_TASKS}}': 'Replace with API documentation tasks',
         '{{PARALLELIZABLE_TASKS}}': 'Replace with parallelizable tasks list',
+        '{{DURATION_ESTIMATES}}': 'Replace with filled duration estimates for all tasks',
+        '{{PROJECT_TOTAL_DURATION}}': 'Replace with calculated total project duration',
+        '{{PROJECT_PARALLEL_SAVINGS}}': 'Replace with calculated parallel execution savings',
+        '{{CRITICAL_PATH}}': 'Replace with identified critical path',
+        '{{PARALLELIZATION_LEVEL}}': 'Replace with parallelization percentage',
+        '{{PHASE1_DURATION}}': 'Replace with Phase 1 total duration',
+        '{{PHASE2_DURATION}}': 'Replace with Phase 2 total duration',
+        '{{PHASE3_DURATION}}': 'Replace with Phase 3 total duration',
+        '{{PHASE4_DURATION}}': 'Replace with Phase 4 total duration',
+        '{{EXECUTION_STRATEGY}}': 'Replace with recommended execution strategy',
+        '{{RESOURCE_REQUIREMENTS}}': 'Replace with resource requirements for parallel execution',
         '{{SEQUENTIAL_TASKS}}': 'Replace with sequential tasks list',
-        '{{CRITICAL_PATH}}': 'Replace with critical path analysis',
         '{{DEPENDENCY_GRAPH}}': 'Replace with dependency graph',
         '{{QUALITY_GATES}}': 'Replace with quality gates',
         '{{REVIEW_CHECKLIST}}': 'Replace with review checklist',
@@ -749,7 +676,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   // Helpers
   // -----------------------
 
-  private validateInput(input: any): any {
+  protected validateInput(input: any): any {
     const { featureId, platform, includeDiagrams } = input;
     
     if (featureId && typeof featureId !== 'string') {
@@ -770,7 +697,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   private async resolveFeatureId(inputFeatureId?: string): Promise<string> {
     if (inputFeatureId && typeof inputFeatureId === 'string' && inputFeatureId.trim()) {
       // Validate that the feature exists in database
-      const feature = await this.db.get_feature(inputFeatureId.trim());
+      const feature = await this.db.get_feature_robust(inputFeatureId.trim());
       if (!feature) {
         throw new Error(`Feature '${inputFeatureId.trim()}' not found in database.`);
       }
@@ -778,7 +705,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     }
 
     // If no featureId provided, use most recent feature
-    const allFeatures = await this.db.get_all_features();
+    const allFeatures = await this.db.get_all_features_robust();
     if (!allFeatures.length) {
       throw new Error('No features found. Please provide featureId or create a feature first using /specify command.');
     }
@@ -834,6 +761,9 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
       // Use shared utility to safely extract and repair JSON content
       const content = JsonRepairUtility.extractDbJsonContent(specData, 'SDDTasksTool') || {};
       
+      // Use EdgeCaseAnalyzer for comprehensive analysis
+      const analysisResult = this.edgeCaseAnalyzer.analyzeEdgeCases(content, 1);
+      
       // Extract edge cases from structured JSON data
       if (content.template_data) {
         // JSON data - extract edge cases from structured data
@@ -848,18 +778,22 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
         
         return {
           edgeCases: edgeCasesContent,
-          hasEdgeCases: !!(edgeCasesContent),
-          edgeCaseCount: edgeCaseLines.length,
-          source: 'json_data_repaired'
+          hasEdgeCases: !!(edgeCasesContent || analysisResult.totalEdgeCases > 0),
+          edgeCaseCount: Math.max(edgeCaseLines.length, analysisResult.totalEdgeCases),
+          source: 'json_data_repaired',
+          analysisResult: analysisResult,
+          edgeCaseTasks: this.generateEdgeCaseTasks(analysisResult)
         };
       } else {
-        // No specification data available
+        // No specification data available, use analyzer result
         return {
-          hasEdgeCases: false,
-          edgeCaseCount: 0,
+          hasEdgeCases: analysisResult.totalEdgeCases > 0,
+          edgeCaseCount: analysisResult.totalEdgeCases,
           edgeCases: [],
           edgeCasesContent: '',
-          source: 'no_data'
+          source: 'edge_case_analyzer',
+          analysisResult: analysisResult,
+          edgeCaseTasks: this.generateEdgeCaseTasks(analysisResult)
         };
       }
     } catch (error) {
@@ -873,8 +807,76 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     }
   }
 
+  /**
+   * Generate edge case tasks from analysis result
+   */
+  private generateEdgeCaseTasks(analysisResult: any): any[] {
+    if (!analysisResult || analysisResult.totalEdgeCases === 0) {
+      return [];
+    }
 
+    const tasks = [];
+    let taskId = 1;
 
+    // Generate tasks for critical edge cases
+    if (analysisResult.criticalEdgeCases > 0) {
+      tasks.push({
+        id: `EDGE-${taskId.toString().padStart(3, '0')}`,
+        title: 'Critical Edge Case Handling',
+        description: `Implement handling for ${analysisResult.criticalEdgeCases} critical edge cases`,
+        phase: 3, // Unit Testing phase
+        priority: 'critical',
+        estimatedMinutes: 60,
+        dependencies: [],
+        acceptanceCriteria: [
+          'All critical edge cases identified and handled',
+          'Error recovery procedures implemented',
+          'Monitoring and alerting in place'
+        ]
+      });
+      taskId++;
+    }
+
+    // Generate tasks for high impact edge cases
+    if (analysisResult.highImpactEdgeCases > 0) {
+      tasks.push({
+        id: `EDGE-${taskId.toString().padStart(3, '0')}`,
+        title: 'High Impact Edge Case Handling',
+        description: `Implement handling for ${analysisResult.highImpactEdgeCases} high impact edge cases`,
+        phase: 3, // Unit Testing phase
+        priority: 'high',
+        estimatedMinutes: 45,
+        dependencies: [],
+        acceptanceCriteria: [
+          'All high impact edge cases identified and handled',
+          'Fallback mechanisms implemented',
+          'User notifications in place'
+        ]
+      });
+      taskId++;
+    }
+
+    // Generate tasks for testing coverage improvement
+    if (analysisResult.testingCoverage < 80) {
+      tasks.push({
+        id: `EDGE-${taskId.toString().padStart(3, '0')}`,
+        title: 'Edge Case Testing Coverage',
+        description: `Improve testing coverage from ${analysisResult.testingCoverage.toFixed(1)}% to 80%+`,
+        phase: 3, // Unit Testing phase
+        priority: 'medium',
+        estimatedMinutes: 30,
+        dependencies: [],
+        acceptanceCriteria: [
+          'Testing coverage improved to 80%+',
+          'All edge case categories covered',
+          'Test automation implemented'
+        ]
+      });
+      taskId++;
+    }
+
+    return tasks;
+  }
 
   /**
    * Estimate LOC from task description
@@ -962,7 +964,7 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     cliComplexity: string;
   }> {
     try {
-      const feature = await this.db.get_feature(featureId);
+      const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return {
           cliRequired: false,
@@ -991,7 +993,4 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
   }
 
 
-  private error(message: string) {
-    return { success: false, error: 'TASKS_FAILED', message };
-  }
 }

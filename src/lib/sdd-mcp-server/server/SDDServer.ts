@@ -23,7 +23,7 @@ import {
   SDDSpecifyTool,
   SDDPlanTool,
   SDDTasksTool,
-  SDDStatusTool,
+  // SDDStatusTool, // Disabled for now
   SDDImplementTool,
   SDDGenericDBFillerTool
 } from '../tools/index.js';
@@ -218,8 +218,8 @@ export class SDDServer {
     this.tools.set('sdd_db_filler', new SDDGenericDBFillerTool(projectRoot)); // INTERNAL
     this.tools.set('sdd_plan', new SDDPlanTool(projectRoot));
     this.tools.set('sdd_tasks', new SDDTasksTool(projectRoot));
-    this.tools.set('sdd_status', new SDDStatusTool(projectRoot));
     this.tools.set('sdd_implement', new SDDImplementTool(projectRoot));
+    // this.tools.set('sdd_status', new SDDStatusTool(projectRoot)); // Disabled for now
 
   }
 

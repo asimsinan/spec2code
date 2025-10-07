@@ -1,6 +1,6 @@
 {
   "name": "@asimsinan/sdd-mcp-server",
-  "version": "2.3.0",
+  "version": "2.4.9",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",
@@ -8,7 +8,7 @@
     "sdd-mcp": "dist/bin/sdd-mcp-server.js"
   },
   "scripts": {
-    "build:lib": "tsc -p tsconfig.lib.json && cp src/lib/sdd-mcp-server/database/schema*.sql dist/lib/sdd-mcp-server/database/ && mkdir -p dist/bin && chmod +x dist/bin/sdd-mcp-server.js",
+    "build:lib": "tsc -p tsconfig.lib.json && cp src/lib/sdd-mcp-server/database/schema*.sql dist/lib/sdd-mcp-server/database/ && mkdir -p dist/bin && chmod +x dist/bin/sdd-mcp-server.js && npm run copy-template-to-dist",
     "install:template": "node scripts/install-template.js",
     "build:with-template": "npm run build:lib && npm run install:template",
     "copy-template-to-dist": "node scripts/copy-template-to-dist.js",

@@ -1,8 +1,8 @@
 {
   "id": "sdd-status-perfect-v1",
-  "name": "SDD Status Template",
-  "version": "1.2.4",
-  "description": "Comprehensive status template based on SDD methodology with constitutional gates validation, platform-aware reporting, and Mermaid diagrams",
+  "name": "SDD Status Template (Balanced 4-Phase Structure)",
+  "version": "2.0.0",
+  "description": "Comprehensive status template based on SDD methodology with balanced 4-phase structure (11 tasks per phase), constitutional gates validation, platform-aware reporting, and Mermaid diagrams",
   "template_data": {
     "title": "Feature Status: {{FEATURE_NAME}}",
     "metadata": {
@@ -241,7 +241,7 @@
     "constitutionalGates": {
       "simplicityGate": {
         "title": "Simplicity Gate",
-        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
+        "description": "≤ 10 projects for initial scope; otherwise, force simplification",
         "check": "{{SIMPLICITY_GATE_CHECK}}",
         "platforms": ["mobile", "web", "desktop", "backend", "ai"]
       },

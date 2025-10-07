@@ -1,626 +1,891 @@
 {
   "id": "sdd-tasks-perfect-v1",
-  "name": "SDD Tasks Template",
-  "version": "1.2.4",
-  "description": "Comprehensive tasks template based on SDD methodology with TDD ordering, constitutional gates validation, and platform-aware task planning",
+  "name": "SDD Tasks Template (4 Phases, Balanced UI-API Integration)",
+  "version": "4.0.0",
+  "description": "4-phase SDD with balanced task distribution and UI-API integration following the Implement–Run–Verify principle. Each phase contains 11 tasks for optimal workload balance.",
   "template_data": {
-    "title": "Implementation Tasks: {{FEATURE_NAME}}",
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
       "status": "Draft",
-      "platform": "{{PLATFORM}}",
-      "tddOrder": "Contract → Integration → E2E → Unit → Implementation",
-      "generatedFrom": "specs/plan.md"
-    },
-    "executiveSummary": {
-      "title": "Task Planning Summary",
-      "content": "{{TASK_PLANNING_SUMMARY}}",
-      "instruction": "Provide high-level overview of task breakdown: total tasks, phases, parallelization opportunities, and key dependencies"
-    },
-    "constitutionalGatesValidation": {
-      "title": "Constitutional Gates Validation for Task Planning",
-      "description": "Validate that task planning follows all constitutional gates",
-      "overallCompliance": "{{OVERALL_COMPLIANCE}}",
-      "violations": "{{CONSTITUTIONAL_VIOLATIONS}}",
-      "gates": {
-        "testFirstGate": {
-          "title": "Test-First Gate",
-          "status": "{{TEST_FIRST_GATE_STATUS}}",
-          "check": "{{TEST_FIRST_GATE_CHECK}}",
-          "violations": "{{TEST_FIRST_GATE_VIOLATIONS}}"
-        },
-        "integrationFirstTestingGate": {
-          "title": "Integration-First Testing Gate",
-          "status": "{{INTEGRATION_FIRST_TESTING_GATE_STATUS}}",
-          "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
-          "violations": "{{INTEGRATION_FIRST_TESTING_GATE_VIOLATIONS}}"
-        },
-        "simplicityGate": {
-          "title": "Simplicity Gate",
-          "status": "{{SIMPLICITY_GATE_STATUS}}",
-          "check": "{{SIMPLICITY_GATE_CHECK}}",
-          "violations": "{{SIMPLICITY_GATE_VIOLATIONS}}"
-        },
-        "libraryFirstGate": {
-          "title": "Library-First Gate",
-          "status": "{{LIBRARY_FIRST_GATE_STATUS}}",
-          "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
-          "violations": "{{LIBRARY_FIRST_GATE_VIOLATIONS}}"
-        },
-        "cliInterfaceGate": {
-          "title": "CLI Interface Gate",
-          "status": "{{CLI_INTERFACE_GATE_STATUS}}",
-          "check": "{{CLI_INTERFACE_GATE_CHECK}}",
-          "violations": "{{CLI_INTERFACE_GATE_VIOLATIONS}}"
-        },
-        "antiAbstractionGate": {
-          "title": "Anti-Abstraction Gate",
-          "status": "{{ANTI_ABSTRACTION_GATE_STATUS}}",
-          "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
-          "violations": "{{ANTI_ABSTRACTION_GATE_VIOLATIONS}}"
-        },
-        "traceabilityGate": {
-          "title": "Traceability Gate",
-          "status": "{{TRACEABILITY_GATE_STATUS}}",
-          "check": "{{TRACEABILITY_GATE_CHECK}}",
-          "violations": "{{TRACEABILITY_GATE_VIOLATIONS}}"
-        }
-      }
-    },
-    "tddTaskOrdering": {
-      "title": "TDD Task Ordering (NON-NEGOTIABLE)",
-      "description": "Tasks must follow strict TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration",
-      "order": [
-        "Contract Tests",
-        "Integration Tests", 
-        "E2E Tests",
-        "Unit Tests",
-        "Implementation",
-        "UI-API Integration",
-        "Platform-Specific Implementation",
-        "API-First Integration",
-        "UI-API Integration (Detailed)"
-      ],
-      "enforcement": "{{TDD_ORDER_ENFORCEMENT}}",
-      "violations": "{{TDD_ORDER_VIOLATIONS}}"
+      "phaseProfile": "4f-balanced-verify",
+      "tddOrder": "Contract → Integration → E2E → Unit → Implementation"
     },
     "taskPhases": {
       "phase1": {
-        "title": "Phase 1: Contract & Test Setup",
-        "description": "Foundation phase - contracts and initial tests",
+        "title": "Phase 1: Foundations & Data (11 tasks)",
+        "description": "Essential foundation work: API contracts, database setup, data models, and core infrastructure.",
         "tasks": [
           {
             "id": "TASK-001",
-            "title": "Create API Contracts",
-            "parallelizable": true,
+            "title": "[TASK-001] Generate API Contracts (OpenAPI)",
             "tddPhase": "Contract",
-            "description": "{{API_CONTRACTS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_CONTRACTS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_CONTRACTS_ESTIMATED_LOC}}",
             "dependencies": [],
-            "constitutionalCompliance": "{{API_CONTRACTS_CONSTITUTIONAL_COMPLIANCE}}"
+            "description": "Create comprehensive API contracts and specifications for all application endpoints and data structures",
+            "acceptanceCriteria": "Complete API contracts generated, all endpoints documented, request/response schemas defined, validation rules specified",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ API-First Gate compliance with comprehensive API documentation",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 0
+            },
+            "parallelizable": false
           },
           {
-            "id": "TASK-002", 
-            "title": "Create Contract Tests",
-            "parallelizable": true,
+            "id": "TASK-002",
+            "title": "[TASK-002] Validate API Contracts",
             "tddPhase": "Contract",
-            "description": "{{CONTRACT_TESTS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{CONTRACT_TESTS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{CONTRACT_TESTS_ESTIMATED_LOC}}",
             "dependencies": ["TASK-001"],
-            "constitutionalCompliance": "{{CONTRACT_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+            "description": "Validate API contracts against requirements and ensure all functional needs are covered",
+            "acceptanceCriteria": "All requirements mapped to API endpoints, schema validation passes, no missing endpoints",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Traceability Gate compliance with requirement mapping",
+            "estimatedDuration": "30min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-003", "TASK-004", "TASK-005"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
             "id": "TASK-003",
-            "title": "Create Integration Test Scenarios", 
-            "parallelizable": false,
-            "tddPhase": "Integration",
-            "description": "{{INTEGRATION_TESTS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{INTEGRATION_TESTS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{INTEGRATION_TESTS_ESTIMATED_LOC}}",
+            "title": "[TASK-003] Configure Database",
+            "tddPhase": "Contract",
             "dependencies": ["TASK-001"],
-            "constitutionalCompliance": "{{INTEGRATION_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+            "description": "Configure database with connection pooling, security settings, and performance optimization",
+            "acceptanceCriteria": "Database configured with proper connection pooling, security settings applied, performance optimized",
+            "estimatedLOC": "150-200",
+            "constitutionalCompliance": "✅ Database Gate compliance with proper configuration",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-002", "TASK-004", "TASK-005"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-004",
+            "title": "[TASK-004] Design Database Schema",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-003"],
+            "description": "Design comprehensive database schema with proper relationships, indexes, and constraints",
+            "acceptanceCriteria": "Schema designed with proper relationships, indexes, constraints, ACID compliance",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Database Gate compliance with proper schema design",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-002", "TASK-005", "TASK-006"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-005",
+            "title": "[TASK-005] Implement Contract Tests",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-002"],
+            "description": "Generate contract tests from API specification for automated API testing",
+            "acceptanceCriteria": "Contract tests generated for all endpoints, tests fail initially (Red phase), comprehensive test coverage",
+            "estimatedLOC": "150-250",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with contract tests before implementation",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-002", "TASK-004", "TASK-006"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-006",
+            "title": "[TASK-006] Develop Data Models",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-004"],
+            "description": "Create data models with proper types, validation, and relationships following single domain model approach",
+            "acceptanceCriteria": "Data models created with proper types, validation, relationships, single domain model approach",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Anti-Abstraction Gate compliance with single domain model",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-005", "TASK-007", "TASK-008"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-007",
+            "title": "[TASK-007] Run Contract Tests",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-005"],
+            "description": "Execute contract tests to verify they fail as expected (Red phase of TDD)",
+            "acceptanceCriteria": "All contract tests fail as expected, test execution completes successfully",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with Red phase verification",
+            "estimatedDuration": "15min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-006", "TASK-008", "TASK-009"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-008",
+            "title": "[TASK-008] Implement Migration Scripts",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-004"],
+            "description": "Create database migration scripts with proper versioning and rollback capabilities",
+            "acceptanceCriteria": "Migration scripts created with versioning, rollback capabilities, tested migrations",
+            "estimatedLOC": "100-200",
+            "constitutionalCompliance": "✅ Database Gate compliance with proper migrations",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-006", "TASK-007", "TASK-009"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-009",
+            "title": "[TASK-009] Define Integration Test Scenarios",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-002"],
+            "description": "Create comprehensive integration test scenarios for application functionality with real dependencies",
+            "acceptanceCriteria": "Integration scenarios cover core functionality, real dependencies used, comprehensive coverage",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with real dependencies",
+            "estimatedDuration": "30min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-006", "TASK-007", "TASK-008"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-010",
+            "title": "[TASK-010] Implement Model Unit Tests",
+            "tddPhase": "Unit",
+            "dependencies": ["TASK-006"],
+            "description": "Create comprehensive unit tests for all data models with proper test coverage",
+            "acceptanceCriteria": "Unit tests created for all models, test coverage ≥ 80%, tests fail initially",
+            "estimatedLOC": "150-200",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with unit tests before implementation",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-007", "TASK-008", "TASK-009"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-011",
+            "title": "[TASK-011] Verify Foundation Setup",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-007", "TASK-008", "TASK-010"],
+            "description": "Verify all foundation components are properly set up and ready for core implementation",
+            "acceptanceCriteria": "All foundation components verified, database ready, contracts validated, tests passing",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with verification",
+            "estimatedDuration": "30min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 2
+            },
+            "parallelizable": false
+          }
+        ],
+        "parallelExecutionSummary": [
+          {
+            "dependencyLevel": 1,
+            "parallelTasks": ["TASK-002", "TASK-003", "TASK-004", "TASK-005", "TASK-006", "TASK-007", "TASK-008", "TASK-009", "TASK-010"],
+            "estimatedParallelDuration": 60
           }
         ]
       },
       "phase2": {
-        "title": "Phase 2: Database Setup",
-        "description": "Database setup and schema design",
+        "title": "Phase 2: Core Implementation (11 tasks)",
+        "description": "Core library implementation, data models, business logic, and basic API structure.",
         "tasks": [
           {
-            "id": "TASK-004",
-            "title": "Database Setup",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{DATABASE_SETUP_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{DATABASE_SETUP_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{DATABASE_SETUP_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-001"],
-            "constitutionalCompliance": "{{DATABASE_SETUP_CONSTITUTIONAL_COMPLIANCE}}"
+            "id": "TASK-012",
+            "title": "[TASK-012] Implement Core Library",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-011"],
+            "description": "Implement core business logic library with all essential functionality and algorithms",
+            "acceptanceCriteria": "Core library implemented with all business logic, algorithms working, comprehensive functionality",
+            "estimatedLOC": "400-600",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with core library implementation",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 0
+            },
+            "parallelizable": false
           },
           {
-            "id": "TASK-005",
-            "title": "Schema Design",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{SCHEMA_DESIGN_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{SCHEMA_DESIGN_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{SCHEMA_DESIGN_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-004"],
-            "constitutionalCompliance": "{{SCHEMA_DESIGN_CONSTITUTIONAL_COMPLIANCE}}"
+            "id": "TASK-013",
+            "title": "[TASK-013] Implement Data Access Layer",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-011"],
+            "description": "Create data access layer with repository pattern and database operations",
+            "acceptanceCriteria": "Data access layer implemented, repository pattern used, all database operations working",
+            "estimatedLOC": "300-400",
+            "constitutionalCompliance": "✅ Database Gate compliance with proper data access patterns",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-014", "TASK-015", "TASK-016"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-006",
-            "title": "Migration Setup",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{MIGRATION_SETUP_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{MIGRATION_SETUP_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{MIGRATION_SETUP_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-005"],
-            "constitutionalCompliance": "{{MIGRATION_SETUP_CONSTITUTIONAL_COMPLIANCE}}"
+            "id": "TASK-014",
+            "title": "[TASK-014] Implement Business Logic Services",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-012"],
+            "description": "Create business logic services that orchestrate core library functionality",
+            "acceptanceCriteria": "Business services implemented, core library integrated, business rules enforced",
+            "estimatedLOC": "250-350",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with business services using core library",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-013", "TASK-015", "TASK-016"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-015",
+            "title": "[TASK-015] Implement API Controllers",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-012"],
+            "description": "Create API controllers that handle HTTP requests and responses following REST principles",
+            "acceptanceCriteria": "API controllers implemented, REST principles followed, request/response handling working",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ API-First Gate compliance with proper API implementation",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-013", "TASK-014", "TASK-016"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-016",
+            "title": "[TASK-016] Implement Authentication & Authorization",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-011"],
+            "description": "Implement secure authentication and authorization mechanisms for API access",
+            "acceptanceCriteria": "Authentication implemented, authorization working, security best practices followed",
+            "estimatedLOC": "300-400",
+            "constitutionalCompliance": "✅ Security Gate compliance with proper authentication",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-013", "TASK-014", "TASK-015"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-017",
+            "title": "[TASK-017] Run Core Integration Tests",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-012", "TASK-013", "TASK-014"],
+            "description": "Execute integration tests for core library and data access layer",
+            "acceptanceCriteria": "Integration tests pass, core functionality verified, data operations working",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with real dependencies",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-018", "TASK-019", "TASK-020"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-018",
+            "title": "[TASK-018] Run API Integration Tests",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-015", "TASK-016"],
+            "description": "Execute integration tests for API controllers and authentication",
+            "acceptanceCriteria": "API tests pass, authentication working, all endpoints functional",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with API testing",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-017", "TASK-019", "TASK-020"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-019",
+            "title": "[TASK-019] Implement Error Handling",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-012"],
+            "description": "Implement comprehensive error handling and logging throughout the application",
+            "acceptanceCriteria": "Error handling implemented, logging working, graceful error responses",
+            "estimatedLOC": "150-200",
+            "constitutionalCompliance": "✅ Progressive Enhancement Gate compliance with graceful error handling",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-017", "TASK-018", "TASK-020"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-020",
+            "title": "[TASK-020] Implement Validation & Sanitization",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-012"],
+            "description": "Implement input validation and data sanitization for security and data integrity",
+            "acceptanceCriteria": "Input validation implemented, data sanitization working, security measures in place",
+            "estimatedLOC": "150-200",
+            "constitutionalCompliance": "✅ Security Gate compliance with proper validation",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-017", "TASK-018", "TASK-019"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-021",
+            "title": "[TASK-021] Run Unit Tests for Core Components",
+            "tddPhase": "Unit",
+            "dependencies": ["TASK-010"],
+            "description": "Execute unit tests for all core components and verify test coverage",
+            "acceptanceCriteria": "Unit tests pass, test coverage ≥ 80%, all core components tested",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with unit testing",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-017", "TASK-018", "TASK-019", "TASK-020"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-022",
+            "title": "[TASK-022] Verify Core Implementation",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-017", "TASK-018", "TASK-021"],
+            "description": "Verify all core implementation components are working together correctly",
+            "acceptanceCriteria": "All core components verified, integration working, ready for UI development",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with verification",
+            "estimatedDuration": "30min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 2
+            },
+            "parallelizable": false
+          }
+        ],
+        "parallelExecutionSummary": [
+          {
+            "dependencyLevel": 1,
+            "parallelTasks": ["TASK-013", "TASK-014", "TASK-015", "TASK-016", "TASK-017", "TASK-018", "TASK-019", "TASK-020", "TASK-021"],
+            "estimatedParallelDuration": 75
           }
         ]
       },
       "phase3": {
-        "title": "Phase 3: Data Models",
-        "description": "Data modeling and validation",
+        "title": "Phase 3: UI Development with Mock APIs (11 tasks)",
+        "description": "Create UI components with mock API services, platform setup, and complete user flow testing with simulated data.",
         "tasks": [
           {
-            "id": "TASK-007",
-            "title": "Create Data Models",
-            "parallelizable": true,
+            "id": "TASK-023",
+            "title": "[TASK-023] Create Mock API Services",
             "tddPhase": "Contract",
-            "description": "{{DATA_MODELS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{DATA_MODELS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{DATA_MODELS_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-005"],
-            "constitutionalCompliance": "{{DATA_MODELS_CONSTITUTIONAL_COMPLIANCE}}"
+            "dependencies": ["TASK-022"],
+            "description": "Create comprehensive mock API services that simulate all backend functionality including data management, real-time communication (if needed), and core application features",
+            "acceptanceCriteria": "Mock API services created for all endpoints, realistic data responses, error simulation capabilities, real-time communication mocks (if applicable)",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ API-First Gate compliance with mock API contracts matching real API design",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-024", "TASK-025", "TASK-026"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-008",
-            "title": "Create Model Tests",
-            "parallelizable": true,
+            "id": "TASK-024",
+            "title": "[TASK-024] Setup Platform Environment",
+            "tddPhase": "Contract",
+            "dependencies": ["TASK-022"],
+            "description": "Setup platform environment with proper configuration, performance optimization, and cross-browser compatibility",
+            "acceptanceCriteria": "Platform environment configured, performance optimized, cross-browser compatibility verified, responsive design working",
+            "estimatedLOC": "150-250",
+            "constitutionalCompliance": "✅ Performance Gate compliance with web performance targets, ✅ Browser Compatibility Gate compliance",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-023", "TASK-025", "TASK-026"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-025",
+            "title": "[TASK-025] Implement UI Components with Mock APIs",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-023"],
+            "description": "Develop UI components that interact with mock API services for core application functionality, data management, and user interactions",
+            "acceptanceCriteria": "UI components created for all major features, mock API integration working, responsive design implemented, user interactions functional",
+            "estimatedLOC": "800-1200",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with UI components using core libraries, ✅ Responsive Design Gate compliance",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-023", "TASK-024", "TASK-026"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-026",
+            "title": "[TASK-026] Implement Real-time UI Updates with Mock Services",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Implement real-time UI updates using mock real-time communication services for dynamic data updates, notifications, and status changes (if applicable)",
+            "acceptanceCriteria": "Real-time updates working with mock services, dynamic data updates appear instantly, status changes reflect live, real-time features functional (if applicable)",
+            "estimatedLOC": "300-400",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with mock real-time connections",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-023", "TASK-024", "TASK-025"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-027",
+            "title": "[TASK-027] Implement User Interaction Handlers with Mock APIs",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-026"],
+            "description": "Connect UI buttons, forms, and controls to mock API calls for core application functionality, data operations, and user interactions",
+            "acceptanceCriteria": "All user interactions connected to mock APIs, form submissions working, button clicks trigger API calls, error handling implemented",
+            "estimatedLOC": "400-500",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with UI using core library services",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-028", "TASK-029", "TASK-030"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-028",
+            "title": "[TASK-028] Implement Error Handling & Loading States with Mock APIs",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Add comprehensive error handling, loading states, and user feedback for all mock API interactions including retry logic and graceful degradation",
+            "acceptanceCriteria": "Error handling implemented for all API calls, loading states show during operations, retry logic working, graceful degradation for failures",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Progressive Enhancement Gate compliance with graceful degradation",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-027", "TASK-029", "TASK-030"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-029",
+            "title": "[TASK-029] Implement Form Validation & User Feedback",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Implement client-side form validation and user feedback mechanisms for better user experience",
+            "acceptanceCriteria": "Form validation implemented, user feedback working, validation messages clear, user experience enhanced",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Progressive Enhancement Gate compliance with enhanced user experience",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-027", "TASK-028", "TASK-030"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-030",
+            "title": "[TASK-030] Implement State Management",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Implement application state management for data flow and component communication",
+            "acceptanceCriteria": "State management implemented, data flow working, component communication functional, state persistence working",
+            "estimatedLOC": "250-350",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with state management using core libraries",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-027", "TASK-028", "TASK-029"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-031",
+            "title": "[TASK-031] Test UI Components with Mock APIs",
             "tddPhase": "Unit",
-            "description": "{{MODEL_TESTS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{MODEL_TESTS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{MODEL_TESTS_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-007"],
-            "constitutionalCompliance": "{{MODEL_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
+            "dependencies": ["TASK-025"],
+            "description": "Create and run unit tests for UI components with mock API integration",
+            "acceptanceCriteria": "UI component tests created, mock API integration tested, test coverage ≥ 80%, all tests passing",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with UI component testing",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-032", "TASK-033"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-032",
+            "title": "[TASK-032] Test Complete User Flows with Mock APIs",
+            "tddPhase": "E2E",
+            "dependencies": ["TASK-027", "TASK-028", "TASK-029", "TASK-030"],
+            "description": "Execute comprehensive end-to-end testing of complete user journeys using mock APIs including core application workflows, data operations, and user interactions",
+            "acceptanceCriteria": "Complete user flows tested with mock APIs, all major features working end-to-end, edge cases handled, user experience validated",
+            "estimatedLOC": "100-200",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with E2E testing using mock APIs",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-031", "TASK-033"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-033",
+            "title": "[TASK-033] Verify UI Development with Mock APIs",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-031", "TASK-032"],
+            "description": "Verify all UI development components are working correctly with mock APIs and ready for real API integration",
+            "acceptanceCriteria": "All UI components verified, mock API integration working, ready for real API integration, user experience validated",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with UI verification",
+            "estimatedDuration": "30min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 2
+            },
+            "parallelizable": false
+          }
+        ],
+        "parallelExecutionSummary": [
+          {
+            "dependencyLevel": 1,
+            "parallelTasks": ["TASK-023", "TASK-024", "TASK-025", "TASK-026", "TASK-027", "TASK-028", "TASK-029", "TASK-030", "TASK-031", "TASK-032"],
+            "estimatedParallelDuration": 90
           }
         ]
       },
       "phase4": {
-        "title": "Phase 4: Library Implementation",
-        "description": "Core library implementation following TDD",
+        "title": "Phase 4: Real API Integration & Verification (11 tasks)",
+        "description": "Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality.",
         "tasks": [
           {
-            "id": "TASK-009",
-            "title": "Implement Core Library",
-            "parallelizable": false,
+            "id": "TASK-034",
+            "title": "[TASK-034] Implement Real API Services",
             "tddPhase": "Implementation",
-            "description": "{{CORE_LIBRARY_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{CORE_LIBRARY_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{CORE_LIBRARY_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-002", "TASK-007", "TASK-008"],
-            "constitutionalCompliance": "{{CORE_LIBRARY_CONSTITUTIONAL_COMPLIANCE}}"
+            "dependencies": ["TASK-033"],
+            "description": "Implement actual backend API services to replace mock APIs including data management, real-time communication (if needed), and core application functionality",
+            "acceptanceCriteria": "Real API services implemented for all endpoints, real-time communication working (if applicable), database integration working, authentication implemented",
+            "estimatedLOC": "600-800",
+            "constitutionalCompliance": "✅ API-First Gate compliance with real API implementation, ✅ Integration-First Testing Gate compliance with real dependencies",
+            "estimatedDuration": "120min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-035", "TASK-036", "TASK-037"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-010",
-            "title": "Create CLI Interface",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{CLI_INTERFACE_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{CLI_INTERFACE_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{CLI_INTERFACE_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-009"],
-            "constitutionalCompliance": "{{CLI_INTERFACE_CONSTITUTIONAL_COMPLIANCE}}"
-          },
-          {
-            "id": "TASK-011",
-            "title": "Library Integration Tests",
-            "parallelizable": false,
+            "id": "TASK-035",
+            "title": "[TASK-035] Replace Mock APIs with Real API Integration",
             "tddPhase": "Integration",
-            "description": "{{LIBRARY_INTEGRATION_TESTS_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{LIBRARY_INTEGRATION_TESTS_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{LIBRARY_INTEGRATION_TESTS_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-009"],
-            "constitutionalCompliance": "{{LIBRARY_INTEGRATION_TESTS_CONSTITUTIONAL_COMPLIANCE}}"
-          }
-        ]
-      },
-      "phase5": {
-        "title": "Phase 5: Application Integration",
-        "description": "Application layer and end-to-end validation",
-        "tasks": [
-          {
-            "id": "TASK-012",
-            "title": "Application Layer",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{APPLICATION_LAYER_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{APPLICATION_LAYER_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{APPLICATION_LAYER_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-010"],
-            "constitutionalCompliance": "{{APPLICATION_LAYER_CONSTITUTIONAL_COMPLIANCE}}"
+            "dependencies": ["TASK-034"],
+            "description": "Replace all mock API services with real API implementations in UI components, ensuring seamless transition from mock to live backend services",
+            "acceptanceCriteria": "Mock APIs replaced with real APIs, UI components working with live backend, data flow verified, error handling updated for real APIs",
+            "estimatedLOC": "200-300",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with real API integration",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-034", "TASK-036", "TASK-037"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-013",
-            "title": "End-to-End Validation",
-            "parallelizable": false,
+            "id": "TASK-036",
+            "title": "[TASK-036] Integration Testing with Real APIs",
             "tddPhase": "E2E",
-            "description": "{{E2E_VALIDATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{E2E_VALIDATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{E2E_VALIDATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-011", "TASK-012"],
-            "constitutionalCompliance": "{{E2E_VALIDATION_CONSTITUTIONAL_COMPLIANCE}}"
-          }
-        ]
-      },
-      "phase6": {
-        "title": "Phase 6: UI-API Integration (COMPREHENSIVE)",
-        "description": "Complete UI-API integration including setup, implementation, data flow, error handling, and comprehensive testing",
-        "tasks": [
-          {
-            "id": "TASK-014",
-            "title": "API Client Setup",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{API_CLIENT_SETUP_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_CLIENT_SETUP_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_CLIENT_SETUP_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-001", "TASK-002"],
-            "constitutionalCompliance": "{{API_CLIENT_SETUP_CONSTITUTIONAL_COMPLIANCE}}",
-            "crossReferences": {
-              "platformSpecific": "See Phase 7: Platform-Specific Implementation",
-              "apiFirst": "See Phase 8: API-First Integration"
-            }
+            "dependencies": ["TASK-035"],
+            "description": "Conduct comprehensive integration testing with real backend services including data operations, real-time communication (if applicable), and database operations",
+            "acceptanceCriteria": "Integration tests pass with real APIs, real-time communication working (if applicable), database operations verified, all core functionality tested",
+            "estimatedLOC": "150-250",
+            "constitutionalCompliance": "✅ Integration-First Testing Gate compliance with real dependencies, ✅ Test-First Gate compliance",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-034", "TASK-035", "TASK-037"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-015",
-            "title": "UI-API Connection Implementation",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{UI_API_CONNECTION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{UI_API_CONNECTION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{UI_API_CONNECTION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-014"],
-            "constitutionalCompliance": "{{UI_API_CONNECTION_CONSTITUTIONAL_COMPLIANCE}}"
-          },
-          {
-            "id": "TASK-016",
-            "title": "API Data Flow Integration",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{API_DATA_FLOW_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_DATA_FLOW_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_DATA_FLOW_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-015"],
-            "constitutionalCompliance": "{{API_DATA_FLOW_CONSTITUTIONAL_COMPLIANCE}}"
-          },
-          {
-            "id": "TASK-017",
-            "title": "API Error Handling Implementation",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{API_ERROR_HANDLING_IMPLEMENTATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_ERROR_HANDLING_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_ERROR_HANDLING_IMPLEMENTATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-016"],
-            "constitutionalCompliance": "{{API_ERROR_HANDLING_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}"
-          },
-          {
-            "id": "TASK-018",
-            "title": "UI-API Integration Testing",
-            "parallelizable": false,
+            "id": "TASK-037",
+            "title": "[TASK-037] End-to-End Testing with Real Data",
             "tddPhase": "Integration",
-            "description": "{{UI_API_INTEGRATION_TESTING_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{UI_API_INTEGRATION_TESTING_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{UI_API_INTEGRATION_TESTING_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-017"],
-            "constitutionalCompliance": "{{UI_API_INTEGRATION_TESTING_CONSTITUTIONAL_COMPLIANCE}}"
-          }
-        ]
-      },
-      "phase7": {
-        "title": "Phase 7: Platform-Specific Implementation",
-        "description": "Platform-specific setup and optimization tasks",
-        "tasks": [
-          {
-            "id": "TASK-019",
-            "title": "Platform-Specific Setup",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{PLATFORM_SPECIFIC_SETUP_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_SETUP_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{PLATFORM_SPECIFIC_SETUP_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-018"],
-            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_SETUP_CONSTITUTIONAL_COMPLIANCE}}",
-            "platformSpecific": true,
-            "platform": "{{PLATFORM}}"
+            "dependencies": ["TASK-036"],
+            "description": "Execute complete end-to-end testing with real data including full user journeys, performance validation, and cross-browser compatibility",
+            "acceptanceCriteria": "E2E tests pass with real data, complete user flows working, performance targets met, cross-browser compatibility verified",
+            "estimatedLOC": "100-200",
+            "constitutionalCompliance": "✅ Test-First Gate compliance with E2E testing, ✅ Performance Gate compliance",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-038", "TASK-039", "TASK-040"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-020",
-            "title": "Platform-Specific Testing",
-            "parallelizable": false,
-            "tddPhase": "Integration",
-            "description": "{{PLATFORM_SPECIFIC_TESTING_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_TESTING_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{PLATFORM_SPECIFIC_TESTING_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-019"],
-            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_TESTING_CONSTITUTIONAL_COMPLIANCE}}",
-            "platformSpecific": true,
-            "platform": "{{PLATFORM}}"
-          },
-          {
-            "id": "TASK-021",
-            "title": "Platform-Specific Optimization",
-            "parallelizable": false,
+            "id": "TASK-038",
+            "title": "[TASK-038] Performance Validation & Optimization",
             "tddPhase": "Implementation",
-            "description": "{{PLATFORM_SPECIFIC_OPTIMIZATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{PLATFORM_SPECIFIC_OPTIMIZATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{PLATFORM_SPECIFIC_OPTIMIZATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-020"],
-            "constitutionalCompliance": "{{PLATFORM_SPECIFIC_OPTIMIZATION_CONSTITUTIONAL_COMPLIANCE}}",
-            "platformSpecific": true,
-            "platform": "{{PLATFORM}}"
-          }
-        ]
-      },
-      "phase8": {
-        "title": "Phase 8: API-First Integration",
-        "description": "API-First implementation tasks for applicable platforms",
-        "tasks": [
-          {
-            "id": "TASK-022",
-            "title": "API Design Implementation",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{API_DESIGN_IMPLEMENTATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_DESIGN_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_DESIGN_IMPLEMENTATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-021"],
-            "constitutionalCompliance": "{{API_DESIGN_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
-            "apiFirst": true
+            "dependencies": ["TASK-037"],
+            "description": "Validate performance metrics with real APIs, optimize for production deployment, and ensure all quality gates are met",
+            "acceptanceCriteria": "Performance targets met with real APIs, optimization completed, quality gates verified, production-ready application",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Performance Gate compliance, ✅ Quality Gates compliance",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-039", "TASK-040", "TASK-041"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-023",
-            "title": "API Contract Implementation",
-            "parallelizable": true,
-            "tddPhase": "Contract",
-            "description": "{{API_CONTRACT_IMPLEMENTATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_CONTRACT_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_CONTRACT_IMPLEMENTATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-022"],
-            "constitutionalCompliance": "{{API_CONTRACT_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
-            "apiFirst": true
-          },
-          {
-            "id": "TASK-024",
-            "title": "API Testing Implementation",
-            "parallelizable": false,
+            "id": "TASK-039",
+            "title": "[TASK-039] Security Testing & Validation",
             "tddPhase": "Integration",
-            "description": "{{API_TESTING_IMPLEMENTATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_TESTING_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_TESTING_IMPLEMENTATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-023"],
-            "constitutionalCompliance": "{{API_TESTING_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
-            "apiFirst": true
+            "dependencies": ["TASK-034"],
+            "description": "Conduct comprehensive security testing including authentication, authorization, data validation, and vulnerability assessment",
+            "acceptanceCriteria": "Security tests pass, authentication working, authorization verified, no vulnerabilities found, data protection ensured",
+            "estimatedLOC": "150-200",
+            "constitutionalCompliance": "✅ Security Gate compliance with comprehensive security testing",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-038", "TASK-040", "TASK-041"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
           },
           {
-            "id": "TASK-025",
-            "title": "API Documentation Implementation",
-            "parallelizable": false,
-            "tddPhase": "Implementation",
-            "description": "{{API_DOCUMENTATION_IMPLEMENTATION_TASK_DESCRIPTION}}",
-            "acceptanceCriteria": "{{API_DOCUMENTATION_IMPLEMENTATION_ACCEPTANCE_CRITERIA}}",
-            "estimatedLOC": "{{API_DOCUMENTATION_IMPLEMENTATION_ESTIMATED_LOC}}",
-            "dependencies": ["TASK-024"],
-            "constitutionalCompliance": "{{API_DOCUMENTATION_IMPLEMENTATION_CONSTITUTIONAL_COMPLIANCE}}",
-            "apiFirst": true
+            "id": "TASK-040",
+            "title": "[TASK-040] Accessibility Testing & Compliance",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-035"],
+            "description": "Test and validate accessibility compliance including keyboard navigation, screen reader support, and WCAG guidelines",
+            "acceptanceCriteria": "Accessibility tests pass, keyboard navigation working, screen reader support verified, WCAG compliance achieved",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Accessibility Gate compliance with WCAG guidelines",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-038", "TASK-039", "TASK-041"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-041",
+            "title": "[TASK-041] Cross-Browser Compatibility Testing",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-035"],
+            "description": "Test application compatibility across different browsers and devices to ensure consistent user experience",
+            "acceptanceCriteria": "Cross-browser tests pass, consistent functionality across browsers, responsive design working on all devices",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Browser Compatibility Gate compliance with cross-browser testing",
+            "estimatedDuration": "45min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-038", "TASK-039", "TASK-040"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-042",
+            "title": "[TASK-042] Load Testing & Scalability Validation",
+            "tddPhase": "Integration",
+            "dependencies": ["TASK-036"],
+            "description": "Conduct load testing to validate application performance under various load conditions and ensure scalability",
+            "acceptanceCriteria": "Load tests pass, performance maintained under load, scalability validated, bottlenecks identified and resolved",
+            "estimatedLOC": "100-150",
+            "constitutionalCompliance": "✅ Performance Gate compliance with load testing",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-043", "TASK-044"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-043",
+            "title": "[TASK-043] User Acceptance Testing",
+            "tddPhase": "E2E",
+            "dependencies": ["TASK-037"],
+            "description": "Conduct user acceptance testing with real users to validate functionality and user experience",
+            "acceptanceCriteria": "UAT completed successfully, user feedback incorporated, functionality validated by users, user experience approved",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ User Experience Gate compliance with user validation",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-042", "TASK-044"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-044",
+            "title": "[TASK-044] Final Verification & Working Application Sign-off",
+            "tddPhase": "E2E",
+            "dependencies": ["TASK-038", "TASK-039", "TASK-040", "TASK-041", "TASK-042", "TASK-043"],
+            "description": "Conduct final verification that the complete application works end-to-end with real APIs, all features functional, and ready for deployment",
+            "acceptanceCriteria": "Complete working application verified, all features functional with real APIs, deployment-ready, final sign-off approved",
+            "estimatedLOC": "50-100",
+            "constitutionalCompliance": "✅ All constitutional gates compliance verified, ✅ Working application delivered",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": false,
+              "parallelTasks": [],
+              "dependencyLevel": 2
+            },
+            "parallelizable": false
+          }
+        ],
+        "parallelExecutionSummary": [
+          {
+            "dependencyLevel": 1,
+            "parallelTasks": ["TASK-034", "TASK-035", "TASK-036", "TASK-037", "TASK-038", "TASK-039", "TASK-040", "TASK-041", "TASK-042", "TASK-043"],
+            "estimatedParallelDuration": 120
           }
         ]
       }
     },
-    "platformSpecificTasks": {
-      "mobile": {
-        "title": "Mobile Platform Tasks",
-        "content": "{{MOBILE_PLATFORM_TASKS}}",
-        "instruction": "Generate mobile-specific tasks: native capabilities, offline functionality, performance optimization, accessibility, security, store compliance, UI-API integration (HTTP clients, state management, offline sync)"
-      },
-      "web": {
-        "title": "Web Platform Tasks", 
-        "content": "{{WEB_PLATFORM_TASKS}}",
-        "instruction": "Generate web-specific tasks: progressive enhancement, responsive design, browser compatibility, performance, accessibility, UI-API integration (fetch/axios, state management, error handling)"
-      },
-      "desktop": {
-        "title": "Desktop Platform Tasks",
-        "content": "{{DESKTOP_PLATFORM_TASKS}}",
-        "instruction": "Generate desktop-specific tasks: OS integration, distribution, performance, accessibility, security, UI-API integration (HTTP clients, state management, local storage)"
-      },
-      "backend": {
-        "title": "Backend Platform Tasks",
-        "content": "{{BACKEND_PLATFORM_TASKS}}",
-        "instruction": "Generate backend-specific tasks: API design, database setup, monitoring, security, performance, scalability"
-      },
-      "ai": {
-        "title": "AI Platform Tasks",
-        "content": "{{AI_PLATFORM_TASKS}}",
-        "instruction": "Generate AI-specific tasks: data quality, model performance, reproducibility, ethics, deployment"
-      }
-    },
-    "apiFirstTasks": {
-      "title": "API-First Task Planning (Web/Mobile/Backend)",
-      "description": "API-First implementation tasks for applicable platforms",
-      "apiDesignTasks": {
-        "title": "API Design Tasks",
-        "content": "{{API_DESIGN_TASKS}}",
-        "instruction": "Generate API design tasks: endpoint structure, resource modeling, HTTP methods, status codes"
-      },
-      "apiContractTasks": {
-        "title": "API Contract Tasks",
-        "content": "{{API_CONTRACT_TASKS}}",
-        "instruction": "Generate API contract tasks: request/response schemas, validation rules, error handling"
-      },
-      "apiTestingTasks": {
-        "title": "API Testing Tasks",
-        "content": "{{API_TESTING_TASKS}}",
-        "instruction": "Generate API testing tasks: contract testing, integration testing, performance testing"
-      },
-      "apiDocumentationTasks": {
-        "title": "API Documentation Tasks",
-        "content": "{{API_DOCUMENTATION_TASKS}}",
-        "instruction": "Generate API documentation tasks: OpenAPI specs, versioning, developer experience"
-      }
-    },
-    "uiApiIntegrationTasks": {
-      "title": "UI-API Integration Tasks (Web/Mobile/Desktop)",
-      "description": "Critical tasks for connecting UI to APIs - often missed in API-First development",
-      "apiClientTasks": {
-        "title": "API Client Implementation",
-        "content": "{{API_CLIENT_TASKS}}",
-        "instruction": "Generate API client tasks: HTTP client setup, request/response handling, error management, authentication"
-      },
-      "uiApiConnectionTasks": {
-        "title": "UI-API Connection Tasks",
-        "content": "{{UI_API_CONNECTION_TASKS}}",
-        "instruction": "Generate UI-API connection tasks: data fetching, state management, loading states, error handling"
-      },
-      "apiDataFlowTasks": {
-        "title": "API Data Flow Tasks",
-        "content": "{{API_DATA_FLOW_TASKS}}",
-        "instruction": "Generate API data flow tasks: data transformation, validation, caching, real-time updates"
-      },
-      "apiErrorHandlingTasks": {
-        "title": "API Error Handling Tasks",
-        "content": "{{API_ERROR_HANDLING_TASKS}}",
-        "instruction": "Generate API error handling tasks: user feedback, retry logic, offline handling, graceful degradation"
-      }
-    },
-    "taskDependencies": {
-      "title": "Task Dependencies",
-      "description": "Task dependency mapping and parallelization opportunities",
-      "parallelizableTasks": "{{PARALLELIZABLE_TASKS}}",
-      "sequentialTasks": "{{SEQUENTIAL_TASKS}}",
-      "criticalPath": "{{CRITICAL_PATH}}",
-      "dependencyGraph": "{{DEPENDENCY_GRAPH}}"
-    },
-    "definitionOfDone": {
-      "title": "Definition of Done",
-      "description": "Criteria that must be met for each task to be considered complete",
-      "criteria": [
-        "Code written and reviewed",
-        "All tests pass",
-        "Documentation updated", 
-        "No linting errors",
-        "Constitutional compliance verified",
-        "Traceability to FR-XXX requirements confirmed"
+    "durationEstimationGuide": {
+      "description": "Comprehensive guide for estimating task durations based on complexity, dependencies, and team experience",
+      "factors": [
+        "Task complexity and technical requirements",
+        "Dependencies and integration points",
+        "Team experience with technologies",
+        "Testing and validation requirements",
+        "Documentation and code quality standards"
       ],
-      "qualityGates": "{{QUALITY_GATES}}",
-      "reviewChecklist": "{{REVIEW_CHECKLIST}}"
+      "estimationRanges": {
+        "Simple": "15-30 minutes",
+        "Medium": "30-60 minutes", 
+        "Complex": "60-120 minutes",
+        "Very Complex": "120+ minutes"
+      }
+    },
+    "executionPolicy": {
+      "description": "Execution guidelines ensuring proper task sequencing and parallel execution optimization",
+      "rules": [
+        "Tasks with no dependencies can run in parallel",
+        "Tasks with dependencies must wait for prerequisite completion",
+        "Critical path tasks should be prioritized",
+        "Parallel execution should be maximized where possible",
+        "Quality gates must be met before proceeding to next phase"
+      ]
+    },
+    "outputArtifacts": {
+      "description": "Expected deliverables and artifacts from each phase",
+      "phase1": [
+        "API contracts and specifications",
+        "Database schema and migrations",
+        "Data models and validation",
+        "Foundation test suite"
+      ],
+      "phase2": [
+        "Core library implementation",
+        "API controllers and services",
+        "Business logic components",
+        "Integration test suite"
+      ],
+      "phase3": [
+        "UI components with mock APIs",
+        "User interaction handlers",
+        "Mock API services",
+        "UI test suite"
+      ],
+      "phase4": [
+        "Real API implementation",
+        "Complete working application",
+        "Production-ready deployment",
+        "Comprehensive test coverage"
+      ]
     },
     "mermaidDiagrams": {
-      "title": "Task Flow Visualization",
-      "taskFlowDiagram": {
-        "title": "Task Flow Diagram",
-        "content": "{{MERMAID_TASK_FLOW_DIAGRAM}}",
-        "instruction": "Generate Mermaid flowchart showing task flow with phases, dependencies, and parallelization"
-      },
-      "tddOrderDiagram": {
-        "title": "TDD Order Diagram",
-        "content": "{{MERMAID_TDD_ORDER_DIAGRAM}}",
-        "instruction": "Generate Mermaid diagram showing TDD order enforcement: Contract → Integration → E2E → Unit → Implementation"
-      },
-      "dependencyDiagram": {
-        "title": "Task Dependencies Diagram",
-        "content": "{{MERMAID_DEPENDENCY_DIAGRAM}}",
-        "instruction": "Generate Mermaid diagram showing task dependencies and critical path"
-      },
-      "platformTasksDiagram": {
-        "title": "Platform-Specific Tasks Diagram",
-        "content": "{{MERMAID_PLATFORM_TASKS_DIAGRAM}}",
-        "instruction": "Generate Mermaid diagram showing platform-specific task breakdown"
-      },
-      "constitutionalGatesDiagram": {
-        "title": "Constitutional Gates Validation Diagram",
-        "content": "{{MERMAID_CONSTITUTIONAL_GATES_DIAGRAM}}",
-        "instruction": "Generate Mermaid diagram showing constitutional gates validation for task planning"
-      },
-      "uiApiIntegrationDiagram": {
-        "title": "UI-API Integration Flow Diagram",
-        "content": "{{MERMAID_UI_API_INTEGRATION_DIAGRAM}}",
-        "instruction": "Generate Mermaid diagram showing UI-API integration flow: API client → UI components → data flow → error handling"
-      }
+      "description": "Mermaid diagrams for visualizing task dependencies and execution flow",
+      "taskFlowDiagram": "graph TD\n    A[TASK-001: API Contracts] --> B[TASK-002: Validate Contracts]\n    B --> C[TASK-003: Configure DB]\n    C --> D[TASK-004: Design Schema]\n    D --> E[TASK-006: Data Models]\n    E --> F[TASK-012: Core Library]\n    F --> G[TASK-023: Mock APIs]\n    G --> H[TASK-025: UI Components]\n    H --> I[TASK-034: Real APIs]\n    I --> J[TASK-044: Final Verification]",
+      "phaseDependencyDiagram": "graph LR\n    A[Phase 1: Foundations] --> B[Phase 2: Core Implementation]\n    B --> C[Phase 3: UI Development]\n    C --> D[Phase 4: Real Integration]"
     },
-    "constitutionalGates": {
-      "testFirstGate": {
-        "title": "Test-First Gate",
-        "description": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation",
-        "check": "{{TEST_FIRST_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "integrationFirstTestingGate": {
-        "title": "Integration-First Testing Gate", 
-        "description": "Prefer real dependencies (DBs/services).",
-        "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "simplicityGate": {
-        "title": "Simplicity Gate",
-        "description": "≤ 5 projects for initial scope; otherwise, force simplification",
-        "check": "{{SIMPLICITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "libraryFirstGate": {
-        "title": "Library-First Gate",
-        "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
-        "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
-        "platforms": ["web", "desktop", "backend", "ai"]
-      },
-      "cliInterfaceGate": {
-        "title": "CLI Interface Gate",
-        "description": "Each developer/system tool library exposes a CLI with --json mode using stdin/stdout; errors go to stderr",
-        "check": "{{CLI_INTERFACE_GATE_CHECK}}",
-        "platforms": ["desktop", "backend", "ai"]
-      },
-      "antiAbstractionGate": {
-        "title": "Anti-Abstraction Gate",
-        "description": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
-        "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "traceabilityGate": {
-        "title": "Traceability Gate",
-        "description": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec",
-        "check": "{{TRACEABILITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      }
-    },
-    "sddPrinciples": {
-      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
-      "multiStepRefinement": "Use iterative refinement over one-shot generation",
-      "libraryFirstTesting": "Prefer real dependencies over mocks",
-      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
-      "traceability": "Every line of code traces to numbered requirement",
-      "testFirstImperative": "No implementation before tests",
-      "tddOrdering": "Contract → Integration → E2E → Unit → Implementation"
-    },
-    "sddVersion": {
-      "version": "SDD-Cursor-1.3",
-      "generated": "2025-09-21",
-      "description": "Tasks template based on asy-sdd.md with TDD ordering, constitutional gates validation, and numbered platform-specific phases"
-    },
-    "taskSummary": {
-      "title": "Task Summary",
-      "totalPhases": 8,
-      "totalTasks": 25,
-      "corePhases": "Phase 1-5: Core implementation (TASK-001 to TASK-013)",
-      "integrationPhases": "Phase 6: UI-API Integration Comprehensive (TASK-014 to TASK-018)",
-      "platformPhases": "Phase 7: Platform-Specific (TASK-019 to TASK-021)",
-      "apiPhases": "Phase 8: API-First Integration (TASK-022 to TASK-025)",
-      "note": "All tasks numbered sequentially to ensure AI attention and complete implementation coverage"
+    "governance": {
+      "description": "Governance framework ensuring quality, compliance, and successful project delivery",
+      "qualityGates": [
+        "All tests must pass before phase completion",
+        "Code coverage must meet minimum thresholds",
+        "Performance benchmarks must be achieved",
+        "Security vulnerabilities must be addressed",
+        "User acceptance criteria must be met"
+      ],
+      "reviewProcess": [
+        "Peer review for all code changes",
+        "Architecture review for major decisions",
+        "Security review for sensitive components",
+        "Performance review for critical paths",
+        "User experience review for UI components"
+      ]
     }
-  },
-  "is_active": true
+  }
 }

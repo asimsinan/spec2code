@@ -28,7 +28,7 @@ export class JsonRepairUtility {
       try {
         // Use professional jsonrepair library for robust repair
         const repairedContent = jsonrepair(content);
-        console.log(`[${toolName}] JSON repaired successfully`);
+ 
         return repairedContent;
       } catch (repairError) {
         // If repair fails, try our fallback cleaning method
@@ -42,7 +42,7 @@ export class JsonRepairUtility {
 
         try {
           JSON.parse(cleanedContent);
-          console.log(`[${toolName}] JSON cleaned successfully using fallback method`);
+       
           return cleanedContent;
         } catch (fallbackError) {
           console.error(`[${toolName}] Fallback cleaning also failed:`, fallbackError.message);

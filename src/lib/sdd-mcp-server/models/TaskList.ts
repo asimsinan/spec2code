@@ -15,7 +15,7 @@ export const TaskSchema = z.object({
   title: z.string(),
   description: z.string(),
   tddOrder: z.enum(['Contract', 'Integration', 'E2E', 'Unit', 'Implementation']),
-  priority: z.number().min(1).max(5).default(3),
+  priority: z.number().min(1).max(10).default(5),
   estimatedDuration: z.string().optional(),
   dependencies: TaskDependencySchema,
   completed: z.boolean().default(false),
