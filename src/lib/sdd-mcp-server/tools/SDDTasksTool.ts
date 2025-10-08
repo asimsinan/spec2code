@@ -35,6 +35,14 @@ export class SDDTasksTool {
     return { success: false, error: 'TASKS_FAILED', message };
   }
 
+  private success(message: string, data?: any): any {
+    return {
+      success: true,
+      message,
+      ...(data && { data })
+    };
+  }
+
 
 
   getToolDefinition(): Tool {
@@ -59,6 +67,14 @@ export class SDDTasksTool {
             type: 'boolean',
             description: 'Include Mermaid diagrams in task planning',
             default: true
+          },
+          finalize: {
+            type: 'boolean',
+            description: 'Internal parameter - set to true when finalizing tasks to save to database'
+          },
+          tasksData: {
+            type: 'object',
+            description: 'The filled tasks data to save to database (used with finalize=true)'
           }
         },
         required: []
@@ -67,14 +83,31 @@ export class SDDTasksTool {
   }
 
   async execute(input: any): Promise<any> {       
-        // Initialize database if needed
+    try {
+      // Check if this is a finalize call
+      const { finalize, ...otherInput } = input;
+      
+      if (finalize) {
+        // Handle finalize mode - save the tasks to database
+        return await this.handleFinalize(otherInput);
+      }
+
+      // For non-finalize mode, featureId is optional - will use most recent if not provided
+
+      // Initialize database if needed
      
 
-        // Validate input
-        const validatedInput = this.validateInput(input);
+      // Validate input
+      const validatedInput = this.validateInput(input);
 
       // Resolve feature ID
-      const featureId = await this.resolveFeatureId(validatedInput.featureId);
+      let featureId: string;
+      try {
+        featureId = await this.resolveFeatureId(validatedInput.featureId);
+      } catch (error) {
+        return this.error(error instanceof Error ? error.message : 'Failed to resolve feature ID');
+      }
+      
       const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
@@ -233,7 +266,7 @@ Create a comprehensive task breakdown document that provides detailed, actionabl
        4.6.2. Fill the template data below with actual content
        4.6.3. Convert JSON template to proper markdown format
        4.6.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-       4.6.5. After creating tasks.md, use sdd_db_filler to save to database
+       4.6.5. After creating tasks.md, call sdd_tasks with finalize=true to save to database
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(templateWithInstructions, null, 2)}
@@ -399,21 +432,15 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    - Ensure consistent spacing and formatting throughout
    - Use bullet points and numbered lists for better readability
 
-7. Use sdd_db_filler tool to save the filled tasks to database with this exact data structure:
-    7.1. Data structure:
-     {
-       "operation": "upsert",
-       "table": "tasks",
-       "data": {
-         "feature_id": "${featureId}",
-         "template_id": "sdd-tasks-perfect-v1",
-          "content": YOUR_FILLED_TEMPLATE_DATA_AS_JSON_OBJECT,
-         "ai_generated": true
-       }
+7. MANDATORY LAST STEP After creating the tasks.md file: Call sdd_tasks with finalize=true to save the filled tasks to database:
+    7.1. Call: sdd_tasks with parameters:
+      {
+        "finalize": true,
+        "featureId": "${featureId}",
+        "tasksData": [THE_FILLED_TASKS_DATA_AS_JSON]
       }
-    7.2. CRITICAL: Replace 'YOUR_FILLED_TEMPLATE_DATA_AS_JSON_OBJECT' with the actual filled template data from the template above
-    7.3. The content should be the JSON object you created by filling the template, NOT the template with instructions
-    7.4. Example: If your filled template is { "taskPhases": [...], "constitutionalGates": [...] }, then content should be that object
+    7.2. This is NOT just text - you must actually CALL the sdd_tasks tool with finalize=true
+    7.3. The tasksData should be the complete JSON object you created from the template
     7.5. Do NOT save empty objects like {"template_data":{}} - this will break the Implement Tool
     7.6. The content must contain actual task data with taskPhases, constitutionalGates, etc.
     7.7. VALIDATION: Before saving, verify that your content contains:
@@ -423,6 +450,19 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
         - definitionOfDone with criteria
     7.8. The content should be thousands of characters, not 20-24 characters
     7.9. If you save empty data, the Implement Tool will fail with "No phase-specific tasks available"
+
+🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
+DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
+YOU MUST:
+1. CREATE the tasks.md file in specs/tasks.md
+2. FILL the template with actual content
+3. MAKE A TOOL CALL to sdd_tasks with finalize=true to save to database
+4. THEN respond with a BRIEF confirmation (one sentence only)
+
+🚨 CRITICAL: Step 3 requires an actual TOOL CALL, not just text!
+🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
+
+STOP READING AND START CREATING THE FILE NOW!
 `;
 
         const outputData = {
@@ -430,10 +470,49 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
           nextStep: successMessage
         };
         return outputData;
-       
-    
-  
- 
+    } catch (error) {
+      console.error('[sdd_tasks] ERROR:', error);
+      return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+  }
+
+  /**
+   * Handle finalize mode - save tasks to database
+   */
+  private async handleFinalize(input: any): Promise<any> {
+    try {
+      const { featureId, tasksData } = input;
+      
+      if (!featureId || !tasksData) {
+        return this.error('Missing required parameters: featureId and tasksData are required for finalize mode');
+      }
+
+      // Ensure feature exists in database
+      const feature = await this.db.get_feature_robust(featureId);
+      if (!feature) {
+        return this.error(`Feature '${featureId}' not found in database.`);
+      }
+
+      // Save tasks to database
+      await this.db.save_tasks_robust(
+        featureId,
+        tasksData,
+        'sdd-tasks-perfect-v1'
+      );
+
+      return this.success(
+        `Saved`,
+        {
+          featureId,
+          featureName: feature.name,
+          templateId: 'sdd-tasks-perfect-v1',
+          aiGenerated: true
+        }
+      );
+
+    } catch (error) {
+      return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // -----------------------

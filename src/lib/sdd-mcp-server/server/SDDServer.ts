@@ -25,7 +25,7 @@ import {
   SDDTasksTool,
   // SDDStatusTool, // Disabled for now
   SDDImplementTool,
-  SDDGenericDBFillerTool
+  //SDDGenericDBFillerTool
 } from '../tools/index.js';
 
 export class SDDServer {
@@ -215,7 +215,7 @@ export class SDDServer {
     // Create all tools - they will initialize their own databases as needed
     // The SDDSpecifyTool will handle database initialization in the project root
     this.tools.set('sdd_specify', new SDDSpecifyTool(projectRoot));
-    this.tools.set('sdd_db_filler', new SDDGenericDBFillerTool(projectRoot)); // INTERNAL
+   // this.tools.set('sdd_db_filler', new SDDGenericDBFillerTool(projectRoot)); // INTERNAL
     this.tools.set('sdd_plan', new SDDPlanTool(projectRoot));
     this.tools.set('sdd_tasks', new SDDTasksTool(projectRoot));
     this.tools.set('sdd_implement', new SDDImplementTool(projectRoot));

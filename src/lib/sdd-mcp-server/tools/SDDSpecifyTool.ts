@@ -35,7 +35,6 @@ export class SDDSpecifyTool {
       // Check if templates exist, install if missing (SDDSpecifyTool is primary installer)
       const specTemplate = await this.db.get_spec_template_robust('sdd-spec-perfect-v1');
       if (!specTemplate) {
-        console.error('SDDSpecifyTool: Templates not found, installing all templates...');
         await this.ensureTemplatesInstalled();
       }
     } catch (error) {
@@ -49,9 +48,9 @@ export class SDDSpecifyTool {
    */
   private async ensureTemplatesInstalled(): Promise<void> {
     try {
-      console.error('SDDSpecifyTool: Installing all templates...');
+     
       await this.installTemplates();
-      console.error('SDDSpecifyTool: All templates installed successfully');
+     
     } catch (error) {
       console.error('SDDSpecifyTool: Error installing templates:', error);
       throw error;
@@ -157,9 +156,21 @@ export class SDDSpecifyTool {
             description: 'Target platform for the feature (mobile, web, desktop, backend, ai)',
             enum: ['mobile', 'web', 'desktop', 'backend', 'ai'],
             default: 'web'
+          },
+          finalize: {
+            type: 'boolean',
+            description: 'Internal parameter - set to true when finalizing specification to save to database'
+          },
+          specificationData: {
+            type: 'object',
+            description: 'The filled specification data to save to database (used with finalize=true)'
+          },
+          featureId: {
+            type: 'string',
+            description: 'Feature ID for finalize mode (used with finalize=true)'
           }
         },
-        required: ['input']
+        required: []
       },
       outputSchema: {
         type: 'object',
@@ -210,6 +221,20 @@ export class SDDSpecifyTool {
 
   async execute(input: any): Promise<any> {
     try {
+
+      
+      // Check if this is a finalize call
+      const { finalize, ...otherInput } = input;
+ 
+      if (finalize) {
+
+        return await this.handleFinalize(otherInput);
+      }
+
+      // For non-finalize mode, validate that input is provided
+      if (!input.input) {
+        return this.error('Missing required parameter: input is required when not in finalize mode');
+      }
 
       // Initialize database if needed (creates sdd.db in project root)
       await this.initializeDatabaseIfNeeded();
@@ -378,7 +403,7 @@ ${sddPrinciplesList}
       4.12.2. Fill the template data below with actual content
       4.12.3. Convert JSON template to proper markdown format
       4.12.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-      4.12.5. After creating spec.md, use sdd_db_filler to save to database
+      4.12.5. After creating spec.md, call sdd_specify with finalize=true to save to database
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(fillResult.data, null, 2)}
@@ -462,28 +487,26 @@ ${JSON.stringify(fillResult.data, null, 2)}
    - Use proper markdown formatting with **bold** for labels
    - Add blank lines between different gates for readability
 
-7. MANDATORY LAST STEP After creating the spec.md file: Use sdd_db_filler tool to save the filled specification to database with this exact data structure:
-      7.1. Data structure:
+7. MANDATORY LAST STEP After creating the spec.md file: You MUST make a TOOL CALL to sdd_specify with finalize=true to save the filled specification to database:
+      7.1. 🚨 CRITICAL: Make a TOOL CALL to sdd_specify with these EXACT parameters:
         {
-          "operation": "upsert",
-          "table": "specifications",
-          "data": {
-            "feature_id": "${featureId}",
-            "template_id": "sdd-spec-perfect-v1",
-            "content": [THE_FILLED_SPECIFICATION_DATA_AS_JSON],
-            "ai_generated": true
-          }
+          "finalize": true,
+          "featureId": "${featureId}",
+          "specificationData": [THE_FILLED_SPECIFICATION_DATA_AS_JSON]
         }
+      7.2. This is NOT just text - you must actually CALL the sdd_specify tool with finalize=true
+      7.3. The specificationData should be the complete JSON object you created from the template
 
 🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
 DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
 YOU MUST:
 1. CREATE the spec.md file in specs/spec.md
 2. FILL the template with actual content
-3. SAVE it to the database using sdd_db_filler
-4. THEN respond with confirmation
+3. MAKE A TOOL CALL to sdd_specify with finalize=true to save to database
+4. THEN respond with a BRIEF confirmation (one sentence only)
 
-STOP READING AND START CREATING THE FILE NOW!
+🚨 CRITICAL: Step 3 requires an actual TOOL CALL, not just text!
+🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
 `;
 
       const outputData = {
@@ -504,6 +527,47 @@ STOP READING AND START CREATING THE FILE NOW!
       });
 
       return errorOutput;
+    }
+  }
+
+  /**
+   * Handle finalize mode - save specification to database
+   */
+  private async handleFinalize(input: any): Promise<any> {
+    try {
+  
+      
+      const { featureId, specificationData } = input;
+      
+      if (!featureId || !specificationData) {
+        return this.error('Missing required parameters: featureId and specificationData are required for finalize mode');
+      }
+
+      // Get feature to verify it exists and get the name
+      const feature = await this.db.get_feature_robust(featureId);
+      if (!feature) {
+        return this.error(`Feature '${featureId}' not found in database.`);
+      }
+
+      // Save specification to database
+      await this.db.save_specification_robust(
+        featureId,
+        specificationData,
+        'sdd-spec-perfect-v1'
+      );
+
+      return this.success(
+        `Saved`,
+        {
+          featureId,
+          featureName: feature.name,
+          templateId: 'sdd-spec-perfect-v1',
+          aiGenerated: true
+        }
+      );
+
+    } catch (error) {
+      return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -783,11 +847,6 @@ STOP READING AND START CREATING THE FILE NOW!
       libraryComplexity: complexity as 'simple' | 'moderate' | 'complex',
       requiresLibrary: confidence > 0.4
     };
-  }
-
-  private hasLibraryFirstApproach(userInput: string): boolean {
-    const detection = this.detectLibraryRequirements(userInput);
-    return detection.hasLibrary;
   }
 
   /**
@@ -1449,6 +1508,14 @@ STOP READING AND START CREATING THE FILE NOW!
     return {
       success: false,
       error: message
+    };
+  }
+
+  private success(message: string, data?: any): any {
+    return {
+      success: true,
+      message,
+      ...(data && { data })
     };
   }
 

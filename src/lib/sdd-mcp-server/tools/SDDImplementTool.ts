@@ -7,7 +7,7 @@
  * - Enhanced task display with duration estimates and parallel execution info
  * - Project planning information including critical path and resource requirements
  * - Execution strategy guidance for parallel vs sequential tasks
- * - 4-phase structure with 49 atomic tasks following Implement-Run-Verify pattern
+ * - 4-phase structure with 44 atomic tasks (11 per phase) following Implement-Run-Verify pattern
  * - Real-time project planning data integration
  */
 
@@ -33,20 +33,42 @@ export class SDDImplementTool {
     this.errorRecoveryManager = ErrorRecoveryManager.getInstance();
     this.planCommunicationEnhancer = PlanCommunicationEnhancer.getInstance();
     this.performanceOptimizer = PerformanceOptimizer.getInstance();
-  }
+    
 
+  }
 
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_implement',
-      description: '🚨 CRITICAL TOOL CALL REQUIRED: When user types "/sdd_implement phase=X" or "sdd_implement phase=X", you MUST IMMEDIATELY call this tool. Do NOT analyze, plan, read files, or do any other actions first. This tool provides complete implementation instructions for any phase (1-4) with enhanced task information including duration estimates, parallel execution opportunities, project planning data, and execution strategy. This is the PRIMARY development tool. MANDATORY: Call this tool for ALL implementation requests. DO NOT IGNORE THIS TOOL CALL.',
+      description: `🚨 CRITICAL TOOL CALL REQUIRED: When user types "/sdd_implement phase=X" or "sdd_implement phase=X", you MUST IMMEDIATELY call this tool. Do NOT analyze, plan, read files, or do any other actions first. This tool provides complete implementation instructions for any phase (1-4) with enhanced task information including duration estimates, parallel execution opportunities, project planning data, and execution strategy. This is the PRIMARY development tool. MANDATORY: Call this tool for ALL implementation requests. DO NOT IGNORE THIS TOOL CALL.
+
+## Enhanced Implementation Instructions
+- **Phase-Specific Tasks**: Loads actual tasks from database for the specified phase
+- **TDD Enforcement**: Enforces Test-Driven Development with Contract → Integration → E2E → Unit → Implementation sequence
+- **Platform Detection**: Automatically detects platform and provides platform-specific instructions
+- **Constitutional Gates**: Ensures compliance with all quality gates and requirements
+- **Parallel Execution**: Identifies tasks that can run in parallel for optimal efficiency
+- **Real Implementation**: Provides instructions for real functionality, not mocks or placeholders
+
+## Phase Structure (Balanced 4-Phase)
+- **Phase 1**: Foundations & Data (11 tasks) - API contracts, database setup, data models
+- **Phase 2**: Core Implementation (11 tasks) - Core library, business logic, API structure  
+- **Phase 3**: UI Development with Mock APIs (11 tasks) - UI components with mock services
+- **Phase 4**: Real API Integration & Verification (11 tasks) - Replace mocks with real APIs
+
+## Critical Requirements
+- **NO MOCK CODE**: All implementations must be real, production-ready functionality
+- **TDD MANDATORY**: Write tests first, then implement code following RED-GREEN-REFACTOR
+- **DATABASE CONNECTIONS**: Use real database connections and queries
+- **ERROR HANDLING**: Implement comprehensive error handling and validation
+- **PLATFORM-SPECIFIC**: Follow platform-specific best practices and configurations`,
       inputSchema: {
         type: 'object',
         properties: {
           phase: {
             type: 'string',
-            description: 'Phase number (1-4) to execute immediately: 1=Foundations & Data (23 tasks), 2=Application & Core Integration (8 tasks), 3=API-First, Platform & Smoke (12 tasks), 4=Full Integration & Verification (6 tasks)'
+            description: 'Phase number (1-4) to execute immediately: 1=Foundations & Data (11 tasks), 2=Core Implementation (11 tasks), 3=UI Development with Mock APIs (11 tasks), 4=Real API Integration & Verification (11 tasks)'
           }
         },
         required: []
@@ -65,31 +87,34 @@ export class SDDImplementTool {
       // Validate input
       const { phase } = input;
 
-      // Always resolve feature ID from most recent feature that has all required components
+
       const currentFeatureId = await this.errorRecoveryManager.addRetryMechanism(
         () => this.resolveFeatureId(),
         { ...context, operation: 'resolveFeatureId' },
         3
       );
 
-      // Get data with retry mechanism and graceful degradation
-      const tasks = await this.errorRecoveryManager.addRetryMechanism(
+      // Get data with retry mechanism and graceful degradation, using JSON repair
+      const rawTasks = await this.errorRecoveryManager.addRetryMechanism(
         () => this.db.get_tasks_robust(currentFeatureId),
         { ...context, operation: 'getTasks', featureId: currentFeatureId },
         3
       );
+      const tasks = JsonRepairUtility.validateAndRepairDbContent(rawTasks, 'SDDImplementTool');
 
-      const specification = await this.errorRecoveryManager.addRetryMechanism(
+      const rawSpecification = await this.errorRecoveryManager.addRetryMechanism(
         () => this.db.get_specification_robust(currentFeatureId),
         { ...context, operation: 'getSpecification', featureId: currentFeatureId },
         3
       );
+      const specification = JsonRepairUtility.validateAndRepairDbContent(rawSpecification, 'SDDImplementTool');
 
-      const plan = await this.errorRecoveryManager.addRetryMechanism(
+      const rawPlan = await this.errorRecoveryManager.addRetryMechanism(
         () => this.db.get_plan_robust(currentFeatureId),
         { ...context, operation: 'getPlan', featureId: currentFeatureId },
         3
       );
+      const plan = JsonRepairUtility.validateAndRepairDbContent(rawPlan, 'SDDImplementTool');
 
       // Validate required data exists with graceful degradation
       if (!tasks) {
@@ -121,11 +146,14 @@ export class SDDImplementTool {
       );
 
       // For implementation commands, use AI to extract and execute specific task
-      return await this.errorRecoveryManager.addRetryMechanism(
+      const aiInstructions = await this.errorRecoveryManager.addRetryMechanism(
         () => this.resolveTasksForImplementation(currentFeatureId, tasks, platform, phaseNum, specification, plan),
         { ...context, operation: 'resolveTasksForImplementation', featureId: currentFeatureId, phase: phaseNum },
         2
       );
+
+      // Return the AI instructions as a plain string to avoid JSON parsing issues
+      return aiInstructions;
 
     } catch (error) {
       const enhancedError = error as Error;
@@ -322,22 +350,16 @@ export class SDDImplementTool {
   /**
    * AI-driven task resolution for implementation commands
    */
-  private async resolveTasksForImplementation(featureId: string, tasks: any, platform: string, phase?: number, specification?: any, plan?: any): Promise<any> {
+  private async resolveTasksForImplementation(featureId: string, tasks: any, platform: string, phase?: number, specification?: any, plan?: any): Promise<string> {
     try {
-
       // Create AI instructions for task extraction and execution
       const aiInstructions = await this.createTaskExecutionInstructions(featureId, platform, phase, specification, plan);
 
-      return {
-        success: true,
-        nextStep: aiInstructions
-      };
+      // Return the instructions as a plain string to avoid JSON parsing issues
+      return aiInstructions;
     } catch (error) {
       console.error(`[SDDImplementTool] Error in resolveTasksForImplementation:`, error);
-      return {
-        success: false,
-        error: `Failed to create task execution instructions: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
+      return `Failed to create task execution instructions: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
   }
 
@@ -390,6 +412,8 @@ export class SDDImplementTool {
 - ALWAYS write tests BEFORE implementing code (TDD)
 - ALWAYS install dependencies before any implementation
 - NEVER read markdown files - use only data provided below
+- 🚨 WORKING DIRECTORY: Create ALL files in the CURRENT PROJECT DIRECTORY (where you are now)
+- 🚨 DO NOT create new folders with feature names - work in the existing project structure
 
 # PHASE 1: FOUNDATIONS & DATA (ATOMIC)
 **AUTOMATIC TOOL CALL:** /sdd_implement phase=1 (ALREADY TRIGGERED)
@@ -429,17 +453,20 @@ ${platformSpecificRequirements ? `\n${'='.repeat(80)}\n🏗️  PLATFORM-SPECIFI
 
 ${this.getTestingStepsTemplate('Contract', 'TASK-005', contractTestCommands ? `\n${'='.repeat(60)}\n🧪 CONTRACT TEST COMMANDS\n${'='.repeat(60)}\n${contractTestCommands}\n${'='.repeat(60)}\n` : '')}
 
-### 3. Run Integration Tests (TASK-008)
-- **Integration Scenarios**: Execute integration test scenarios
-- **Integration Verification**: Verify integration test results
+### 3. Run Integration Tests (TASK-009, TASK-017, TASK-018)
+- **Integration Scenarios**: Define integration test scenarios (TASK-009)
+- **Core Integration Tests**: Run core integration tests (TASK-017)
+- **API Integration Tests**: Run API integration tests (TASK-018)
 
-### 4. Run Database Tests (TASK-011, TASK-012)
-- **Database Setup**: Verify database configuration and initialization
-- **Schema Verification**: Verify database schema design
+### 4. Run Database Implementation (TASK-003, TASK-004, TASK-006, TASK-008)
+- **Database Configuration**: Configure database (TASK-003)
+- **Schema Design**: Design database schema (TASK-004)
+- **Data Models**: Develop data models (TASK-006)
+- **Migration Scripts**: Implement migration scripts (TASK-008)
 
-### 5. Run Model Tests (TASK-022, TASK-023)
-- **Model Unit Tests**: Execute model unit tests
-- **Model Verification**: Verify model test coverage and results
+### 5. Run Model Tests (TASK-010, TASK-021)
+- **Model Unit Tests**: Execute model unit tests (TASK-010)
+- **Core Component Tests**: Run unit tests for core components (TASK-021)
 
 ## Success Criteria
 - All dependencies installed and verified
@@ -481,6 +508,8 @@ ${this.getTestingStepsTemplate('Contract', 'TASK-005', contractTestCommands ? `\
 - ALWAYS write tests BEFORE implementing code (TDD)
 - ALWAYS install dependencies before any implementation
 - NEVER read markdown files - use only data provided below
+- 🚨 WORKING DIRECTORY: Create ALL files in the CURRENT PROJECT DIRECTORY (where you are now)
+- 🚨 DO NOT create new folders with feature names - work in the existing project structure
 
 # PHASE 2: APPLICATION & CORE INTEGRATION (ATOMIC)
 **AUTOMATIC TOOL CALL:** sdd_implement phase="2" (ALREADY TRIGGERED)
@@ -510,7 +539,7 @@ ${platformSpecificRequirements ? `\n${'='.repeat(80)}\n🏗️  PLATFORM-SPECIFI
 
 ${this.getTestingStepsTemplate('Library Integration', 'TASK-025', databaseTestCommands ? `\n${'='.repeat(60)}\n🗄️  DATABASE TEST COMMANDS\n${'='.repeat(60)}\n${databaseTestCommands}\n${'='.repeat(60)}\n` : '')}
 
-### 3. Run Application Layer Tests (TASK-030)
+### 3. Run Application Layer Tests (TASK-021)
 - **Application Testing**: Execute application layer tests
 - **Application Verification**: Verify application layer test results
 
@@ -553,6 +582,8 @@ ${this.getTestingStepsTemplate('Library Integration', 'TASK-025', databaseTestCo
 - ALWAYS write tests BEFORE implementing code (TDD)
 - ALWAYS install dependencies before any implementation
 - NEVER read markdown files - use only data provided below
+- 🚨 WORKING DIRECTORY: Create ALL files in the CURRENT PROJECT DIRECTORY (where you are now)
+- 🚨 DO NOT create new folders with feature names - work in the existing project structure
 
 # PHASE 3: API-FIRST, PLATFORM & SMOKE (ATOMIC)
 **AUTOMATIC TOOL CALL:** sdd_implement phase="3" (ALREADY TRIGGERED)
@@ -586,7 +617,7 @@ ${this.getTestingStepsTemplate('API Integration', 'TASK-035', e2eTestCommands)}
 - **Platform Testing**: Execute platform-specific tests
 - **Platform Verification**: Verify platform test results
 
-### 4. Execute SMOKE Test Suite (TASK-041)
+### 4. Execute SMOKE Test Suite (TASK-037)
 - **SMOKE Testing**: Execute comprehensive SMOKE test suite
 - **SMOKE Analysis**: Analyze SMOKE failures and flakies
 - **SMOKE Reporting**: Publish SMOKE summary report
@@ -630,6 +661,8 @@ ${this.getTestingStepsTemplate('API Integration', 'TASK-035', e2eTestCommands)}
 - ALWAYS write tests BEFORE implementing code (TDD)
 - ALWAYS install dependencies before any implementation
 - NEVER read markdown files - use only data provided below
+- 🚨 WORKING DIRECTORY: Create ALL files in the CURRENT PROJECT DIRECTORY (where you are now)
+- 🚨 DO NOT create new folders with feature names - work in the existing project structure
 
 # PHASE 4: FULL INTEGRATION & VERIFICATION (ATOMIC)
 **AUTOMATIC TOOL CALL:** sdd_implement phase="4" (ALREADY TRIGGERED)
@@ -656,7 +689,7 @@ ${phaseTasksContent ? `\n${'='.repeat(80)}\n📋 PHASE-SPECIFIC TASKS\n${'='.rep
 - **Test Execution**: Run FULL test suite to verify everything works correctly
 - **Final Verification**: Verify all testing frameworks and project completion
 
-${this.getTestingStepsTemplate('FULL Test Suite', 'TASK-046', this.getPlatformTestCommands(platform, 'unit'))}
+${this.getTestingStepsTemplate('FULL Test Suite', 'TASK-049', this.getPlatformTestCommands(platform, 'unit'))}
 
 ### 3. Final Review & Sign-off (TASK-049)
 - **Final Review**: Complete comprehensive project review
@@ -851,8 +884,16 @@ ${commonInstructions}
   }
 
   private async getDataSections(featureId: string, phase: number, specification?: any, plan?: any): Promise<string> {
-    // Get tasks data using robust database method
-    const tasksData = await this.db.get_tasks_robust(featureId);
+    // Get tasks data using robust database method with JSON repair
+    let tasksData;
+    try {
+      const rawTasksData = await this.db.get_tasks_robust(featureId);
+      // Use JsonRepairUtility to ensure data is properly parsed
+      tasksData = JsonRepairUtility.validateAndRepairDbContent(rawTasksData, 'SDDImplementTool');
+    } catch (error) {
+      console.error(`[SDDImplementTool] Error loading tasks data:`, error);
+      return 'Error loading tasks data from database.';
+    }
 
     // Extract phase-specific tasks from the tasks JSON
     let tasksContent = 'No phase-specific tasks available.';
@@ -1356,6 +1397,11 @@ ${essentialPlanContent}
 
     // Platform-specific quality gates
     instructions.push(this.getPlatformSpecificQualityGates(platform));
+
+    // Universal API testing guidance
+    instructions.push(this.getUniversalApiTestingGuidance(platform));
+
+    // UI guidance is now handled by specific tasks (TASK-025, TASK-026, TASK-027, TASK-028, TASK-035, TASK-036)
 
     return instructions.join('\n\n');
   }
@@ -2310,5 +2356,219 @@ CRITICAL MOCK PREVENTION: NEVER create mock implementations, placeholder functio
       error: message
     };
   }
+
+  /**
+   * Success helper method
+   */
+  private success(message: string, data?: any): any {
+    return {
+      success: true,
+      message,
+      ...(data && { data })
+    };
+  }
+
+  /**
+   * Get universal API testing guidance to prevent platform-specific testing issues
+   */
+  private getUniversalApiTestingGuidance(platform: string): string {
+    const baseGuidance = `
+## 🚨 UNIVERSAL API TESTING PATTERN (PREVENTS PLATFORM CONTEXT ERRORS)
+
+### ❌ COMMON ERROR TO AVOID
+**"Trying to import Next.js API routes directly, but they expect specific Next.js context"**
+
+### ✅ SOLUTION: Context Adapter Pattern
+
+#### 1. Abstract Business Logic (Platform-Agnostic)
+\`\`\`typescript
+// ✅ GOOD: Pure business logic - easily testable
+export class UserController {
+  static async createUser(userData: UserData): Promise<User> {
+    // Pure business logic - no platform dependencies
+    const user = await UserService.create(userData);
+    return user;
+  }
+  
+  static async getUser(id: string): Promise<User> {
+    // Pure business logic - no platform dependencies
+    return await UserService.findById(id);
+  }
+}
+\`\`\`
+
+#### 2. Create Context Adapters
+\`\`\`typescript
+// ✅ Universal API context interface
+interface ApiContext {
+  getBody(): any;
+  getParams(): Record<string, string>;
+  getQuery(): Record<string, string>;
+  sendResponse(data: any, status?: number): void;
+  sendError(error: string, status?: number): void;
+}
+
+// ✅ Next.js context adapter
+export class NextJsContextAdapter implements ApiContext {
+  constructor(private req: NextApiRequest, private res: NextApiResponse) {}
+  
+  getBody() { return this.req.body; }
+  getParams() { return this.req.query; }
+  getQuery() { return this.req.query; }
+  sendResponse(data: any, status = 200) { 
+    this.res.status(status).json(data); 
+  }
+  sendError(error: string, status = 500) { 
+    this.res.status(status).json({ error }); 
+  }
+}
+
+// ✅ Test context adapter
+export class TestContextAdapter implements ApiContext {
+  constructor(private mockReq: any, private mockRes: any) {}
+  
+  getBody() { return this.mockReq.body; }
+  getParams() { return this.mockReq.params; }
+  getQuery() { return this.mockReq.query; }
+  sendResponse(data: any, status = 200) { 
+    this.mockRes.status = status;
+    this.mockRes.data = data;
+    return { status, data };
+  }
+  sendError(error: string, status = 500) { 
+    this.mockRes.status = status;
+    this.mockRes.error = error;
+    return { status, error };
+  }
+}
+\`\`\`
+
+#### 3. Thin API Route Wrappers
+\`\`\`typescript
+// ✅ Next.js API route (thin wrapper)
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const context = new NextJsContextAdapter(req, res);
+  return UserController.createUser(context.getBody())
+    .then(user => context.sendResponse(user))
+    .catch(err => context.sendError(err.message, 500));
+}
+
+// ✅ Express route (thin wrapper)
+app.post('/api/users', (req, res) => {
+  const context = new ExpressContextAdapter(req, res);
+  return UserController.createUser(context.getBody())
+    .then(user => context.sendResponse(user))
+    .catch(err => context.sendError(err.message, 500));
+});
+\`\`\`
+
+#### 4. Universal Testing Pattern
+\`\`\`typescript
+// ✅ Test business logic directly (no platform context needed)
+describe('UserController', () => {
+  it('should create user', async () => {
+    const mockUserData = { name: 'John', email: 'john@example.com' };
+    const result = await UserController.createUser(mockUserData);
+    expect(result).toBeDefined();
+    expect(result.name).toBe('John');
+  });
+  
+  it('should handle API context', async () => {
+    const mockContext = new TestContextAdapter(
+      { body: { name: 'John', email: 'john@example.com' } },
+      {}
+    );
+    
+    const result = await UserController.createUser(mockContext.getBody());
+    expect(result).toBeDefined();
+  });
+});
+\`\`\`
+
+### 🎯 BENEFITS
+- **✅ No platform context errors** - Business logic is platform-agnostic
+- **✅ Easy testing** - Test business logic without mocking platform APIs
+- **✅ Platform flexibility** - Same logic works with Next.js, Express, etc.
+- **✅ Maintainable** - Clear separation of concerns
+- **✅ Industry standard** - Follows established patterns
+
+### 🚨 MANDATORY IMPLEMENTATION
+- **ALWAYS** abstract business logic into pure functions/classes
+- **ALWAYS** use context adapters for platform-specific code
+- **ALWAYS** test business logic independently of platform context
+- **NEVER** import platform API routes directly in tests
+- **NEVER** mix business logic with platform-specific code`;
+
+    // Add platform-specific examples
+    const platformExamples: { [key: string]: string } = {
+      'nextjs': `
+
+### 🔧 Next.js Specific Implementation
+\`\`\`typescript
+// pages/api/users/index.ts
+import { NextApiRequest, NextApiResponse } from 'next';
+import { UserController } from '@/controllers/UserController';
+import { NextJsContextAdapter } from '@/adapters/NextJsContextAdapter';
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const context = new NextJsContextAdapter(req, res);
+  
+  switch (req.method) {
+    case 'POST':
+      return UserController.createUser(context.getBody())
+        .then(user => context.sendResponse(user, 201))
+        .catch(err => context.sendError(err.message, 400));
+    case 'GET':
+      return UserController.getUsers(context.getQuery())
+        .then(users => context.sendResponse(users))
+        .catch(err => context.sendError(err.message, 500));
+    default:
+      return context.sendError('Method not allowed', 405);
+  }
+}
+\`\`\``,
+
+      'nodejs-express': `
+
+### 🔧 Express Specific Implementation
+\`\`\`typescript
+// routes/users.js
+import { UserController } from '@/controllers/UserController';
+import { ExpressContextAdapter } from '@/adapters/ExpressContextAdapter';
+
+app.post('/api/users', (req, res) => {
+  const context = new ExpressContextAdapter(req, res);
+  return UserController.createUser(context.getBody())
+    .then(user => context.sendResponse(user, 201))
+    .catch(err => context.sendError(err.message, 400));
+});
+\`\`\``,
+
+      'java-spring': `
+
+### 🔧 Spring Boot Specific Implementation
+\`\`\`java
+// UserController.java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody UserData userData) {
+        try {
+            User user = UserService.createUser(userData);
+            return ResponseEntity.status(201).body(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(null);
+        }
+    }
+}
+\`\`\``
+    };
+
+    return baseGuidance + (platformExamples[platform] || '');
+  }
+
+
 
 }

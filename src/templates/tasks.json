@@ -1,8 +1,8 @@
 {
   "id": "sdd-tasks-perfect-v1",
-  "name": "SDD Tasks Template (4 Phases, Balanced UI-API Integration)",
-  "version": "4.0.0",
-  "description": "4-phase SDD with balanced task distribution and UI-API integration following the Implement–Run–Verify principle. Each phase contains 11 tasks for optimal workload balance.",
+  "name": "SDD Tasks Template (4 Phases, UI-Heavy Design System Approach)",
+  "version": "4.1.0",
+  "description": "4-phase SDD with UI-heavy approach featuring comprehensive design systems, advanced animations, accessibility compliance, and visual testing. Enhanced Phase 3 with 14 UI-focused tasks for professional-grade interfaces.",
   "template_data": {
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
@@ -33,7 +33,7 @@
             "parallelizable": false
           },
           {
-            "id": "TASK-002",
+            "id": "TASK-002", 
             "title": "[TASK-002] Validate API Contracts",
             "tddPhase": "Contract",
             "dependencies": ["TASK-001"],
@@ -103,7 +103,7 @@
           {
             "id": "TASK-006",
             "title": "[TASK-006] Develop Data Models",
-            "tddPhase": "Contract",
+            "tddPhase": "Implementation",
             "dependencies": ["TASK-004"],
             "description": "Create data models with proper types, validation, and relationships following single domain model approach",
             "acceptanceCriteria": "Data models created with proper types, validation, relationships, single domain model approach",
@@ -112,7 +112,7 @@
             "estimatedDuration": "60min",
             "parallelExecution": {
               "canRunInParallel": true,
-              "parallelTasks": ["TASK-005", "TASK-007", "TASK-008"],
+              "parallelTasks": ["TASK-007", "TASK-008", "TASK-009"],
               "dependencyLevel": 1
             },
             "parallelizable": true
@@ -137,7 +137,7 @@
           {
             "id": "TASK-008",
             "title": "[TASK-008] Implement Migration Scripts",
-            "tddPhase": "Contract",
+            "tddPhase": "Implementation",
             "dependencies": ["TASK-004"],
             "description": "Create database migration scripts with proper versioning and rollback capabilities",
             "acceptanceCriteria": "Migration scripts created with versioning, rollback capabilities, tested migrations",
@@ -372,7 +372,7 @@
             "id": "TASK-021",
             "title": "[TASK-021] Run Unit Tests for Core Components",
             "tddPhase": "Unit",
-            "dependencies": ["TASK-010"],
+            "dependencies": ["TASK-012", "TASK-013", "TASK-014", "TASK-015", "TASK-016", "TASK-019", "TASK-020"],
             "description": "Execute unit tests for all core components and verify test coverage",
             "acceptanceCriteria": "Unit tests pass, test coverage ≥ 80%, all core components tested",
             "estimatedLOC": "100-150",
@@ -380,7 +380,7 @@
             "estimatedDuration": "45min",
             "parallelExecution": {
               "canRunInParallel": true,
-              "parallelTasks": ["TASK-017", "TASK-018", "TASK-019", "TASK-020"],
+              "parallelTasks": ["TASK-017", "TASK-018"],
               "dependencyLevel": 1
             },
             "parallelizable": true
@@ -412,8 +412,8 @@
         ]
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Mock APIs (11 tasks)",
-        "description": "Create UI components with mock API services, platform setup, and complete user flow testing with simulated data.",
+        "title": "Phase 3: UI Development with Mock APIs (14 tasks)",
+        "description": "Create comprehensive UI with design systems, advanced animations, accessibility compliance, and visual testing. Features professional-grade interfaces with mock API services and complete user flow testing.",
         "tasks": [
           {
             "id": "TASK-023",
@@ -451,14 +451,14 @@
           },
           {
             "id": "TASK-025",
-            "title": "[TASK-025] Implement UI Components with Mock APIs",
+            "title": "[TASK-025] Implement Design System Foundation",
             "tddPhase": "Implementation",
             "dependencies": ["TASK-023"],
-            "description": "Develop UI components that interact with mock API services for core application functionality, data management, and user interactions",
-            "acceptanceCriteria": "UI components created for all major features, mock API integration working, responsive design implemented, user interactions functional",
-            "estimatedLOC": "800-1200",
-            "constitutionalCompliance": "✅ Library-First Gate compliance with UI components using core libraries, ✅ Responsive Design Gate compliance",
-            "estimatedDuration": "90min",
+            "description": "Create comprehensive design system with colors, typography, spacing, components, and theme support for consistent UI across the application",
+            "acceptanceCriteria": "Design system implemented with color palette, typography scale, spacing system, component library, theme switching, and design tokens",
+            "estimatedLOC": "400-600",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with design system foundation, ✅ Responsive Design Gate compliance",
+            "estimatedDuration": "75min",
             "parallelExecution": {
               "canRunInParallel": true,
               "parallelTasks": ["TASK-023", "TASK-024", "TASK-026"],
@@ -468,9 +468,60 @@
           },
           {
             "id": "TASK-026",
-            "title": "[TASK-026] Implement Real-time UI Updates with Mock Services",
+            "title": "[TASK-026] Implement Advanced UI Components",
             "tddPhase": "Implementation",
             "dependencies": ["TASK-025"],
+            "description": "Develop comprehensive UI component library with buttons, forms, cards, modals, navigation, and interactive elements with animations and accessibility",
+            "acceptanceCriteria": "Complete UI component library implemented, all components accessible (WCAG 2.1 AA), animations smooth, responsive design working, theme support",
+            "estimatedLOC": "600-800",
+            "constitutionalCompliance": "✅ Library-First Gate compliance with UI components using core libraries, ✅ Responsive Design Gate compliance, ✅ Accessibility Gate compliance",
+            "estimatedDuration": "90min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-027", "TASK-028"],
+              "dependencyLevel": 2
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-027",
+            "title": "[TASK-027] Implement Advanced Animations & Interactions",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Create sophisticated animations, micro-interactions, loading states, transitions, and interactive feedback for enhanced user experience",
+            "acceptanceCriteria": "Advanced animations implemented, micro-interactions working, loading states smooth, transitions fluid, interactive feedback responsive, performance optimized",
+            "estimatedLOC": "300-400",
+            "constitutionalCompliance": "✅ Performance Gate compliance with optimized animations, ✅ Progressive Enhancement Gate compliance",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-026", "TASK-028"],
+              "dependencyLevel": 2
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-028",
+            "title": "[TASK-028] Implement Layout & Navigation Systems",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-025"],
+            "description": "Create responsive layout systems, navigation patterns, grid systems, and page structures optimized for the target platform",
+            "acceptanceCriteria": "Responsive layout system implemented, navigation patterns working, grid system functional, page structures optimized, mobile-first design",
+            "estimatedLOC": "400-500",
+            "constitutionalCompliance": "✅ Responsive Design Gate compliance, ✅ Browser Compatibility Gate compliance",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-026", "TASK-027"],
+              "dependencyLevel": 2
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-029",
+            "title": "[TASK-029] Implement Real-time UI Updates with Mock Services",
+            "tddPhase": "Implementation",
+            "dependencies": ["TASK-026", "TASK-027", "TASK-028"],
             "description": "Implement real-time UI updates using mock real-time communication services for dynamic data updates, notifications, and status changes (if applicable)",
             "acceptanceCriteria": "Real-time updates working with mock services, dynamic data updates appear instantly, status changes reflect live, real-time features functional (if applicable)",
             "estimatedLOC": "300-400",
@@ -484,10 +535,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-027",
-            "title": "[TASK-027] Implement User Interaction Handlers with Mock APIs",
+            "id": "TASK-030",
+            "title": "[TASK-030] Implement User Interaction Handlers with Mock APIs",
             "tddPhase": "Implementation",
-            "dependencies": ["TASK-026"],
+            "dependencies": ["TASK-029"],
             "description": "Connect UI buttons, forms, and controls to mock API calls for core application functionality, data operations, and user interactions",
             "acceptanceCriteria": "All user interactions connected to mock APIs, form submissions working, button clicks trigger API calls, error handling implemented",
             "estimatedLOC": "400-500",
@@ -501,8 +552,8 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-028",
-            "title": "[TASK-028] Implement Error Handling & Loading States with Mock APIs",
+            "id": "TASK-031",
+            "title": "[TASK-031] Implement Error Handling & Loading States with Mock APIs",
             "tddPhase": "Implementation",
             "dependencies": ["TASK-025"],
             "description": "Add comprehensive error handling, loading states, and user feedback for all mock API interactions including retry logic and graceful degradation",
@@ -518,8 +569,8 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-029",
-            "title": "[TASK-029] Implement Form Validation & User Feedback",
+            "id": "TASK-032",
+            "title": "[TASK-032] Implement Form Validation & User Feedback",
             "tddPhase": "Implementation",
             "dependencies": ["TASK-025"],
             "description": "Implement client-side form validation and user feedback mechanisms for better user experience",
@@ -535,8 +586,8 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-030",
-            "title": "[TASK-030] Implement State Management",
+            "id": "TASK-033",
+            "title": "[TASK-033] Implement State Management",
             "tddPhase": "Implementation",
             "dependencies": ["TASK-025"],
             "description": "Implement application state management for data flow and component communication",
@@ -552,10 +603,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-031",
-            "title": "[TASK-031] Test UI Components with Mock APIs",
+            "id": "TASK-034",
+            "title": "[TASK-034] Test UI Components with Mock APIs",
             "tddPhase": "Unit",
-            "dependencies": ["TASK-025"],
+            "dependencies": ["TASK-026", "TASK-027", "TASK-028"],
             "description": "Create and run unit tests for UI components with mock API integration",
             "acceptanceCriteria": "UI component tests created, mock API integration tested, test coverage ≥ 80%, all tests passing",
             "estimatedLOC": "200-300",
@@ -563,16 +614,50 @@
             "estimatedDuration": "60min",
             "parallelExecution": {
               "canRunInParallel": true,
-              "parallelTasks": ["TASK-032", "TASK-033"],
+              "parallelTasks": ["TASK-035", "TASK-036", "TASK-037", "TASK-038"],
               "dependencyLevel": 1
             },
             "parallelizable": true
           },
           {
-            "id": "TASK-032",
-            "title": "[TASK-032] Test Complete User Flows with Mock APIs",
+            "id": "TASK-035",
+            "title": "[TASK-035] Visual Regression Testing & Design System Validation",
+            "tddPhase": "Unit",
+            "dependencies": ["TASK-026", "TASK-027", "TASK-028"],
+            "description": "Implement visual regression testing, design system validation, and component visual consistency checks across different screen sizes and themes",
+            "acceptanceCriteria": "Visual regression tests implemented, design system validated, component consistency verified, cross-browser visual testing working, theme switching tested",
+            "estimatedLOC": "300-400",
+            "constitutionalCompliance": "✅ Responsive Design Gate compliance, ✅ Browser Compatibility Gate compliance",
+            "estimatedDuration": "75min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-034", "TASK-036", "TASK-037", "TASK-038"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-036",
+            "title": "[TASK-036] Accessibility Testing & WCAG Compliance",
+            "tddPhase": "Unit",
+            "dependencies": ["TASK-026", "TASK-027", "TASK-028"],
+            "description": "Conduct comprehensive accessibility testing including screen reader compatibility, keyboard navigation, color contrast, and WCAG 2.1 AA compliance",
+            "acceptanceCriteria": "Accessibility tests implemented, screen reader compatibility verified, keyboard navigation working, color contrast compliant, WCAG 2.1 AA achieved",
+            "estimatedLOC": "250-350",
+            "constitutionalCompliance": "✅ Accessibility Gate compliance with WCAG 2.1 AA standards",
+            "estimatedDuration": "60min",
+            "parallelExecution": {
+              "canRunInParallel": true,
+              "parallelTasks": ["TASK-034", "TASK-035", "TASK-037", "TASK-038"],
+              "dependencyLevel": 1
+            },
+            "parallelizable": true
+          },
+          {
+            "id": "TASK-037",
+            "title": "[TASK-037] Test Complete User Flows with Mock APIs",
             "tddPhase": "E2E",
-            "dependencies": ["TASK-027", "TASK-028", "TASK-029", "TASK-030"],
+            "dependencies": ["TASK-030", "TASK-031", "TASK-032", "TASK-033"],
             "description": "Execute comprehensive end-to-end testing of complete user journeys using mock APIs including core application workflows, data operations, and user interactions",
             "acceptanceCriteria": "Complete user flows tested with mock APIs, all major features working end-to-end, edge cases handled, user experience validated",
             "estimatedLOC": "100-200",
@@ -586,10 +671,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-033",
-            "title": "[TASK-033] Verify UI Development with Mock APIs",
+            "id": "TASK-038",
+            "title": "[TASK-038] Verify UI Development with Mock APIs",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-031", "TASK-032"],
+            "dependencies": ["TASK-034", "TASK-037"],
             "description": "Verify all UI development components are working correctly with mock APIs and ready for real API integration",
             "acceptanceCriteria": "All UI components verified, mock API integration working, ready for real API integration, user experience validated",
             "estimatedLOC": "50-100",
@@ -606,7 +691,17 @@
         "parallelExecutionSummary": [
           {
             "dependencyLevel": 1,
-            "parallelTasks": ["TASK-023", "TASK-024", "TASK-025", "TASK-026", "TASK-027", "TASK-028", "TASK-029", "TASK-030", "TASK-031", "TASK-032"],
+            "parallelTasks": ["TASK-023", "TASK-024", "TASK-025", "TASK-029"],
+            "estimatedParallelDuration": 75
+          },
+          {
+            "dependencyLevel": 2,
+            "parallelTasks": ["TASK-026", "TASK-027", "TASK-028"],
+            "estimatedParallelDuration": 90
+          },
+          {
+            "dependencyLevel": 3,
+            "parallelTasks": ["TASK-030", "TASK-031", "TASK-032", "TASK-033", "TASK-034", "TASK-035", "TASK-036", "TASK-037"],
             "estimatedParallelDuration": 90
           }
         ]
@@ -616,10 +711,10 @@
         "description": "Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality.",
         "tasks": [
           {
-            "id": "TASK-034",
-            "title": "[TASK-034] Implement Real API Services",
+            "id": "TASK-039",
+            "title": "[TASK-039] Implement Real API Services",
             "tddPhase": "Implementation",
-            "dependencies": ["TASK-033"],
+            "dependencies": ["TASK-038"],
             "description": "Implement actual backend API services to replace mock APIs including data management, real-time communication (if needed), and core application functionality",
             "acceptanceCriteria": "Real API services implemented for all endpoints, real-time communication working (if applicable), database integration working, authentication implemented",
             "estimatedLOC": "600-800",
@@ -633,10 +728,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-035",
-            "title": "[TASK-035] Replace Mock APIs with Real API Integration",
+            "id": "TASK-040",
+            "title": "[TASK-040] Replace Mock APIs with Real API Integration",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-034"],
+            "dependencies": ["TASK-039"],
             "description": "Replace all mock API services with real API implementations in UI components, ensuring seamless transition from mock to live backend services",
             "acceptanceCriteria": "Mock APIs replaced with real APIs, UI components working with live backend, data flow verified, error handling updated for real APIs",
             "estimatedLOC": "200-300",
@@ -650,10 +745,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-036",
-            "title": "[TASK-036] Integration Testing with Real APIs",
+            "id": "TASK-041",
+            "title": "[TASK-041] Integration Testing with Real APIs",
             "tddPhase": "E2E",
-            "dependencies": ["TASK-035"],
+            "dependencies": ["TASK-040"],
             "description": "Conduct comprehensive integration testing with real backend services including data operations, real-time communication (if applicable), and database operations",
             "acceptanceCriteria": "Integration tests pass with real APIs, real-time communication working (if applicable), database operations verified, all core functionality tested",
             "estimatedLOC": "150-250",
@@ -667,10 +762,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-037",
-            "title": "[TASK-037] End-to-End Testing with Real Data",
+            "id": "TASK-042",
+            "title": "[TASK-042] End-to-End Testing with Real Data",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-036"],
+            "dependencies": ["TASK-041"],
             "description": "Execute complete end-to-end testing with real data including full user journeys, performance validation, and cross-browser compatibility",
             "acceptanceCriteria": "E2E tests pass with real data, complete user flows working, performance targets met, cross-browser compatibility verified",
             "estimatedLOC": "100-200",
@@ -684,10 +779,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-038",
-            "title": "[TASK-038] Performance Validation & Optimization",
+            "id": "TASK-043",
+            "title": "[TASK-043] Performance Validation & Optimization",
             "tddPhase": "Implementation",
-            "dependencies": ["TASK-037"],
+            "dependencies": ["TASK-042"],
             "description": "Validate performance metrics with real APIs, optimize for production deployment, and ensure all quality gates are met",
             "acceptanceCriteria": "Performance targets met with real APIs, optimization completed, quality gates verified, production-ready application",
             "estimatedLOC": "100-150",
@@ -701,10 +796,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-039",
-            "title": "[TASK-039] Security Testing & Validation",
+            "id": "TASK-044",
+            "title": "[TASK-044] Security Testing & Validation",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-034"],
+            "dependencies": ["TASK-039"],
             "description": "Conduct comprehensive security testing including authentication, authorization, data validation, and vulnerability assessment",
             "acceptanceCriteria": "Security tests pass, authentication working, authorization verified, no vulnerabilities found, data protection ensured",
             "estimatedLOC": "150-200",
@@ -718,10 +813,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-040",
-            "title": "[TASK-040] Accessibility Testing & Compliance",
+            "id": "TASK-045",
+            "title": "[TASK-045] Accessibility Testing & Compliance",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-035"],
+            "dependencies": ["TASK-040"],
             "description": "Test and validate accessibility compliance including keyboard navigation, screen reader support, and WCAG guidelines",
             "acceptanceCriteria": "Accessibility tests pass, keyboard navigation working, screen reader support verified, WCAG compliance achieved",
             "estimatedLOC": "100-150",
@@ -735,10 +830,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-041",
-            "title": "[TASK-041] Cross-Browser Compatibility Testing",
+            "id": "TASK-046",
+            "title": "[TASK-046] Cross-Browser Compatibility Testing",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-035"],
+            "dependencies": ["TASK-040"],
             "description": "Test application compatibility across different browsers and devices to ensure consistent user experience",
             "acceptanceCriteria": "Cross-browser tests pass, consistent functionality across browsers, responsive design working on all devices",
             "estimatedLOC": "100-150",
@@ -752,10 +847,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-042",
-            "title": "[TASK-042] Load Testing & Scalability Validation",
+            "id": "TASK-047",
+            "title": "[TASK-047] Load Testing & Scalability Validation",
             "tddPhase": "Integration",
-            "dependencies": ["TASK-036"],
+            "dependencies": ["TASK-041"],
             "description": "Conduct load testing to validate application performance under various load conditions and ensure scalability",
             "acceptanceCriteria": "Load tests pass, performance maintained under load, scalability validated, bottlenecks identified and resolved",
             "estimatedLOC": "100-150",
@@ -769,10 +864,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-043",
-            "title": "[TASK-043] User Acceptance Testing",
+            "id": "TASK-048",
+            "title": "[TASK-048] User Acceptance Testing",
             "tddPhase": "E2E",
-            "dependencies": ["TASK-037"],
+            "dependencies": ["TASK-042"],
             "description": "Conduct user acceptance testing with real users to validate functionality and user experience",
             "acceptanceCriteria": "UAT completed successfully, user feedback incorporated, functionality validated by users, user experience approved",
             "estimatedLOC": "50-100",
@@ -786,10 +881,10 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-044",
-            "title": "[TASK-044] Final Verification & Working Application Sign-off",
+            "id": "TASK-049",
+            "title": "[TASK-049] Final Verification & Working Application Sign-off",
             "tddPhase": "E2E",
-            "dependencies": ["TASK-038", "TASK-039", "TASK-040", "TASK-041", "TASK-042", "TASK-043"],
+            "dependencies": ["TASK-043", "TASK-044", "TASK-045", "TASK-046", "TASK-047", "TASK-048"],
             "description": "Conduct final verification that the complete application works end-to-end with real APIs, all features functional, and ready for deployment",
             "acceptanceCriteria": "Complete working application verified, all features functional with real APIs, deployment-ready, final sign-off approved",
             "estimatedLOC": "50-100",
@@ -806,7 +901,7 @@
         "parallelExecutionSummary": [
           {
             "dependencyLevel": 1,
-            "parallelTasks": ["TASK-034", "TASK-035", "TASK-036", "TASK-037", "TASK-038", "TASK-039", "TASK-040", "TASK-041", "TASK-042", "TASK-043"],
+            "parallelTasks": ["TASK-039", "TASK-040", "TASK-041", "TASK-042", "TASK-043", "TASK-044", "TASK-045", "TASK-046", "TASK-047", "TASK-048"],
             "estimatedParallelDuration": 120
           }
         ]
@@ -853,10 +948,14 @@
         "Integration test suite"
       ],
       "phase3": [
-        "UI components with mock APIs",
-        "User interaction handlers",
-        "Mock API services",
-        "UI test suite"
+        "Comprehensive design system with themes",
+        "Advanced UI component library with animations",
+        "Accessibility-compliant interfaces (WCAG 2.1 AA)",
+        "Visual regression testing suite",
+        "Responsive layout systems",
+        "Mock API services with UI integration",
+        "User interaction handlers with micro-interactions",
+        "Complete UI test suite with accessibility testing"
       ],
       "phase4": [
         "Real API implementation",

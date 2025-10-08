@@ -14,5 +14,5 @@ export { SDDTasksTool } from './SDDTasksTool.js';
 export { SDDImplementTool } from './SDDImplementTool.js';
 
 // Internal tools for AI use
-export { SDDGenericDBFillerTool } from './SDDGenericDBFillerTool.js';
+//export { SDDGenericDBFillerTool } from './SDDGenericDBFillerTool.js';
 

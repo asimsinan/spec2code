@@ -43,6 +43,14 @@ export class SDDPlanTool {
             description: 'Target platform for the plan (mobile, web, desktop, backend, ai)',
             enum: ['mobile', 'web', 'desktop', 'backend', 'ai'],
             default: 'web'
+          },
+          finalize: {
+            type: 'boolean',
+            description: 'Internal parameter - set to true when finalizing plan to save to database'
+          },
+          planData: {
+            type: 'object',
+            description: 'The filled plan data to save to database (used with finalize=true)'
           }
         },
         required: []
@@ -52,11 +60,24 @@ export class SDDPlanTool {
 
   async execute(input: any): Promise<any> {
     try {
-      // Validate input
+      // Check if this is a finalize call
+      const { finalize, ...otherInput } = input;
+      
+      if (finalize) {
+        // Handle finalize mode - save the plan to database
+        return await this.handleFinalize(otherInput);
+      }
+
       const validatedInput = this.validateInput(input);
 
       // Resolve feature ID
-      const featureId = await this.resolveFeatureId(validatedInput.featureId);
+      let featureId: string;
+      try {
+        featureId = await this.resolveFeatureId(validatedInput.featureId);
+      } catch (error) {
+        return this.error(error instanceof Error ? error.message : 'Failed to resolve feature ID');
+      }
+      
       const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
@@ -244,7 +265,7 @@ ${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skil
       7.11.2. Fill the template data below with actual content
       7.11.3. Convert JSON template to proper markdown format
       7.11.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-      7.11.5. After creating plan.md, use sdd_db_filler to save to database
+      7.11.5. After creating plan.md, call sdd_plan with finalize=true to save to database
  
 
 8. AI-POWERED SIMPLICITY GATE ANALYSIS:
@@ -374,20 +395,28 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    - Use proper markdown formatting with **bold** for labels
    - Add blank lines between different gates for readability
 
-10. Use sdd_db_filler tool to save the filled plan to database with this exact data structure:
-   10.1. Data structure:
+10. MANDATORY LAST STEP After creating the plan.md file: Call sdd_plan with finalize=true to save the filled plan to database:
+   10.1. Call: sdd_plan with parameters:
       {
-        "operation": "upsert",
-        "table": "plans",
-        "data": {
-          "feature_id": "${featureId}",
-          "template_id": "sdd-plan-perfect-v1",
-          "content": YOUR_FILLED_TEMPLATE_DATA_AS_JSON_OBJECT,
-          "ai_generated": true
-        }
+        "finalize": true,
+        "featureId": "${featureId}",
+        "planData": [THE_FILLED_PLAN_DATA_AS_JSON]
       }
-   10.2. CRITICAL: Replace 'YOUR_FILLED_TEMPLATE_DATA_AS_JSON_OBJECT' with the actual filled template data from the template above
-   10.3. The content should be the JSON object you created by filling the template, NOT the template with instructions
+   10.2. This is NOT just text - you must actually CALL the sdd_plan tool with finalize=true
+   10.3. The planData should be the complete JSON object you created from the template
+
+🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
+DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
+YOU MUST:
+1. CREATE the plan.md file in specs/plan.md
+2. FILL the template with actual content
+3. MAKE A TOOL CALL to sdd_plan with finalize=true to save to database
+4. THEN respond with a BRIEF confirmation (one sentence only)
+
+🚨 CRITICAL: Step 3 requires an actual TOOL CALL, not just text!
+🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
+
+STOP READING AND START CREATING THE FILE NOW!
 `;
 
       const outputData = {
@@ -398,6 +427,45 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
     } catch (error) {
       console.error('[sdd_plan] ERROR:', error);
       return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
+    }
+  }
+
+  /**
+   * Handle finalize mode - save plan to database
+   */
+  private async handleFinalize(input: any): Promise<any> {
+    try {
+      const { featureId, planData } = input;
+      
+      if (!featureId || !planData) {
+        return this.error('Missing required parameters: featureId and planData are required for finalize mode');
+      }
+
+      // Ensure feature exists in database
+      const feature = await this.db.get_feature_robust(featureId);
+      if (!feature) {
+        return this.error(`Feature '${featureId}' not found in database.`);
+      }
+
+      // Save plan to database
+      await this.db.save_plan_robust(
+        featureId,
+        planData,
+        'sdd-plan-perfect-v1'
+      );
+
+      return this.success(
+        `Saved`,
+        {
+          featureId,
+          featureName: feature.name,
+          templateId: 'sdd-plan-perfect-v1',
+          aiGenerated: true
+        }
+      );
+
+    } catch (error) {
+      return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -3167,5 +3235,13 @@ export default function App() {
 
   private error(message: string) {
     return { success: false, error: 'PLAN_FAILED', message };
+  }
+
+  private success(message: string, data?: any): any {
+    return {
+      success: true,
+      message,
+      ...(data && { data })
+    };
   }
 }
