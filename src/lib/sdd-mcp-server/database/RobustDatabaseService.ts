@@ -56,13 +56,14 @@ export class RobustDatabaseService extends DatabaseService {
         title: { type: 'string' },
         metadata: { type: 'object' },
         taskPhases: { 
-          type: 'object', // Changed back to object to match actual template structure
+          type: 'object',
           properties: {
             phase1: { type: 'object' },
             phase2: { type: 'object' },
             phase3: { type: 'object' },
-            phase4: { type: 'object' },
-          }
+            phase4: { type: 'object' }
+          },
+          additionalProperties: false // Reject extra phases
         },
         constitutionalGates: { type: 'object' },
         qualityGates: { type: 'object' },
@@ -135,9 +136,39 @@ export class RobustDatabaseService extends DatabaseService {
   private validateJSON(data: any, schema: JSONSchema): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
+    // Handle null/undefined data
+    if (data === null || data === undefined) {
+      if (schema.type === 'null') {
+        return { valid: true, errors: [] };
+      } else {
+        errors.push(`Expected ${schema.type}, got ${data === null ? 'null' : 'undefined'}`);
+        return { valid: false, errors };
+      }
+    }
+
     // Basic type validation
-    if (schema.type === 'object' && typeof data !== 'object') {
-      errors.push(`Expected object, got ${typeof data}`);
+    if (schema.type === 'object' && (typeof data !== 'object' || Array.isArray(data))) {
+      errors.push(`Expected object, got ${Array.isArray(data) ? 'array' : typeof data}`);
+      return { valid: false, errors };
+    }
+
+    if (schema.type === 'array' && !Array.isArray(data)) {
+      errors.push(`Expected array, got ${typeof data}`);
+      return { valid: false, errors };
+    }
+
+    if (schema.type === 'string' && typeof data !== 'string') {
+      errors.push(`Expected string, got ${typeof data}`);
+      return { valid: false, errors };
+    }
+
+    if (schema.type === 'number' && typeof data !== 'number') {
+      errors.push(`Expected number, got ${typeof data}`);
+      return { valid: false, errors };
+    }
+
+    if (schema.type === 'boolean' && typeof data !== 'boolean') {
+      errors.push(`Expected boolean, got ${typeof data}`);
       return { valid: false, errors };
     }
 
@@ -154,12 +185,34 @@ export class RobustDatabaseService extends DatabaseService {
     if (schema.properties) {
       for (const [field, fieldSchema] of Object.entries(schema.properties)) {
         if (field in data) {
-          if (fieldSchema.type === 'object' && typeof data[field] !== 'object') {
-            errors.push(`Field '${field}' should be object, got ${typeof data[field]}`);
-          } else if (fieldSchema.type === 'string' && typeof data[field] !== 'string') {
-            errors.push(`Field '${field}' should be string, got ${typeof data[field]}`);
-          } else if (fieldSchema.type === 'array' && !Array.isArray(data[field])) {
-            errors.push(`Field '${field}' should be array, got ${typeof data[field]}`);
+          // Recursive validation for nested objects
+          if (fieldSchema.type === 'object' && typeof data[field] === 'object' && !Array.isArray(data[field])) {
+            const nestedValidation = this.validateJSON(data[field], fieldSchema);
+            if (!nestedValidation.valid) {
+              errors.push(`Field '${field}' validation failed: ${nestedValidation.errors.join(', ')}`);
+            }
+          } else {
+            // Basic type validation for non-object fields
+            if (fieldSchema.type === 'object' && typeof data[field] !== 'object') {
+              errors.push(`Field '${field}' should be object, got ${typeof data[field]}`);
+            } else if (fieldSchema.type === 'string' && typeof data[field] !== 'string') {
+              errors.push(`Field '${field}' should be string, got ${typeof data[field]}`);
+            } else if (fieldSchema.type === 'array' && !Array.isArray(data[field])) {
+              errors.push(`Field '${field}' should be array, got ${typeof data[field]}`);
+            } else if (fieldSchema.type === 'number' && typeof data[field] !== 'number') {
+              errors.push(`Field '${field}' should be number, got ${typeof data[field]}`);
+            } else if (fieldSchema.type === 'boolean' && typeof data[field] !== 'boolean') {
+              errors.push(`Field '${field}' should be boolean, got ${typeof data[field]}`);
+            }
+          }
+          
+          // Check additionalProperties for nested objects
+          if (fieldSchema.type === 'object' && typeof data[field] === 'object' && 
+              fieldSchema.additionalProperties === false && fieldSchema.properties) {
+            const extraFields = Object.keys(data[field]).filter(key => !(key in fieldSchema.properties));
+            if (extraFields.length > 0) {
+              errors.push(`Field '${field}' contains unexpected properties: ${extraFields.join(', ')}`);
+            }
           }
         }
       }
@@ -261,9 +314,13 @@ export class RobustDatabaseService extends DatabaseService {
       content_hash: contentHash
     };
 
+    // First delete existing records for this feature_id to prevent duplicates
+    const deleteStmt = this.db!.prepare(`DELETE FROM ${table} WHERE ${idField} = ?`);
+    deleteStmt.run(id);
+    
     // Store with SQLite's native JSON functions and template ID
     const stmt = this.db!.prepare(`
-      INSERT OR REPLACE INTO ${table} 
+      INSERT INTO ${table} 
       (${idField}, template_id, content, metadata, schema_version, validated_at, content_size, content_hash, ai_generated)
       VALUES (?, ?, json(?), json(?), ?, ?, ?, ?, ?)
     `);
@@ -367,7 +424,8 @@ export class RobustDatabaseService extends DatabaseService {
    * Robust tasks storage
    */
   async save_tasks_robust(featureId: string, content: any, templateId?: string): Promise<void> {
-    await this.storeStructuredData('tasks', 'feature_id', featureId, content, 'tasks');
+    // Store with template ID (like other robust methods)
+    await this.storeStructuredDataWithTemplate('tasks', 'feature_id', featureId, content, 'tasks', templateId);
   }
 
   /**
@@ -482,7 +540,7 @@ export class RobustDatabaseService extends DatabaseService {
         created_at,
         updated_at
       FROM plan_templates 
-      WHERE id = ? AND is_active = 1
+      WHERE id = ?
     `);
     const result = stmt.get(templateId) as any;
     if (result && result.template_data) {
@@ -507,7 +565,7 @@ export class RobustDatabaseService extends DatabaseService {
         created_at,
         updated_at
       FROM status_templates 
-      WHERE id = ? AND is_active = 1
+      WHERE id = ? 
     `);
     const result = stmt.get(templateId) as any;
     if (result && result.template_data) {
@@ -532,7 +590,7 @@ export class RobustDatabaseService extends DatabaseService {
         created_at,
         updated_at
       FROM spec_templates 
-      WHERE id = ? AND is_active = 1
+      WHERE id = ?
     `);
     const result = stmt.get(templateId) as any;
     if (result && result.template_data) {

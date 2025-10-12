@@ -284,6 +284,11 @@ export class SDDGenericDBFillerTool {
       markdown += `${userScenarios.primaryUserStory.content}\n\n`;
     }
 
+    if (userScenarios.comprehensiveUserStories?.content) {
+      markdown += `### Comprehensive User Stories\n\n`;
+      markdown += `${userScenarios.comprehensiveUserStories.content}\n\n`;
+    }
+
     if (userScenarios.acceptanceScenarios?.content) {
       markdown += `### Acceptance Scenarios\n\n`;
       markdown += `${userScenarios.acceptanceScenarios.content}\n\n`;

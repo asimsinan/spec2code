@@ -2,7 +2,7 @@
   "id": "sdd-spec-perfect-v1",
   "name": "SDD Specification Template (Balanced 4-Phase Structure)",
   "version": "2.0.0",
-  "description": "Comprehensive specification template based on SDD methodology with balanced 4-phase structure (11 tasks per phase) for optimal workload distribution",
+  "description": "Comprehensive specification template based on SDD methodology with balanced 4-phase structure optimal workload distribution",
   "template_data": {
     "title": "Feature Specification: {{FEATURE_NAME}}",
     "metadata": {
@@ -16,11 +16,17 @@
         "content": "{{PRIMARY_USER_STORY}}",
         "instruction": "Describe the main user journey in plain language, focusing on business value and user outcomes"
       },
+      "comprehensiveUserStories": {
+        "title": "Comprehensive User Stories",
+        "content": "{{COMPREHENSIVE_USER_STORIES}}",
+        "instruction": "Generate 5-8 user stories covering different user personas, roles, and scenarios. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include: 1) Primary user story, 2) Admin/Manager story, 3) Power user story, 4) New user story, 5) Edge case user story, 6) Integration user story, 7) Mobile user story (if applicable), 8) Accessibility user story. Each story should be sprint-sized and deliverable.",
+        "format": "numbered_list_with_personas"
+      },
       "acceptanceScenarios": {
         "title": "Acceptance Scenarios",
         "content": "{{ACCEPTANCE_SCENARIOS}}",
-        "instruction": "Use Given-When-Then format: 1. **Given** [initial state], **When** [action], **Then** [expected outcome]",
-        "format": "numbered_list"
+        "instruction": "Generate comprehensive acceptance criteria using Given-When-Then format. Include: 1) Happy path scenarios (primary user flows), 2) Negative scenarios (error conditions, invalid inputs), 3) Edge cases (boundary conditions, unusual inputs), 4) User perspective focus (desired outcomes, not implementation), 5) Testable criteria (clear pass/fail outcomes), 6) Stakeholder scenarios (admin, power user, new user perspectives). Each scenario should be independently testable and written in simple, unambiguous language. Generate sufficient scenarios to cover all critical functionalities and edge cases without redundancy. Use numbered list format (1., 2., 3.) for Happy Path Scenarios to ensure proper Markdown rendering.",
+        "format": "given_when_then_scenarios"
       },
       "edgeCases": {
         "title": "Edge Cases",
@@ -32,7 +38,7 @@
       "functionalRequirements": {
         "title": "Functional Requirements",
         "content": "{{FUNCTIONAL_REQUIREMENTS}}",
-        "instruction": "Use numbered format: - **FR-001**: System MUST [specific capability] - **FR-002**: System MUST [specific capability] - **FR-003**: Users MUST be able to [key interaction] - **FR-004**: System MUST [data requirement] - **FR-005**: System MUST [behavior requirement]",
+        "instruction": "Generate comprehensive functional requirements using FR-001, FR-002 format. Follow best practices: 1) Clear and concise language (simple, unambiguous), 2) Business goal alignment (each requirement serves specific user need), 3) Consistency (avoid contradictions, use consistent terminology), 4) Verifiability (testable and measurable outcomes), 5) Necessity (essential for system functionality). Include: Core functionality, User interactions, Data operations, System behaviors, Business rules, Integration requirements. Each requirement should be independently testable and traceable to user stories. Generate adequate requirements to describe all necessary system behaviors without overcomplicating.",
         "format": "numbered_list_with_ids"
       },
       "keyEntities": {

@@ -6,7 +6,6 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import * as fs from 'fs';
 import * as path from 'path';
 import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
 import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
@@ -29,21 +28,10 @@ export class SDDPlanTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_plan',
-      description: 'Create an implementation plan from the current specification. MUST create plan.md file in specs/ folder and save to database. This tool requires immediate file creation action.',
+      description: 'Generate implementation plan from the most recent feature specification. Automatically detects platform and uses latest feature from database. No parameters needed.',
       inputSchema: {
         type: 'object',
         properties: {
-          featureId: {
-            type: 'string',
-            description: 'Feature ID to create plan for (optional: uses most recent feature if not provided)',
-            pattern: '^[a-zA-Z0-9-_]+$'
-          },
-          platform: {
-            type: 'string',
-            description: 'Target platform for the plan (mobile, web, desktop, backend, ai)',
-            enum: ['mobile', 'web', 'desktop', 'backend', 'ai'],
-            default: 'web'
-          },
           finalize: {
             type: 'boolean',
             description: 'Internal parameter - set to true when finalizing plan to save to database'
@@ -62,28 +50,27 @@ export class SDDPlanTool {
     try {
       // Check if this is a finalize call
       const { finalize, ...otherInput } = input;
-      
+
       if (finalize) {
-        // Handle finalize mode - save the plan to database
+
         return await this.handleFinalize(otherInput);
       }
 
-      const validatedInput = this.validateInput(input);
 
-      // Resolve feature ID
+
+      // Always get the most recent feature
       let featureId: string;
       try {
-        featureId = await this.resolveFeatureId(validatedInput.featureId);
+        featureId = await this.resolveFeatureId(null); // null means get most recent
+       
       } catch (error) {
-        return this.error(error instanceof Error ? error.message : 'Failed to resolve feature ID');
+        return this.error(error instanceof Error ? error.message : 'Failed to get most recent feature');
       }
-      
+
       const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
       }
-
-      const platform = validatedInput.platform || 'web';
 
       // Get specification data with JSON repair
       const specData = await this.db.get_specification_robust(featureId);
@@ -97,11 +84,16 @@ export class SDDPlanTool {
         return this.error(`Failed to process specification data for feature: ${featureId}.`);
       }
 
+      // Detect platform from specification data
+      const platform = this.detectPlatformFromSpec(repairedSpecData) || 'web';
+      console.error('Detected platform:', platform);
+
+
       // Generate AI team analysis and time estimation first
       const teamAnalysis = await this.generateTeamAnalysis(null, repairedSpecData);
       const timeEstimate = await this.generateTimeEstimate(null, repairedSpecData);
       const aiTimeEstimate = await this.generateAITimeEstimate(null, repairedSpecData);
-      
+
       // Analyze edge cases for complexity and planning
       const edgeCaseAnalysis = this.analyzeEdgeCases(repairedSpecData);
 
@@ -115,6 +107,7 @@ export class SDDPlanTool {
           featureId: featureId,
           featureName: feature.name,
           platform: platform,
+          specData: repairedSpecData,
           timeEstimate: timeEstimate,
           aiTimeEstimate: aiTimeEstimate,
           teamAnalysis: teamAnalysis,
@@ -126,159 +119,36 @@ export class SDDPlanTool {
         }
 
         templateWithInstructions = fillResult.data;
+
       } catch (error) {
         console.error('SDDPlanTool: Error preparing template:', error);
         throw error;
       }
 
-      // Extract template information for dynamic instructions
-      const templateData = templateWithInstructions;
-      const constitutionalGates = templateData.constitutionalGates || {};
-      const platformGates = templateData.platformGates || {};
-      const qualityGates = templateData.qualityGates || {};
-      const sddPrinciples = templateData.sddPrinciples || {};
-
-      // Get platform-specific gates
-      const platformSpecificGates = platformGates[platform]?.gates || [];
-      const platformQualityGates = platformGates[platform]?.qualityGates || [];
-
-      // Get applicable constitutional gates for this platform
-      const applicableConstitutionalGates = Object.entries(constitutionalGates)
-        .filter(([_, gate]: [string, any]) =>
-          gate.platforms && gate.platforms.includes(platform)
-        )
-        .map(([key, gate]: [string, any]) => `${gate.title}: ${gate.description}`);
-
       // Report success
       const successMessage = `
-🎯 PLANNING TOOL OBJECTIVE:
-Create a comprehensive implementation plan that serves as the roadmap for your project. This plan will break down the specification into manageable phases, estimate timelines, and provide clear guidance for implementation.
-
-📋 WHAT THIS TOOL DOES:
-- Analyzes the specification to create a structured implementation plan
-- Breaks down work into balanced 4-phase structure (11 tasks per phase)
-- Provides realistic time estimates for human and AI-assisted development
-- Applies constitutional gates and quality standards to planning
-- Creates a foundation for task creation and implementation
-
-🚨 CRITICAL SCOPE: This tool creates PLANNING DOCUMENTS only. Do NOT create todo lists, implementation tasks, or code. Only create the plan.md file.
-
-📊 PROJECT TIMELINE ESTIMATE (Human Development):
-   1.1. Total Estimated Duration: ${timeEstimate.totalDuration}
-   1.2. Development Time: ${timeEstimate.developmentTime}
-   1.3. Testing & Refinement: ${timeEstimate.testingTime}
-   1.4. Complexity Level: ${timeEstimate.complexityLevel}
-
-AI-ASSISTED DEVELOPMENT ESTIMATE:
-   2.1. Total Duration: ${aiTimeEstimate.totalDuration}
-   2.2. Development Time: ${aiTimeEstimate.developmentTime}
-   2.3. Testing Time: ${aiTimeEstimate.testingTime}
-   2.4. Human Guidance Time: ${aiTimeEstimate.guidanceTime}
-   2.5. Time Savings: ${aiTimeEstimate.savingsPercentage}% faster
-   2.6. Complexity Level: ${aiTimeEstimate.complexityLevel}
-   
-CONFIDENCE RANGES:
-   3.1. AI Development: ${aiTimeEstimate.confidenceRanges?.ai?.optimistic} (optimistic) → ${aiTimeEstimate.confidenceRanges?.ai?.realistic} (realistic) → ${aiTimeEstimate.confidenceRanges?.ai?.pessimistic} (pessimistic)
-   3.2. Human Development: ${aiTimeEstimate.confidenceRanges?.human?.optimistic} (optimistic) → ${aiTimeEstimate.confidenceRanges?.human?.realistic} (realistic) → ${aiTimeEstimate.confidenceRanges?.human?.pessimistic} (pessimistic)
-   3.3. ${aiTimeEstimate.calibrationApplied ? `CALIBRATION APPLIED: Based on ${aiTimeEstimate.calibrationAccuracy ? Math.round(aiTimeEstimate.calibrationAccuracy * 100) : 0}% accuracy from historical data` : 'CALIBRATION: Using base estimates (insufficient historical data)'}
-
-TEAM COMPOSITION RECOMMENDATION (AI-Generated):
-   4.1. Team Size: ${teamAnalysis.teamSize} developers
-   4.2. Required Roles:
-${teamAnalysis.roles.map(role => `      4.2.${teamAnalysis.roles.indexOf(role) + 1}. ${role.title}: ${role.count} developer(s) - ${role.responsibilities}`).join('\n')}
-   4.3. Skill Requirements:
-${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skill) + 1}. ${skill.name}: ${skill.level} level`).join('\n')}
-
-5. FEATURE DETAILS:
-   5.2. Feature Name: ${feature.name}
-   5.3. Platform: ${platform.toUpperCase()}
-
-6. ENHANCED PLAN TEMPLATE PROVIDED:
-   The plan template has been prepared with complete SDD compliance:
-   6.1. Specification context: "${this.getSpecificationPreview(specData ? JSON.stringify(specData, null, 2) : '') || 'No content'}"
-   6.2. Platform-specific constitutional gates: ${platformSpecificGates.length > 0 ? platformSpecificGates.join(', ') : 'None'}
-   6.3. Platform-specific quality gates: ${platformQualityGates.length > 0 ? platformQualityGates.join(', ') : 'None'}
-   6.4. Applicable constitutional gates for ${platform}:
-       ${applicableConstitutionalGates.map(gate => `      6.4.${applicableConstitutionalGates.indexOf(gate) + 1}. ${gate}`).join('\n')}
-   6.5. Quality gates enforcement: ${Object.keys(qualityGates).join(', ')}
-   6.6. SDD principles: ${Object.keys(sddPrinciples).join(', ')}
-   6.7. Template version: ${templateData.sddVersion?.version || 'Unknown'}
-   6.8. Placeholder content ({{...}}) ready for AI generation
-   6.9. Structured template following complete SDD methodology
-
-7. DETAILED PLANNING INSTRUCTIONS FOR CURSOR AI (MANDATORY COMPLIANCE):
-
-📝 PLANNING CREATION PROCESS:
-   7.1. **ANALYZE SPECIFICATION**: Review the complete specification to understand requirements
-   7.2. **EXTRACT TECHNICAL CONTEXT**: Identify all technologies, platforms, and constraints
-   7.3. **APPLY CONSTITUTIONAL GATES**: Ensure all applicable gates are addressed in planning
-   7.4. **CREATE PHASE BREAKDOWN**: Structure work into balanced 4-phase approach
-   7.5. **ESTIMATE TIMELINES**: Provide realistic estimates for human and AI-assisted development
-   7.6. **DEFINE PROJECT STRUCTURE**: Specify exact folder structure and organization
-
-🎯 MANDATORY PLAN STRUCTURE:
-   7.7. **Implementation Plan Header**: Clear title with feature name
-   7.8. **Metadata Section**: Date, specification reference, platform details
-   7.9. **Summary Section**: High-level overview and approach
-   7.10. **Technical Context**: Complete technology stack and platform requirements
-   7.11. **Constitution Check**: Validation of all applicable constitutional gates
-   7.12. **Project Structure**: Mandatory folder structure and organization rules
-   7.13. **Implementation Phases**: Balanced 4-phase breakdown with clear descriptions
-   7.14. **Complexity Tracking**: Analysis of project complexity and risk factors
-
-🔧 CRITICAL PLANNING REQUIREMENTS:
-   7.15. **PHASE BALANCING (MANDATORY)**:
-       - Each phase must contain exactly 11 tasks for optimal workload distribution
-       - Phase 1: Foundations & Data (11 tasks) - Essential infrastructure
-       - Phase 2: Core Implementation (11 tasks) - Business logic and APIs
-       - Phase 3: UI Development with Mock APIs (11 tasks) - Frontend with simulated backend
-       - Phase 4: Real API Integration & Verification (11 tasks) - Final integration and testing
-   7.16. **TIME ESTIMATION (MANDATORY)**:
-       - Provide realistic human development estimates
-       - Include AI-assisted development time savings
-       - Break down estimates by phase and complexity level
-       - Consider team size and experience factors
-   7.17. **CONSTITUTIONAL COMPLIANCE (MANDATORY)**:
-       - Address all applicable constitutional gates for the platform
-       - Include platform-specific gates and quality requirements
-       - Ensure SDD principles are followed throughout planning
-   7.5. Enforce ALL applicable constitutional gates for ${platform} platform:
-       ${applicableConstitutionalGates.map(gate => `      7.5.${applicableConstitutionalGates.indexOf(gate) + 1}. ${gate}`).join('\n')}
-   7.6. Enforce platform-specific gates:
-       ${platformSpecificGates.map(gate => `      7.6.${platformSpecificGates.indexOf(gate) + 1}. ${gate}`).join('\n')}
-   7.7. Enforce quality gates:
-       ${Object.entries(qualityGates).map(([key, gate]: [string, any], index) =>
-          `      7.7.${index + 1}. ${gate.title || key}: ${gate.items?.join(', ') || 'See template for details'}`
-        ).join('\n')}
-   7.8. Follow SDD principles:
-       ${Object.entries(sddPrinciples).map(([key, principle]: [string, any], index) =>
-          `      7.8.${index + 1}. ${key}: ${principle}`
-        ).join('\n')}
-   7.9. Include comprehensive time estimation section with:
-      7.9.1. Human development timeline and estimates
-      7.9.2. AI-assisted development timeline and estimates  
-      7.9.3. Time savings percentage and team composition recommendations
-      7.9.4. Realistic phase-by-phase time breakdowns
-   7.10. Use the detailed Cursor AI instructions provided in the template data
-   7.11. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
-      7.11.1. Create file: specs/plan.md
-      7.11.2. Fill the template data below with actual content
-      7.11.3. Convert JSON template to proper markdown format
-      7.11.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-      7.11.5. After creating plan.md, call sdd_plan with finalize=true to save to database
+📋 TASK: Create plan.md file in specs/plan.md directory using the specification and template data provided below.
+📊 PROJECT DETAILS:
+- Feature: ${feature.name}
+- Platform: ${platform.toUpperCase()}
+- Duration: ${timeEstimate.totalDuration} (Human) / ${aiTimeEstimate.totalDuration} (AI-assisted)
+- Team: ${teamAnalysis.teamSize} developers
  
 
-8. AI-POWERED SIMPLICITY GATE ANALYSIS:
-   Before creating the plan, analyze the specification for architectural complexity:
-   
-   8.1. 🤖 AI ANALYSIS PROMPT:
-   "Analyze this COMPLETE specification for architectural complexity and determine the number of distinct projects/components.
-   
+8. SPECIFICATION DATA: The complete specification from the database is provided below. Use this data to understand the project requirements.
+8.1. SPECIFICATION DATA:
+---BEGINNING OF SPECIFICATION DATA---
+${JSON.stringify(repairedSpecData, null, 2)}
+---END OF SPECIFICATION DATA---
+8.2. SIMPLICITY GATE ANALYSIS:
+   Before creating the plan, analyze the specification above for architectural complexity:
+   8.2.1. ANALYSIS INSTRUCTIONS:
+   "Analyze the COMPLETE specification from section 8.1 above to determine the number of distinct projects/components.
    A 'project' is a major architectural component that could be developed separately, such as:
-   8.1.1. Separate applications (web app, mobile app, desktop app)
-   8.1.2. Independent services (API service, payment service, notification service)
-   8.1.3. Distinct platforms (iOS app, Android app, web app)
-   8.1.4. Major system components (admin dashboard, user interface, backend API)
+   8.2.1.1. Separate applications (web app, mobile app, desktop app)
+   8.2.1.2. Independent services (API service, payment service, notification service)
+   8.2.1.3. Distinct platforms (iOS app, Android app, web app)
+   8.2.1.4. Major system components (admin dashboard, user interface, backend API)
    
    NOT individual features, pages, or entities within the same application.
    
@@ -288,82 +158,107 @@ ${teamAnalysis.skills.map(skill => `      4.3.${teamAnalysis.skills.indexOf(skil
    - Platform targets and deployment requirements
    - Service architecture and component separation
    
-   COMPLETE SPECIFICATION CONTENT:
-   ${specData ? JSON.stringify(specData, null, 2) : 'No content'}
-   
    Based on this complete analysis, how many distinct projects/components does this specification describe?
    Return only a number between 1-10. If unclear, default to 1.
    
    If the count is > 10, this violates the Simplicity Gate and should be documented in Complexity Tracking."
    
-   8.2. Use this AI analysis to:
-      8.2.1. Determine if the specification violates the Simplicity Gate (≤5 projects)
-      8.2.2. Document any violations in the Complexity Tracking section
-      8.2.3. Adjust the implementation plan accordingly
+   8.2.2. Use this AI analysis to:
+      8.2.2.1. Determine if the specification violates the Simplicity Gate (≤5 projects)
+      8.2.2.2. Document any violations in the Complexity Tracking section
+      8.2.2.3. Adjust the implementation plan accordingly
 
 9. TEMPLATE DATA FOR AI PROCESSING:
+---BEGINNING OF TEMPLATE DATA---
 ${JSON.stringify(templateWithInstructions, null, 2)}
-
-9.1. MARKDOWN CONVERSION GUIDE:
-   To create the plan.md file from the JSON template data above, follow this structure:
+---END OF TEMPLATE DATA---
+10. MARKDOWN CONVERSION GUIDE:
+   To create the plan.md file from the template JSON above, follow this ENHANCED structure for maximum readability:
    
-   # [template_data.title]
+   # 📋 [template_data.title]
    
-   ## Metadata
-   - Created: [template_data.metadata.created]
-   - Status: [template_data.metadata.status]
-   - Platform: [template_data.metadata.platform]
-   - Spec Path: [template_data.metadata.specPath]
+   ## 📊 Metadata
+   - **Created:** [template_data.metadata.created]
+   - **Status:** [template_data.metadata.status]
+   - **Platform:** [template_data.metadata.platform]
+   - **Spec Path:** [template_data.metadata.specPath]
    
-   ## Summary
+   ---
+   
+   ## 📝 Summary
    [template_data.summary.content]
    
-   ## Technical Context
-   - Language Version: [template_data.technicalContext.languageVersion]
-   - Primary Dependencies: [template_data.technicalContext.primaryDependencies]
-   - Technology Stack: [template_data.technicalContext.technologyStack]
-   - Frontend Stack: [template_data.technicalContext.frontendStack]
-   - Backend Stack: [template_data.technicalContext.backendStack]
-   - Styling Approach: [template_data.technicalContext.stylingApproach]
-   - Chart Libraries: [template_data.technicalContext.chartLibraries]
-   - State Management: [template_data.technicalContext.stateManagement]
-   - Storage: [template_data.technicalContext.storage]
-   - Testing: [template_data.technicalContext.testing]
-   - Target Platform: [template_data.technicalContext.targetPlatform]
-   - Performance Goals: [template_data.technicalContext.performanceGoals]
+   ---
    
-   ## Edge Case Analysis
+   ## 🔧 Technical Context
+   - **Language Version:** [template_data.technicalContext.languageVersion]
+   - **Primary Dependencies:** [template_data.technicalContext.primaryDependencies]
+   - **Technology Stack:** [template_data.technicalContext.technologyStack]
+   - **Frontend Stack:** [template_data.technicalContext.frontendStack]
+   - **Backend Stack:** [template_data.technicalContext.backendStack]
+   - **Styling Approach:** [template_data.technicalContext.stylingApproach]
+   - **Chart Libraries:** [template_data.technicalContext.chartLibraries]
+   - **State Management:** [template_data.technicalContext.stateManagement]
+   - **Storage:** [template_data.technicalContext.storage]
+   - **Testing:** [template_data.technicalContext.testing]
+   - **Target Platform:** [template_data.technicalContext.targetPlatform]
+   - **Performance Goals:** [template_data.technicalContext.performanceGoals]
+   
+   ---
+   
+   ## 🔍 Edge Case Analysis
    [template_data.edgeCaseAnalysis.content]
    
-   ## Constitution Check
+   ---
+   
+   ## ✅ Constitution Check
    [Convert template_data.constitutionCheck to markdown sections with proper formatting]
    
-   ## Project Structure
+   ---
+   
+   ## 🏗️ Project Structure
    [template_data.projectStructure.content]
    
-   ## Implementation Phases
-   ### Phase 1: Contracts & Tests
+   ---
+   
+   ## 🚀 Implementation Phases
+   
+   ### 🔬 Phase 1: Contracts & Tests
    [template_data.implementationPhases.phase1.content]
    
-   ### Phase 2: Library Implementation
+   ---
+   
+   ### 🔗 Phase 2: Library Implementation
    [template_data.implementationPhases.phase2.content]
    
-   ### Phase 3: Integration & Validation
+   ---
+   
+   ### 🧪 Phase 3: Integration & Validation
    [template_data.implementationPhases.phase3.content]
    
-   ## Database Strategy
+   ---
+   
+   ## 🗄️ Database Strategy
    [Convert template_data.databaseStrategy to markdown sections with proper formatting]
    
-   ## API-First Planning
+   ---
+   
+   ## 🌐 API-First Planning
    [Convert template_data.apiFirstPlanning to markdown sections with proper formatting]
    
-   ## Platform-Specific Planning
+   ---
+   
+   ## 📱 Platform-Specific Planning
    [Convert template_data.platformSpecificPlanning to markdown sections with proper formatting]
    
-   ## Constitutional Gates
+   ---
+   
+   ## 🚪 Constitutional Gates
    [Convert template_data.constitutionalGates to markdown sections with proper formatting]
    
-   ## Platform Gates
+   ---
+   
+   ## 🎯 Platform Gates
    [Convert template_data.platformGates to markdown sections with proper formatting]
    
    **ENHANCED EXAMPLE FORMAT:**
@@ -384,26 +279,50 @@ ${JSON.stringify(templateWithInstructions, null, 2)}
    [template_data.complexityTracking.description]
    [template_data.complexityTracking.table.rows]
    
-   ### CRITICAL FORMATTING RULES:
-   - Always use blank lines between sections
-   - For Constitutional Gates and Quality Gates, format each gate as:
-     ### [Gate Title]
+   ### 🎨 CRITICAL FORMATTING RULES FOR MAXIMUM READABILITY:
+   
+   **📋 Document Structure:**
+   - Always use blank lines between sections for readability
+   - Use emojis in headers for visual distinction (📋, 📊, 🔧, etc.)
+   - Add horizontal rules (---) between major sections
+   - Use consistent emoji patterns throughout the document
+   - Limit line length to ~80 characters for better readability
+   - Use spaces (not tabs) for indentation
+   
+   **🚪 Gate Formatting:**
+   - For Constitutional Gates and Platform Gates, format each gate as:
+     ### 🎯 [Gate Title]
      **Description:** [Gate description]
      
      **Status:** [Gate status with checkmark]
+     
+     **Platforms:** [Platform list]
+     
+     ---
    - Ensure "Status:" always appears on a new line after "Description:"
-   - Use proper markdown formatting with **bold** for labels
-   - Add blank lines between different gates for readability
+   - Ensure "Platforms:" always appears on a new line after "Status:"
+   - Add horizontal rules (---) between different gates for visual separation
+   
+   **📝 Task Formatting:**
+   - Use proper numbering (TASK-001, TASK-002, etc.)
+   - Include [P] markers for parallelizable tasks
+   - Add duration and focus information for each phase
+   - Use consistent emoji patterns for phase headers
+   
+   **🎨 Visual Enhancements:**
+   - Use **bold** for labels and key information
+   - Add emojis to section headers for quick visual scanning
+   - Use horizontal rules (---) to separate major sections
+   - Ensure consistent spacing and formatting throughout
+   - Use bullet points and numbered lists for better readability
+   - Include metadata at the beginning for context
 
-10. MANDATORY LAST STEP After creating the plan.md file: Call sdd_plan with finalize=true to save the filled plan to database:
-   10.1. Call: sdd_plan with parameters:
-      {
-        "finalize": true,
-        "featureId": "${featureId}",
-        "planData": [THE_FILLED_PLAN_DATA_AS_JSON]
-      }
-   10.2. This is NOT just text - you must actually CALL the sdd_plan tool with finalize=true
-   10.3. The planData should be the complete JSON object you created from the template
+11. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
+   11.1. Create file: plan.md in specs/plan.md directory
+   11.2. Fill the template data below with actual content
+   11.3. Convert JSON template to proper markdown format
+   11.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
+   11.5. After creating plan.md, call sdd_plan with finalize=true to save to database
 
 🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
 DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
@@ -413,8 +332,8 @@ YOU MUST:
 3. MAKE A TOOL CALL to sdd_plan with finalize=true to save to database
 4. THEN respond with a BRIEF confirmation (one sentence only)
 
-🚨 CRITICAL: Step 3 requires an actual TOOL CALL, not just text!
-🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
+🚨 CRITICAL: Step 1 requires creating the actual FILE, not just text!
+🚨 CRITICAL: Step 2 requires an actual TOOL CALL, not just text!
 
 STOP READING AND START CREATING THE FILE NOW!
 `;
@@ -430,44 +349,6 @@ STOP READING AND START CREATING THE FILE NOW!
     }
   }
 
-  /**
-   * Handle finalize mode - save plan to database
-   */
-  private async handleFinalize(input: any): Promise<any> {
-    try {
-      const { featureId, planData } = input;
-      
-      if (!featureId || !planData) {
-        return this.error('Missing required parameters: featureId and planData are required for finalize mode');
-      }
-
-      // Ensure feature exists in database
-      const feature = await this.db.get_feature_robust(featureId);
-      if (!feature) {
-        return this.error(`Feature '${featureId}' not found in database.`);
-      }
-
-      // Save plan to database
-      await this.db.save_plan_robust(
-        featureId,
-        planData,
-        'sdd-plan-perfect-v1'
-      );
-
-      return this.success(
-        `Saved`,
-        {
-          featureId,
-          featureName: feature.name,
-          templateId: 'sdd-plan-perfect-v1',
-          aiGenerated: true
-        }
-      );
-
-    } catch (error) {
-      return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
 
   // -----------------------
   // Template Management
@@ -477,6 +358,7 @@ STOP READING AND START CREATING THE FILE NOW!
     featureId: string;
     featureName: string;
     platform: string;
+    specData?: any;
     timeEstimate?: any;
     aiTimeEstimate?: any;
     teamAnalysis?: any;
@@ -541,7 +423,7 @@ STOP READING AND START CREATING THE FILE NOW!
 
     // Fill summary content
     if (filledTemplate.summary && filledTemplate.summary.content) {
-      filledTemplate.summary.content = filledTemplate.summary.content.replace('{{SUMMARY}}', 
+      filledTemplate.summary.content = filledTemplate.summary.content.replace('{{SUMMARY}}',
         `Implementation plan for ${options.featureName}. Extract primary requirement and technical approach from specification. Focus on business value and user outcomes.`);
     }
 
@@ -659,7 +541,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     if (!allFeatures.length) {
       throw new Error('No features found. Please provide featureId or create a feature first using /specify command.');
     }
-    
+
     const mostRecentFeature = allFeatures[0];
     return mostRecentFeature.id;
   }
@@ -1214,16 +1096,16 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
 
     // Analyze AI suitability for different task types
     const aiSuitability = this.analyzeAISuitability(lowerContent);
-    
+
     // Get AI-era contextual factors
     const aiEraFactors = this.analyzeAIEraFactors(specContent);
-    
+
     // Calculate realistic AI multipliers based on research
     const baseMultipliers = this.calculateRealisticAIMultipliers(aiSuitability, aiEraFactors);
-    
+
     // Apply AI-era overhead factors
     const overheadAdjusted = this.applyAIEraOverhead(baseMultipliers, aiEraFactors);
-    
+
     return {
       development: Math.max(0.05, Math.min(0.12, overheadAdjusted.development)), // REAL-WORLD TESTED: 5-12% of human time
       testing: Math.max(0.06, Math.min(0.15, overheadAdjusted.testing)),         // REAL-WORLD TESTED: 6-15% of human time
@@ -1248,19 +1130,19 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       'crud', 'api endpoint', 'database query', 'form validation', 'simple component',
       'boilerplate', 'configuration', 'setup', 'initialization', 'basic test'
     ];
-    
+
     // Medium AI suitability tasks  
     const mediumSuitabilityKeywords = [
       'integration', 'authentication', 'authorization', 'data transformation',
       'unit test', 'integration test', 'error handling', 'logging'
     ];
-    
+
     // Low AI suitability tasks
     const lowSuitabilityKeywords = [
       'business logic', 'algorithm', 'architecture', 'design pattern',
       'complex calculation', 'optimization', 'security review', 'performance tuning'
     ];
-    
+
     // Overhead tasks
     const overheadKeywords = [
       'code review', 'testing', 'validation', 'deployment', 'documentation',
@@ -1289,26 +1171,26 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private analyzeAIEraFactors(specContent: string): any {
     const lowerContent = specContent.toLowerCase();
-    
+
     return {
       // AI Tool Proficiency (affects productivity)
       teamAIExperience: this.detectTeamAIExperience(lowerContent),
-      
+
       // Task Suitability for AI
       aiSuitableTasks: this.calculateAISuitableTaskRatio(lowerContent),
-      
+
       // AI Output Quality Factors
       hasLegacyCode: this.detectLegacyCode(lowerContent),
       hasComplexBusinessLogic: this.detectComplexBusinessLogic(lowerContent),
-      
+
       // Integration Complexity
       hasThirdPartyIntegrations: this.detectThirdPartyIntegrations(lowerContent),
       hasMicroservices: this.detectMicroservices(lowerContent),
-      
+
       // AI-Era Overhead
       requiresSecurityReview: this.detectSecurityRequirements(lowerContent),
       requiresComplianceCheck: this.detectComplianceRequirements(lowerContent),
-      
+
       // Learning Curve
       isNewTechnology: this.detectNewTechnology(lowerContent),
       hasExistingPatterns: this.detectExistingPatterns(lowerContent)
@@ -1322,21 +1204,21 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private calculateRealisticAIMultipliers(aiSuitability: any, aiEraFactors: any): any {
     // ULTRA-AGGRESSIVE multipliers: AI is incredibly fast for most tasks
     const baseProductivityGain = 0.95; // 95% time reduction - AI is extremely fast
-    
+
     // Adjust based on AI suitability
-    const suitabilityRatio = (aiSuitability.high * 0.9 + aiSuitability.medium * 0.7 + aiSuitability.low * 0.5) / 
-                             (aiSuitability.high + aiSuitability.medium + aiSuitability.low + aiSuitability.overhead || 1);
-    
+    const suitabilityRatio = (aiSuitability.high * 0.9 + aiSuitability.medium * 0.7 + aiSuitability.low * 0.5) /
+      (aiSuitability.high + aiSuitability.medium + aiSuitability.low + aiSuitability.overhead || 1);
+
     // Adjust based on team AI experience
-    const experienceMultiplier = aiEraFactors.teamAIExperience === 'high' ? 1.5 : 
-                                aiEraFactors.teamAIExperience === 'medium' ? 1.2 : 1.0;
-    
+    const experienceMultiplier = aiEraFactors.teamAIExperience === 'high' ? 1.5 :
+      aiEraFactors.teamAIExperience === 'medium' ? 1.2 : 1.0;
+
     // Calculate ultra-aggressive multipliers based on real-world AI performance
     const developmentMultiplier = 1 - (baseProductivityGain * suitabilityRatio * experienceMultiplier);
     const testingMultiplier = 1 - (baseProductivityGain * 0.95 * suitabilityRatio); // Testing extremely fast with AI
     const guidanceMultiplier = 1 - (baseProductivityGain * 0.6); // Human guidance still needed but much faster
     const reviewMultiplier = 1 - (baseProductivityGain * 0.5); // Review much faster with AI
-    
+
     return {
       development: Math.max(0.01, Math.min(0.08, developmentMultiplier)), // 1-8% of human time
       testing: Math.max(0.01, Math.min(0.06, testingMultiplier)),           // 1-6% of human time
@@ -1350,7 +1232,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private applyAIEraOverhead(baseMultipliers: any, aiEraFactors: any): any {
     let overheadMultiplier = 1.0;
-    
+
     // Minimal overhead factors - AI handles most complexity well
     if (aiEraFactors.hasLegacyCode) overheadMultiplier += 0.02; // 2% overhead
     if (aiEraFactors.hasComplexBusinessLogic) overheadMultiplier += 0.03; // 3% overhead
@@ -1358,7 +1240,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     if (aiEraFactors.requiresSecurityReview) overheadMultiplier += 0.05; // 5% overhead
     if (aiEraFactors.requiresComplianceCheck) overheadMultiplier += 0.03; // 3% overhead
     if (aiEraFactors.isNewTechnology) overheadMultiplier += 0.02; // 2% overhead
-    
+
     return {
       development: baseMultipliers.development * overheadMultiplier,
       testing: baseMultipliers.testing * overheadMultiplier,
@@ -1512,7 +1394,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private detectTeamAIExperience(content: string): string {
     const highExperienceKeywords = ['ai tools', 'copilot', 'cursor', 'chatgpt', 'experienced with ai'];
     const mediumExperienceKeywords = ['some ai', 'basic ai', 'learning ai'];
-    
+
     if (highExperienceKeywords.some(keyword => content.includes(keyword))) return 'high';
     if (mediumExperienceKeywords.some(keyword => content.includes(keyword))) return 'medium';
     return 'low';
@@ -1521,10 +1403,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private calculateAISuitableTaskRatio(content: string): number {
     const aiSuitableKeywords = ['crud', 'api', 'form', 'component', 'test', 'validation'];
     const totalKeywords = ['crud', 'api', 'form', 'component', 'test', 'validation', 'business logic', 'algorithm', 'architecture'];
-    
+
     const suitableCount = aiSuitableKeywords.filter(keyword => content.includes(keyword)).length;
     const totalCount = totalKeywords.filter(keyword => content.includes(keyword)).length;
-    
+
     return totalCount > 0 ? suitableCount / totalCount : 0.5;
   }
 
@@ -1765,7 +1647,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private adjustTimeEstimateWithCap(timeEstimate: string, adjustmentFactor: number, maxHours: number): string {
     const adjusted = this.adjustTimeEstimate(timeEstimate, adjustmentFactor);
-    
+
     // Check if the adjusted estimate exceeds the cap
     const hoursMatch = adjusted.match(/(\d+)-?(\d+)?\s*hours?/);
     if (hoursMatch) {
@@ -1781,7 +1663,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         return `${Math.round(maxHours)} hours`;
       }
     }
-    
+
     return adjusted;
   }
 
@@ -1879,7 +1761,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private formatDurationWithCap(days: number, maxHours: number): string {
     const totalHours = days * 8; // 8 hours per day
-    
+
     if (totalHours > maxHours) {
       // Cap at the maximum hours
       if (maxHours <= 1) return '1 hour';
@@ -1890,7 +1772,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       if (maxHours <= 6) return '5-6 hours';
       return `${Math.round(maxHours)} hours`;
     }
-    
+
     // Use normal formatting if under the cap
     return this.formatDuration(days);
   }
@@ -2024,13 +1906,13 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private analyzeEdgeCases(specData: any): any {
     try {
-      // Use EdgeCaseAnalyzer for consistent analysis
-      const content = JsonRepairUtility.extractDbJsonContent(specData, 'SDDPlanTool') || {};
+      // specData is already repaired, use it directly
+      const content = specData || {};
       const analysisResult = this.edgeCaseAnalyzer.analyzeEdgeCases(content, 1);
-      
+
       // Extract edge cases from template_data if available
       const edgeCasesContent = content.edgeCases || content.edgeCaseAnalysis?.content || '';
-      
+
       if (!edgeCasesContent && analysisResult.totalEdgeCases === 0) {
         return {
           hasEdgeCases: false,
@@ -2054,7 +1936,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
 
       // Use EdgeCaseAnalyzer results for complexity analysis
       const totalEdgeCases = Math.max(edgeCaseLines.length, analysisResult.totalEdgeCases);
-      
+
       // Determine complexity based on critical and high impact edge cases
       let complexity = 'low';
       if (analysisResult.criticalEdgeCases > 0 || analysisResult.highImpactEdgeCases > 2) {
@@ -2062,7 +1944,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       } else if (analysisResult.highImpactEdgeCases > 0 || analysisResult.totalEdgeCases > 3) {
         complexity = 'medium';
       }
-      
+
       // Estimate additional time based on edge case count and complexity
       const additionalTime = analysisResult.totalEdgeCases * (complexity === 'high' ? 2 : complexity === 'medium' ? 1 : 0.5);
 
@@ -2103,14 +1985,14 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private getSpecificationPreview(content: string): string {
     if (!content) return '';
-    
+
     // Try to get the first meaningful sentence or paragraph
     const firstParagraph = content.split('\n\n')[0];
     const firstSentence = content.split(/[.!?]/)[0];
-    
+
     // Use the shorter of the two, but prefer complete sentences
     let preview = firstSentence.length <= 120 ? firstSentence : firstParagraph;
-    
+
     // If still too long, try to find a good breaking point
     if (preview.length > 120) {
       const words = preview.split(' ');
@@ -2124,7 +2006,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       }
       preview = truncated;
     }
-    
+
     return preview + (content.length > preview.length ? '...' : '');
   }
 
@@ -2136,7 +2018,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     // Smart platform detection from spec data
     const detectedPlatform = this.detectPlatformFromSpec(specData);
     const platform = detectedPlatform || fallbackPlatform;
-    
+
     return this.generatePlatformSpecificStructureInstruction(featureName, platform);
   }
 
@@ -2155,10 +2037,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       const dependencies = specData.template_data.dependencies || '';
       const targetPlatform = specData.template_data.targetPlatforms || '';
       const businessContext = specData.template_data.businessContext || '';
-      
+
       // Combine all text for analysis
       const combinedText = `${techStack} ${platformReq} ${dependencies} ${targetPlatform} ${businessContext}`.toLowerCase();
-      
+
       // Platform detection patterns with confidence scoring
       const platformPatterns = {
         'nextjs': {
@@ -2206,21 +2088,21 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       // Calculate confidence scores
       for (const [platform, pattern] of Object.entries(platformPatterns)) {
         let score = 0;
-        
+
         // Check for framework mentions (high confidence)
         for (const framework of pattern.frameworks) {
           if (combinedText.includes(framework)) {
             score += 3;
           }
         }
-        
+
         // Check for keyword mentions (medium confidence)
         for (const keyword of pattern.keywords) {
           if (combinedText.includes(keyword)) {
             score += 1;
           }
         }
-        
+
         // Check for specific combinations (bonus confidence)
         if (platform === 'nextjs' && combinedText.includes('react') && combinedText.includes('typescript')) {
           score += 2;
@@ -2234,23 +2116,23 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         if (platform === 'android-native' && (combinedText.includes('kotlin') || combinedText.includes('java')) && combinedText.includes('android')) {
           score += 2;
         }
-        
+
         pattern.confidence = score;
       }
 
       // Find platform with highest confidence
       const sortedPlatforms = Object.entries(platformPatterns)
-        .sort(([,a], [,b]) => b.confidence - a.confidence);
-      
+        .sort(([, a], [, b]) => b.confidence - a.confidence);
+
       const [detectedPlatform, pattern] = sortedPlatforms[0];
-      
+
       // Only return if confidence is high enough (threshold: 3)
       if (pattern.confidence >= 3) {
         return detectedPlatform;
       }
-      
+
       return null;
-      
+
     } catch (error) {
       console.error('[SDDPlanTool] Error in platform detection:', error);
       return null;
@@ -3243,5 +3125,51 @@ export default function App() {
       message,
       ...(data && { data })
     };
+  }
+
+  /**
+   * Handle finalize mode - save the plan to database
+   */
+  private async handleFinalize(input: any): Promise<any> {
+    try {
+      const { planData } = input;
+
+      if (!planData) {
+        return this.error('Missing required parameter: planData is required for finalize mode');
+      }
+
+      // Always get the most recent feature
+      let featureId: string;
+      try {
+        featureId = await this.resolveFeatureId(null); // null means get most recent
+      } catch (error) {
+        return this.error(error instanceof Error ? error.message : 'Failed to get most recent feature');
+      }
+
+      // Get feature to verify it exists and get the name
+      const feature = await this.db.get_feature_robust(featureId);
+      if (!feature) {
+        return this.error(`Feature '${featureId}' not found in database.`);
+      }
+
+      // Save plan to database
+      await this.db.save_plan_robust(
+        featureId,
+        planData,
+        'sdd-plan-perfect-v1'
+      );
+
+      return this.success(
+        `Saved`,
+        {
+          featureId,
+          featureName: feature.name,
+          templateId: 'sdd-plan-perfect-v1',
+          aiGenerated: true
+        }
+      );
+    } catch (error) {
+      return this.error(`Failed to save plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }

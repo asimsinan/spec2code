@@ -2,7 +2,7 @@
   "id": "sdd-status-perfect-v1",
   "name": "SDD Status Template (Balanced 4-Phase Structure)",
   "version": "2.0.0",
-  "description": "Comprehensive status template based on SDD methodology with balanced 4-phase structure (11 tasks per phase), constitutional gates validation, platform-aware reporting, and Mermaid diagrams",
+  "description": "Comprehensive status template based on SDD methodology with balanced 4-phase structure, constitutional gates validation, platform-aware reporting, and Mermaid diagrams",
   "template_data": {
     "title": "Feature Status: {{FEATURE_NAME}}",
     "metadata": {

@@ -135,7 +135,7 @@ export class SDDSpecifyTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'Create a feature specification from user input. MUST create spec.md file in specs/ folder and save to database. This tool requires immediate file creation action.',
+      description: 'STEP 1: Call with input to generate specification template. STEP 2: Fill the template and call again with finalize=true, featureId, and specificationData to save. DO NOT call with finalize=true on first call!',
       inputSchema: {
         type: 'object',
         properties: {
@@ -422,6 +422,9 @@ ${JSON.stringify(fillResult.data, null, 2)}
    ### Primary User Story
    [template_data.userScenarios.primaryUserStory.content]
    
+   ### Comprehensive User Stories
+   [template_data.userScenarios.comprehensiveUserStories.content]
+   
    ### Acceptance Scenarios
    [template_data.userScenarios.acceptanceScenarios.content]
    
@@ -486,6 +489,9 @@ ${JSON.stringify(fillResult.data, null, 2)}
    - Ensure "Status:" always appears on a new line after "Description:"
    - Use proper markdown formatting with **bold** for labels
    - Add blank lines between different gates for readability
+   - **Happy Path Scenarios**: Use numbered list format (1., 2., 3.) for proper Markdown rendering
+   - **Acceptance Scenarios**: Format as ordered lists with consistent indentation
+   - **Nested Lists**: Use 4 spaces or tab for sub-scenarios within numbered lists
 
 7. MANDATORY LAST STEP After creating the spec.md file: You MUST make a TOOL CALL to sdd_specify with finalize=true to save the filled specification to database:
       7.1. 🚨 CRITICAL: Make a TOOL CALL to sdd_specify with these EXACT parameters:

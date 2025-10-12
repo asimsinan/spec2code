@@ -1,8 +1,8 @@
 {
   "id": "sdd-plan-perfect-v1",
-  "name": "SDD Plan Template (Balanced 4-Phase Structure)",
-  "version": "2.0.0",
-  "description": "Comprehensive implementation plan template based on SDD methodology with balanced 4-phase structure (11 tasks per phase) and all 26 constitutional gates",
+  "name": "SDD Plan Template (Atomic 70-Task Structure)",
+  "version": "3.0.0",
+  "description": "Comprehensive implementation plan template based on SDD methodology with atomic 70-task structure (25-20-15-10 tasks) using explicit verification and mandatory proof requirements. Includes all 26 constitutional gates with RED-GREEN-REFACTOR-SMOKE enforcement.",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
@@ -27,7 +27,7 @@
       "chartLibraries": "{{CHART_LIBRARIES}}",
       "stateManagement": "{{STATE_MANAGEMENT}}",
       "storage": "{{ENTERPRISE_GRADE_STORAGE}}",
-      "testing": "{{TESTING}}",
+      "testing": "{{TESTING}} (including Playwright visual regression testing)",
       "targetPlatform": "{{TARGET_PLATFORM}}",
       "performanceGoals": "{{PERFORMANCE_GOALS}}",
       "instruction": "Extract the complete technology stack from the user input and specification. Include ALL technologies mentioned, organized by category. Do not add technologies not mentioned. Do not omit technologies that were mentioned. Create a comprehensive technical context that captures exactly what was specified."
@@ -82,26 +82,32 @@
       "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
     },
     "implementationPhases": {
-      "title": "Implementation Phases (Balanced 4-Phase Structure)",
+      "title": "Implementation Phases (Atomic 70-Task Structure with Mandatory Verification)",
+      "taskApproach": "Atomic tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory proof requirements. RED-GREEN-REFACTOR-SMOKE pattern enforced.",
+      "verificationFramework": "Every task requires proof of execution (terminal output, file counts, test results). Forbidden states prevent AI from gaming the system.",
       "phase1": {
-        "title": "Phase 1: Foundations & Data (11 tasks)",
+        "title": "Phase 1: Foundations & Data (25 tasks: TASK-001 to TASK-025)",
+        "pattern": "CONTRACT (001-010) → RED (011-017) → GREEN (018-023) → SMOKE (024-025)",
         "content": "{{PHASE_1_FOUNDATIONS_DATA}}",
-        "instruction": "Essential foundation work: API contracts, database setup, data models, and core infrastructure. This phase establishes the fundamental building blocks that all other phases depend on."
+        "instruction": "Essential foundation work with atomic verification: API contracts (OpenAPI with validation proof), database setup (Prisma migrations with SQL shown), data models (TypeScript compilation with 0 errors). Each task requires proof: contracts must validate, tests must RED then GREEN, app must start and respond (200 OK). Pattern: Define contracts → Create tests (RED) → Implement code (GREEN) → Verify complete system (SMOKE)."
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (11 tasks)",
+        "title": "Phase 2: Core Implementation (20 tasks: TASK-026 to TASK-045)",
+        "pattern": "Core Library (RED→GREEN) → Services (RED→GREEN) → Controllers (RED→GREEN) → Auth (RED→GREEN) → Integration → SMOKE",
         "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
-        "instruction": "Core library implementation, data models, business logic, and basic API structure. This phase builds the core functionality that powers the application."
+        "instruction": "Core library, services, controllers, and authentication with RED-GREEN-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, compilation success. Final SMOKE test demonstrates all systems operational."
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Mock APIs (11 tasks)",
-        "content": "{{PHASE_3_UI_DEVELOPMENT_MOCK_APIS}}",
-        "instruction": "Create UI components with mock API services, platform setup, and complete user flow testing with simulated data. This phase enables parallel frontend development while backend is being implemented."
+        "title": "Phase 3: UI Development with Real APIs (15 tasks: TASK-046 to TASK-060)",
+        "pattern": "Platform Setup → Design System (RED→GREEN) → Components (RED→GREEN) → Real API Integration (RED→GREEN) → Visual Testing → SMOKE",
+        "content": "{{PHASE_3_UI_DEVELOPMENT_REAL_APIS}}",
+        "instruction": "UI components with REAL API integration (NO MOCKS ALLOWED). Pattern: Configure platform → Design system (RED→GREEN) → Components (RED→GREEN) → Real API services (RED→GREEN with network proof) → Visual regression testing (screenshots shown) → Complete SMOKE test. Proof required: build success, real HTTP calls (grep count), network requests/responses shown, visual test screenshots generated."
       },
       "phase4": {
-        "title": "Phase 4: Real API Integration & Verification (11 tasks)",
-        "content": "{{PHASE_4_REAL_API_INTEGRATION}}",
-        "instruction": "Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality. This phase delivers the final working application."
+        "title": "Phase 4: Comprehensive Testing & Deployment (10 tasks: TASK-061 to TASK-070)",
+        "pattern": "Test All Suites → Verify Application → Performance → Security → Accessibility → Cleanup → Coverage → Documentation → Final Sign-off",
+        "content": "{{PHASE_4_COMPREHENSIVE_TESTING_DEPLOYMENT}}",
+        "instruction": "Complete testing and production readiness verification. ALL test suites executed (contract+unit+integration+E2E+visual) with 0 failures shown. Application startup demonstrated (200 OK required). Manual smoke tests documented (3-5 journeys). Performance benchmarks verified (load <3s, API <100ms). Security audit (0 vulnerabilities). Accessibility (WCAG 2.1 AA). Coverage ≥90%. Final sign-off with COMPLETE PROOF TRAIL. NO SHORTCUTS - every verification must be demonstrated."
       }
     },
     "databaseStrategy": {
@@ -145,6 +151,16 @@
         "title": "API Testing Planning",
         "content": "{{API_TESTING_PLANNING}}",
         "instruction": "Plan API testing: contract testing, integration testing, performance testing, security testing, test automation."
+      },
+      "visualTesting": {
+        "title": "Visual Regression Testing Planning",
+        "content": "{{VISUAL_TESTING_PLANNING}}",
+        "instruction": "Plan visual regression testing: Playwright setup, baseline screenshot capture, cross-browser testing, responsive design validation, visual consistency checks, CI/CD integration."
+      },
+      "projectStructurePlanning": {
+        "title": "Project Structure Planning",
+        "content": "{{PROJECT_STRUCTURE_PLANNING}}",
+        "instruction": "Plan project structure validation and cleanup: empty folder detection, legacy code removal, technology stack consistency, architecture pattern enforcement, final structure validation."
       },
       "apiDocumentation": {
         "title": "API Documentation Planning",
@@ -192,11 +208,11 @@
     "platformGates": {
       "mobile": {
         "gates": ["simplicity", "nativeFirst", "offlineFirst", "performance", "accessibility", "security", "storeCompliance", "apiFirst"],
-        "qualityGates": ["deviceCompatibility", "batteryOptimization", "memoryManagement", "touchInterface", "offlineSync", "apiTesting"]
+        "qualityGates": ["deviceCompatibility", "batteryOptimization", "memoryManagement", "touchInterface", "offlineSync", "apiTesting", "visualRegressionTesting"]
       },
       "web": {
         "gates": ["simplicity", "progressiveEnhancement", "responsiveDesign", "performance", "security", "accessibility", "browserCompatibility", "apiFirst"],
-        "qualityGates": ["crossBrowserTesting", "responsiveDesign", "seoOptimization", "progressiveWebApp", "coreWebVitals", "apiTesting"]
+        "qualityGates": ["crossBrowserTesting", "responsiveDesign", "seoOptimization", "progressiveWebApp", "coreWebVitals", "apiTesting", "visualRegressionTesting"]
       },
       "desktop": {
         "gates": ["simplicity", "nativeIntegration", "performance", "security", "accessibility", "distribution", "cliInterface"],
@@ -375,13 +391,53 @@
       "libraryFirstTesting": "Prefer real dependencies over mocks",
       "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
       "traceability": "Every line of code traces to numbered requirement",
-      "businessFacing": "Plans are for technical stakeholders but business-aligned"
+      "businessFacing": "Plans are for technical stakeholders but business-aligned",
+      "atomicTasks": "70 sequential tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM)",
+      "mandatoryVerification": "Every task requires proof of execution - terminal output, file counts, test results",
+      "antiGaming": "Forbidden states and expected states prevent AI from bypassing verification"
+    },
+    
+    "atomicTaskFramework": {
+      "title": "Atomic Task Framework (70 Tasks Total)",
+      "totalTasks": 70,
+      "phaseDistribution": "25-20-15-10 tasks across 4 phases",
+      "actionVerbs": ["EXECUTE", "RUN", "COMPILE", "SHOW", "CONFIRM", "CREATE", "IMPLEMENT", "GENERATE", "DOCUMENT", "CONFIGURE"],
+      "verificationTypes": {
+        "test_creation_confirmation": "SHOW test files created, test count, compilation success",
+        "test_execution_red_phase": "EXECUTE tests, CONFIRM RED (X failed, 0 passing)",
+        "test_execution_green_phase": "EXECUTE tests, CONFIRM GREEN (0 failed, X passing, coverage ≥80%)",
+        "implementation_with_green_verification": "IMPLEMENT code, COMPILE, EXECUTE tests, SHOW GREEN",
+        "compilation_verification": "COMPILE TypeScript/code, SHOW 0 errors",
+        "comprehensive_smoke_test": "EXECUTE all checks (tests+build+health+lint), SHOW all pass",
+        "setup_verification": "CONFIGURE environment, BUILD successfully, SHOW config files",
+        "visual_test_execution": "EXECUTE visual regression tests, SHOW screenshots generated",
+        "integration_test_execution": "EXECUTE integration tests with real dependencies, SHOW GREEN",
+        "complete_test_suite_execution": "EXECUTE ALL test suites, SHOW 0 failures total",
+        "application_startup_verification": "START application, SHOW health check 200 OK",
+        "manual_testing_documentation": "EXECUTE manual tests, DOCUMENT results with screenshots",
+        "performance_test_execution": "EXECUTE performance tests, SHOW benchmarks met",
+        "security_test_execution": "EXECUTE security audit, SHOW 0 vulnerabilities",
+        "accessibility_test_execution": "EXECUTE accessibility tests, SHOW WCAG compliance",
+        "cleanup_verification": "EXECUTE cleanup, SHOW no empty folders, lint passes",
+        "coverage_report_generation": "GENERATE coverage report, SHOW ≥90%",
+        "documentation_completeness": "CREATE final documentation, SHOW all proof attached",
+        "final_production_readiness": "EXECUTE final verification, CONFIRM production ready with complete proof trail"
+      },
+      "proofRequirements": {
+        "format": "terminal_output, file_listing, test_results, network_responses, screenshots",
+        "mustInclude": "Specific strings that must appear in proof (e.g., 'passing', '0 failed', '200 OK')",
+        "mustShow": "What must be demonstrated (e.g., 'Complete test run output', 'Health check response')"
+      },
+      "forbiddenStates": ["passing when in RED phase", "mock when real required", "0 test files when tests needed", "compilation error when should compile", "tests failing in final sign-off"],
+      "expectedStates": ["RED: X failed, 0 passing", "GREEN: 0 failed, X passing", "Compilation successful, 0 errors", "All systems operational"],
+      "cannotProceedWithout": "Gate conditions that must be met before advancing (e.g., 'Confirmed test failures', 'Passing tests with coverage', 'Working application')",
+      "aiWarnings": "Explicit instructions to prevent gaming (e.g., 'Tests MUST fail. DO NOT implement yet.', 'MUST show 0 compilation errors.')"
     },
    
     "sddVersion": {
-      "version": "SDD-Cursor-1.2",
-      "generated": "2025-09-20",
-      "description": "Implementation plan template based on asy-sdd.md with all 26 constitutional gates"
+      "version": "SDD-Cursor-2.0-Atomic",
+      "generated": "2025-10-11",
+      "description": "Atomic 70-task implementation plan with mandatory verification framework and anti-gaming mechanisms based on asy-sdd.md with all 26 constitutional gates"
     }
   },
   "is_active": true

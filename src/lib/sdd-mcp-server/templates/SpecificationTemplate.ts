@@ -378,11 +378,12 @@ export class SpecificationTemplate extends BaseTemplate {
     const baseInstructions = {
       // User Scenarios (common to all platforms)
       primaryUserStory: `Generate a primary user story for: ${userInput}. Focus on the main value proposition and user benefit.`,
-      acceptanceScenarios: `Generate acceptance scenarios for: ${userInput}. Use Given-When-Then format. Include happy path, error cases, and edge cases.`,
+      comprehensiveUserStories: `Generate 5-8 comprehensive user stories for: ${userInput}. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include these personas: 1) Primary user story (main use case), 2) Admin/Manager story (management/oversight), 3) Power user story (advanced features), 4) New user story (onboarding), 5) Edge case user story (unusual scenarios), 6) Integration user story (API/third-party), 7) Mobile user story (if mobile/web), 8) Accessibility user story (inclusive design). Each story should be sprint-sized and deliverable.`,
+      acceptanceScenarios: `Generate comprehensive acceptance criteria for: ${userInput}. Use Given-When-Then format with these requirements: 1) Happy path scenarios (primary user flows), 2) Negative scenarios (error conditions, invalid inputs, failure states), 3) Edge cases (boundary conditions, unusual inputs), 4) User perspective focus (desired outcomes, not technical implementation), 5) Testable criteria (clear pass/fail outcomes for each scenario), 6) Stakeholder scenarios (admin, power user, new user perspectives). Each scenario must be independently testable and written in simple, unambiguous language. Include examples like: **Given** that I am on the login page, **When** I enter valid credentials and click submit, **Then** I should see my dashboard and access my data. Generate sufficient scenarios to cover all critical functionalities and edge cases without redundancy. Use numbered list format (1., 2., 3.) for Happy Path Scenarios to ensure proper Markdown rendering.`,
       edgeCases: `Generate edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
       
       // Requirements (common to all platforms)
-      functionalRequirements: `Generate functional requirements for: ${userInput}. Use FR-001, FR-002 format. Be specific about what the system must do.`,
+      functionalRequirements: `Generate comprehensive functional requirements for: ${userInput}. Use FR-001, FR-002 format following industry best practices: 1) Clear and concise language (simple, unambiguous to prevent misinterpretation), 2) Business goal alignment (each requirement serves specific user need or business objective), 3) Consistency (avoid contradictions, use consistent terminology throughout), 4) Verifiability (testable and measurable outcomes for validation), 5) Necessity (essential for system functionality). Include: Core functionality (primary system capabilities), User interactions (how users interact with system), Data operations (data creation, reading, updating, deletion), System behaviors (how system responds to inputs), Business rules (domain-specific logic), Integration requirements (external system connections). Each requirement must be independently testable and traceable to user stories. Generate adequate requirements to describe all necessary system behaviors without overcomplicating. Example: **FR-001**: System MUST allow users to create accounts with email and password validation.`,
       keyEntities: `Identify key data entities for: ${userInput}. Include their attributes and relationships. Only include if the feature involves data.`,
       databaseRequirements: `Define database requirements for: ${userInput}. Choose appropriate database type: PostgreSQL for relational data with ACID compliance, MySQL for web applications, MongoDB for document data, Redis for caching. For appointment schedulers: PostgreSQL with proper indexing for time-based queries, real-time updates, and data integrity. Include data volume, performance, consistency, security, scalability, and backup requirements.`,
       
@@ -497,11 +498,12 @@ export class SpecificationTemplate extends BaseTemplate {
     const basePlaceholders = {
       // User Scenarios
       '{{PRIMARY_USER_STORY}}': 'Replace with generated primary user story',
-      '{{ACCEPTANCE_SCENARIOS}}': 'Replace with generated acceptance scenarios (Given-When-Then format)',
+      '{{COMPREHENSIVE_USER_STORIES}}': 'Replace with generated comprehensive user stories (5-8 stories with different personas)',
+      '{{ACCEPTANCE_SCENARIOS}}': 'Replace with generated comprehensive acceptance criteria (Given-When-Then format with happy path, negative scenarios, edge cases, and stakeholder perspectives)',
       '{{EDGE_CASES}}': 'Replace with generated edge cases',
       
       // Requirements
-        '{{FUNCTIONAL_REQUIREMENTS}}': 'Replace with generated functional requirements (FR-001, FR-002 format)',
+        '{{FUNCTIONAL_REQUIREMENTS}}': 'Replace with generated comprehensive functional requirements (FR-001, FR-002 format with clear, verifiable, business-aligned requirements)',
         '{{KEY_ENTITIES}}': 'Replace with generated key entities (only if data involved)',
         '{{DATABASE_REQUIREMENTS}}': 'Replace with generated database requirements (PostgreSQL for relational data, MongoDB for documents, Redis for caching)',
         '{{TECH_STACK_REQUIREMENTS}}': 'Replace with extracted technology stack requirements from user input',
@@ -753,6 +755,9 @@ export class SpecificationTemplate extends BaseTemplate {
 ### Primary User Story
 ${data.userScenarios.primaryUserStory.content}
 
+### Comprehensive User Stories
+${data.userScenarios.comprehensiveUserStories}
+
 ### Acceptance Scenarios
 ${data.userScenarios.acceptanceScenarios}
 
@@ -870,8 +875,9 @@ ${instructions.libraryDetection ?
 
 #### User Scenarios
 1. **Primary User Story**: ${instructions.instructions.primaryUserStory}
-2. **Acceptance Scenarios**: ${instructions.instructions.acceptanceScenarios}
-3. **Edge Cases**: ${instructions.instructions.edgeCases}
+2. **Comprehensive User Stories**: ${instructions.instructions.comprehensiveUserStories}
+3. **Acceptance Scenarios**: ${instructions.instructions.acceptanceScenarios}
+4. **Edge Cases**: ${instructions.instructions.edgeCases}
 
 #### Requirements
 4. **Functional Requirements**: ${instructions.instructions.functionalRequirements}
@@ -902,6 +908,9 @@ ${this.generatePlatformInstructionsMarkdown(instructions.instructions, platform)
 
 #### Primary User Story
 ${data.userScenarios.primaryUserStory.content}
+
+#### Comprehensive User Stories
+${data.userScenarios.comprehensiveUserStories}
 
 #### Acceptance Scenarios
 ${data.userScenarios.acceptanceScenarios}

@@ -333,7 +333,7 @@ export class ImplementationPlanHelper {
     const phaseCount = 4; // Fixed 4 phases in the new structure
     
     // Calculate total hours based on the 4-phase structure
-    const totalHours = 44; // 11 tasks per phase * 4 phases, estimated 1 hour per task
+    const totalHours = 44; 
 
     return {
       constitutionalCompliant,
