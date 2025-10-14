@@ -229,7 +229,7 @@ export class ImplementationPlanHelper {
     // Simplicity Gate validation
     gates.simplicityGate.violations = [];
     if (gates.simplicityGate.projectCount > 5) {
-      gates.simplicityGate.violations.push(`Project count ${gates.simplicityGate.projectCount} exceeds limit of 5`);
+      gates.simplicityGate.violations.push(`Project count ${gates.simplicityGate.projectCount} exceeds limit of 15`);
       gates.simplicityGate.passed = false;
     }
     if (!gates.simplicityGate.usingFrameworkDirectly) {

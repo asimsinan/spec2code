@@ -56,11 +56,11 @@ export const FeatureSpecSchema = z.object({
   
   // User scenarios and testing
   primaryUserStory: z.string().min(20, "Primary user story must be at least 20 characters"),
-  acceptanceScenarios: z.array(UserScenarioSchema).min(1, "At least oen acceptance scenario is required"),
-  edgeCases: z.array(z.string()).min(1, "At least one edge case is required"),
+  acceptanceScenarios: z.array(UserScenarioSchema).min(1, "At least 5 acceptance scenario is required"),
+  edgeCases: z.array(z.string()).min(1, "At least 3 edge case is required"),
   
   // Requirements
-  functionalRequirements: z.array(FunctionalRequirementSchema).min(1, "At least five functional requirement is required"),
+  functionalRequirements: z.array(FunctionalRequirementSchema).min(1, "At least ten functional requirement is required"),
   keyEntities: z.array(KeyEntitySchema).optional(),
   
   // Review and acceptance

@@ -2,18 +2,20 @@
   "id": "sdd-tasks-atomic-v5",
   "name": "SDD Atomic Tasks Template (Explicit RED-GREEN-REFACTOR-SMOKE)",
   "version": "5.0.0",
-  "description": "Atomic task-based SDD with 70 sequential tasks (TASK-001 to TASK-070) using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 25+20+15+10=70 tasks.",
+  "description": "Atomic task-based SDD with 73 sequential tasks (TASK-001 to TASK-070 + DESIGN-001 to DESIGN-003) using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 26+21+16+10=73 tasks (includes 3 design tasks).",
   "template_data": {
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
       "status": "Draft",
       "phaseProfile": "4-phase-atomic-verified",
       "tddOrder": "RED → GREEN → REFACTOR → SMOKE",
-      "totalTasks": 70,
-      "phase1Tasks": 25,
-      "phase2Tasks": 20,
-      "phase3Tasks": 15,
+      "totalTasks": 73,
+      "phase1Tasks": 26,
+      "phase2Tasks": 21,
+      "phase3Tasks": 16,
       "phase4Tasks": 10,
+      "designTasksIncluded": true,
+      "designTasksCount": 3,
       "verificationType": "mandatory-proof-execution",
       "antiGamingEnforcement": "enabled",
       "actionVerbs": [
@@ -29,11 +31,91 @@
         "CONFIGURE"
       ]
     },
+    "designTasks": {
+      "designTask001": {
+        "id": "DESIGN-001",
+        "title": "Design System Foundation Setup",
+        "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library",
+        "phase": 1,
+        "tddPhase": "Design System",
+        "subPhase": "Foundation",
+        "requirements": [
+          "Modern color palette with proper contrast ratios",
+          "Professional typography hierarchy",
+          "Design tokens for spacing, colors, and effects",
+          "Component library architecture",
+          "Visual design guidelines"
+        ],
+        "acceptanceCriteria": [
+          "Design system documented and implemented",
+          "Color palette meets WCAG accessibility standards",
+          "Typography hierarchy established",
+          "Component library structure created",
+          "Design tokens system implemented"
+        ],
+        "estimatedDuration": "2-4 hours",
+        "estimatedLOC": 200,
+        "constitutionalCompliance": "Design System Gate",
+        "parallelizable": true
+      },
+      "designTask002": {
+        "id": "DESIGN-002",
+        "title": "Modern UI Components Implementation",
+        "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions",
+        "phase": 2,
+        "tddPhase": "UI Components",
+        "subPhase": "Modern Design",
+        "requirements": [
+          "Card-based layouts with shadows and gradients",
+          "Interactive elements with hover states",
+          "Modern button designs with animations",
+          "Sophisticated form styling",
+          "Professional navigation patterns"
+        ],
+        "acceptanceCriteria": [
+          "All components follow modern design patterns",
+          "Interactive elements have proper hover states",
+          "Animations and transitions implemented",
+          "Responsive design across all breakpoints",
+          "Visual hierarchy clearly established"
+        ],
+        "estimatedDuration": "3-6 hours",
+        "estimatedLOC": 400,
+        "constitutionalCompliance": "Modern UI Gate",
+        "parallelizable": true
+      },
+      "designTask003": {
+        "id": "DESIGN-003",
+        "title": "Visual Enhancement and Polish",
+        "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience",
+        "phase": 3,
+        "tddPhase": "Visual Polish",
+        "subPhase": "Enhancement",
+        "requirements": [
+          "Micro-interactions and animations",
+          "Visual depth with shadows and layering",
+          "Smooth transitions between states",
+          "Loading states and feedback",
+          "Error state styling"
+        ],
+        "acceptanceCriteria": [
+          "Micro-interactions enhance user experience",
+          "Visual depth creates engaging interface",
+          "Smooth transitions implemented",
+          "Loading and error states styled",
+          "Overall design feels polished and professional"
+        ],
+        "estimatedDuration": "2-3 hours",
+        "estimatedLOC": 300,
+        "constitutionalCompliance": "Visual Polish Gate",
+        "parallelizable": true
+      }
+    },
     "taskPhases": {
       "phase1": {
-        "title": "Phase 1: Foundations & Data (25 tasks)",
+        "title": "Phase 1: Foundations & Data (26 tasks)",
         "description": "Atomic foundation tasks with explicit verification: API contracts, database setup, data models. Each task uses action verbs (CREATE, EXECUTE, RUN, COMPILE) and requires proof.",
-        "taskCount": 25,
+        "taskCount": 26,
         "tasks": [
           {
             "id": "TASK-001",
@@ -872,9 +954,9 @@
         ]
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (20 tasks)",
+        "title": "Phase 2: Core Implementation (21 tasks)",
         "description": "Implement core business logic, API controllers, services, and authentication with atomic RED-GREEN-SMOKE verification.",
-        "taskCount": 20,
+        "taskCount": 21,
         "tasks": [
           {
             "id": "TASK-026",
@@ -1535,9 +1617,9 @@
         ]
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (15 tasks)",
+        "title": "Phase 3: UI Development with Real APIs (16 tasks)",
         "description": "Implement UI components, design system, real API integration, and visual testing with atomic verification.",
-        "taskCount": 15,
+        "taskCount": 16,
         "tasks": [
           {
             "id": "TASK-046",

@@ -381,10 +381,17 @@ ${constitutionalGatesList}
        - Include version numbers and specific configurations when mentioned
        - Ensure NO technologies are added that weren't mentioned
        - Ensure NO technologies are omitted that were mentioned
-   3.14. **UI/INTERFACE REQUIREMENTS (MANDATORY)**:
-       - Include styling frameworks and UI requirements
-       - Specify responsive design requirements
-       - Define user interaction patterns
+   3.14. **UI/DESIGN SYSTEM REQUIREMENTS (MANDATORY)**:
+       - **DESIGN SYSTEM MANDATE**: Extract and specify comprehensive design system requirements
+       - **MODERN UI MANDATE**: Require modern, sophisticated UI design (NO basic/plain designs)
+       - **STYLING FRAMEWORK**: Specify exact styling frameworks (Tailwind CSS, Material-UI, Chakra UI, etc.)
+       - **DESIGN PATTERNS**: Define modern UI patterns (cards, gradients, shadows, animations, micro-interactions)
+       - **VISUAL HIERARCHY**: Specify typography, spacing, color schemes, and visual hierarchy
+       - **RESPONSIVE DESIGN**: Define responsive breakpoints and mobile-first approach
+       - **ACCESSIBILITY**: Include accessibility requirements (WCAG compliance)
+       - **BRAND CONSISTENCY**: Define brand colors, fonts, and visual identity
+       - **USER EXPERIENCE**: Specify UX patterns, navigation, and interaction flows
+       - **ANTI-SIMPLE-DESIGN RULE**: Explicitly prohibit basic, plain, or minimal designs
    3.15. **API INTEGRATION REQUIREMENTS (MANDATORY)**:
        - Ensure frontend connects to backend APIs
        - Define data flow and communication patterns
@@ -632,8 +639,8 @@ YOU MUST:
     
     // Simplicity Gate - check for project count
     const projectCount = this.extractProjectCount(userInput);
-    if (projectCount > 5) {
-      violations.push(`Simplicity Gate Violation: ${projectCount} projects exceed limit of 5`);
+    if (projectCount > 15) {
+      violations.push(`Simplicity Gate Violation: ${projectCount} projects exceed limit of 15`);
     }
     
     // 🚀 INTELLIGENT LIBRARY DETECTION: Use enhanced library detection

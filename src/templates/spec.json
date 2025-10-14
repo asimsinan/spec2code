@@ -19,7 +19,7 @@
       "comprehensiveUserStories": {
         "title": "Comprehensive User Stories",
         "content": "{{COMPREHENSIVE_USER_STORIES}}",
-        "instruction": "Generate 5-8 user stories covering different user personas, roles, and scenarios. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include: 1) Primary user story, 2) Admin/Manager story, 3) Power user story, 4) New user story, 5) Edge case user story, 6) Integration user story, 7) Mobile user story (if applicable), 8) Accessibility user story. Each story should be sprint-sized and deliverable.",
+        "instruction": "Generate 8-10 user stories covering different user personas, roles, and scenarios. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include: 1) Primary user story, 2) Admin/Manager story, 3) Power user story, 4) New user story, 5) Edge case user story, 6) Integration user story, 7) Mobile user story (if applicable), 8) Accessibility user story. Each story should be sprint-sized and deliverable.",
         "format": "numbered_list_with_personas"
       },
       "acceptanceScenarios": {
@@ -52,6 +52,11 @@
         "content": "{{DATABASE_REQUIREMENTS}}",
         "instruction": "Define database requirements if feature involves data: - **Database Type**: [Relational/Document/Key-Value/Graph] - **Data Volume**: [Expected records, growth rate] - **Performance**: [Response time, throughput requirements] - **Consistency**: [ACID, eventual consistency, etc.] - **Security**: [Authentication, encryption, access control] - **Scalability**: [Horizontal/vertical scaling needs] - **Backup/Recovery**: [RTO/RPO requirements]",
         "conditional": "only_if_data_involved"
+      },
+      "uiDesignRequirements": {
+        "title": "UI/Design System Requirements",
+        "content": "{{UI_DESIGN_REQUIREMENTS}}",
+        "instruction": "Extract and specify comprehensive design system requirements: **DESIGN SYSTEM MANDATE**: Extract and specify comprehensive design system requirements, **MODERN UI MANDATE**: Require modern, sophisticated UI design (NO basic/plain designs), **STYLING FRAMEWORK**: Specify exact styling frameworks (Tailwind CSS, Material-UI, Chakra UI, etc.), **DESIGN PATTERNS**: Define modern UI patterns (cards, gradients, shadows, animations, micro-interactions), **VISUAL HIERARCHY**: Specify typography, spacing, color schemes, and visual hierarchy, **RESPONSIVE DESIGN**: Define responsive breakpoints and mobile-first approach, **ACCESSIBILITY**: Include accessibility requirements (WCAG compliance), **BRAND CONSISTENCY**: Define brand colors, fonts, and visual identity, **USER EXPERIENCE**: Specify UX patterns, navigation, and interaction flows, **ANTI-SIMPLE-DESIGN RULE**: Explicitly prohibit basic, plain, or minimal designs"
       },
       "technologyStack": {
         "title": "Technology Stack Requirements",

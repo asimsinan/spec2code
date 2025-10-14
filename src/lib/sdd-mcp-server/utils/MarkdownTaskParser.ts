@@ -65,8 +65,8 @@ export class MarkdownTaskParser {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Check if this is our target phase (supports both ## and ### formats)
-      if (line.match(new RegExp(`^#{2,3} Phase ${phaseNumber}:`))) {
+      // Check if this is our target phase (supports both ## and ### formats, handles emojis and extra text)
+      if (line.match(new RegExp(`^#{2,3} .*Phase ${phaseNumber}:`))) {
         phaseStartLine = i;
         phaseTitle = line.replace(/^#{2,3} /, '').trim();
         
@@ -87,7 +87,7 @@ export class MarkdownTaskParser {
 
     // Find the end of this phase (next ### header or end of file)
     for (let i = phaseStartLine + 1; i < lines.length; i++) {
-      if (lines[i].match(/^#{2,3} Phase \d+:/) && !lines[i].match(new RegExp(`^#{2,3} Phase ${phaseNumber}:`))) {
+      if (lines[i].match(/^#{2,3} .*Phase \d+:/) && !lines[i].match(new RegExp(`^#{2,3} .*Phase ${phaseNumber}:`))) {
         phaseEndLine = i;
         break;
       }
@@ -111,8 +111,8 @@ export class MarkdownTaskParser {
     for (let i = startLine; i < endLine; i++) {
       const line = lines[i];
 
-      // Check for task header (supports both ### and #### formats)
-      const taskMatch = line.match(/^#{3,4} (TASK-\d+): (.+)$/);
+      // Check for task header (supports both ### and #### formats, includes DESIGN tasks)
+      const taskMatch = line.match(/^#{3,4} ((?:TASK|DESIGN)-\d+): (.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {

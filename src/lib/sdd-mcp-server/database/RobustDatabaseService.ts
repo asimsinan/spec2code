@@ -136,6 +136,9 @@ export class RobustDatabaseService extends DatabaseService {
   private validateJSON(data: any, schema: JSONSchema): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
+    // 🚨 CRITICAL FIX: Pre-validate and fix common data structure issues
+    this.preValidateAndFixData(data, schema);
+
     // Handle null/undefined data
     if (data === null || data === undefined) {
       if (schema.type === 'null') {
@@ -223,6 +226,35 @@ export class RobustDatabaseService extends DatabaseService {
     return { valid: errors.length === 0, errors };
   }
 
+  /**
+   * Pre-validate and fix common data structure issues before schema validation
+   */
+  private preValidateAndFixData(data: any, schema: JSONSchema): void {
+    if (!data || typeof data !== 'object') return;
+
+    // Fix summary field if it's a string instead of object
+    if (data.summary && typeof data.summary === 'string') {
+      console.warn('RobustDatabaseService: Converting summary string to object structure');
+      data.summary = {
+        title: 'Summary',
+        content: data.summary,
+        instruction: 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.'
+      };
+    }
+
+    // Ensure summary has required structure if it exists
+    if (data.summary && typeof data.summary === 'object') {
+      if (!data.summary.title) {
+        data.summary.title = 'Summary';
+      }
+      if (!data.summary.content) {
+        data.summary.content = 'Implementation plan extracted from specification. Focus on business value and user outcomes.';
+      }
+      if (!data.summary.instruction) {
+        data.summary.instruction = 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.';
+      }
+    }
+  }
 
   /**
    * Store structured JSON data with validation

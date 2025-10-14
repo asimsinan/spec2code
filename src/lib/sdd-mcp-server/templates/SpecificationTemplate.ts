@@ -378,7 +378,7 @@ export class SpecificationTemplate extends BaseTemplate {
     const baseInstructions = {
       // User Scenarios (common to all platforms)
       primaryUserStory: `Generate a primary user story for: ${userInput}. Focus on the main value proposition and user benefit.`,
-      comprehensiveUserStories: `Generate 5-8 comprehensive user stories for: ${userInput}. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include these personas: 1) Primary user story (main use case), 2) Admin/Manager story (management/oversight), 3) Power user story (advanced features), 4) New user story (onboarding), 5) Edge case user story (unusual scenarios), 6) Integration user story (API/third-party), 7) Mobile user story (if mobile/web), 8) Accessibility user story (inclusive design). Each story should be sprint-sized and deliverable.`,
+      comprehensiveUserStories: `Generate 8-10 comprehensive user stories for: ${userInput}. Use format: **As a [user type], I want [goal] so that [benefit]**. Follow INVEST criteria: Independent, Negotiable, Valuable, Estimable, Small (sprint-sized), Testable. Include these personas: 1) Primary user story (main use case), 2) Admin/Manager story (management/oversight), 3) Power user story (advanced features), 4) New user story (onboarding), 5) Edge case user story (unusual scenarios), 6) Integration user story (API/third-party), 7) Mobile user story (if mobile/web), 8) Accessibility user story (inclusive design). Each story should be sprint-sized and deliverable.`,
       acceptanceScenarios: `Generate comprehensive acceptance criteria for: ${userInput}. Use Given-When-Then format with these requirements: 1) Happy path scenarios (primary user flows), 2) Negative scenarios (error conditions, invalid inputs, failure states), 3) Edge cases (boundary conditions, unusual inputs), 4) User perspective focus (desired outcomes, not technical implementation), 5) Testable criteria (clear pass/fail outcomes for each scenario), 6) Stakeholder scenarios (admin, power user, new user perspectives). Each scenario must be independently testable and written in simple, unambiguous language. Include examples like: **Given** that I am on the login page, **When** I enter valid credentials and click submit, **Then** I should see my dashboard and access my data. Generate sufficient scenarios to cover all critical functionalities and edge cases without redundancy. Use numbered list format (1., 2., 3.) for Happy Path Scenarios to ensure proper Markdown rendering.`,
       edgeCases: `Generate edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
       
@@ -498,7 +498,7 @@ export class SpecificationTemplate extends BaseTemplate {
     const basePlaceholders = {
       // User Scenarios
       '{{PRIMARY_USER_STORY}}': 'Replace with generated primary user story',
-      '{{COMPREHENSIVE_USER_STORIES}}': 'Replace with generated comprehensive user stories (5-8 stories with different personas)',
+      '{{COMPREHENSIVE_USER_STORIES}}': 'Replace with generated comprehensive user stories (8-10 stories with different personas)',
       '{{ACCEPTANCE_SCENARIOS}}': 'Replace with generated comprehensive acceptance criteria (Given-When-Then format with happy path, negative scenarios, edge cases, and stakeholder perspectives)',
       '{{EDGE_CASES}}': 'Replace with generated edge cases',
       

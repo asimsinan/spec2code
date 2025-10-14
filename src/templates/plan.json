@@ -1,8 +1,8 @@
 {
   "id": "sdd-plan-perfect-v1",
-  "name": "SDD Plan Template (Atomic 70-Task Structure)",
+  "name": "SDD Plan Template (Atomic 73-Task Structure)",
   "version": "3.0.0",
-  "description": "Comprehensive implementation plan template based on SDD methodology with atomic 70-task structure (25-20-15-10 tasks) using explicit verification and mandatory proof requirements. Includes all 26 constitutional gates with RED-GREEN-REFACTOR-SMOKE enforcement.",
+  "description": "Ultra-condensed implementation plan template focused on HOW to implement (not WHAT to implement). Plan-specific content only - no duplication with specification data. Atomic 73-task structure with implementation approach, phases, and structure.",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
@@ -30,49 +30,7 @@
       "testing": "{{TESTING}} (including Playwright visual regression testing)",
       "targetPlatform": "{{TARGET_PLATFORM}}",
       "performanceGoals": "{{PERFORMANCE_GOALS}}",
-      "instruction": "Extract the complete technology stack from the user input and specification. Include ALL technologies mentioned, organized by category. Do not add technologies not mentioned. Do not omit technologies that were mentioned. Create a comprehensive technical context that captures exactly what was specified."
-    },
-    "edgeCaseAnalysis": {
-      "title": "Edge Case Analysis",
-      "hasEdgeCases": "{{HAS_EDGE_CASES}}",
-      "edgeCaseCount": "{{EDGE_CASE_COUNT}}",
-      "complexity": "{{EDGE_CASE_COMPLEXITY}}",
-      "estimatedAdditionalTime": "{{EDGE_CASE_ADDITIONAL_TIME}}",
-      "edgeCases": "{{EDGE_CASES_LIST}}",
-      "highComplexityCount": "{{HIGH_COMPLEXITY_EDGE_CASES}}",
-      "mediumComplexityCount": "{{MEDIUM_COMPLEXITY_EDGE_CASES}}",
-      "lowComplexityCount": "{{LOW_COMPLEXITY_EDGE_CASES}}",
-      "instruction": "Analyze edge cases from specification. Extract edge cases, categorize by complexity, and estimate additional development time. Include specific edge cases that need special attention during implementation."
-    },
-    "constitutionCheck": {
-      "title": "Constitution Check",
-      "simplicityGate": {
-        "title": "Simplicity Gate",
-        "projects": "{{PROJECTS_COUNT}}",
-        "maxProjects": 10,
-        "usingFrameworkDirectly": "{{USING_FRAMEWORK_DIRECTLY}}",
-        "singleDataModel": "{{SINGLE_DATA_MODEL}}",
-        "instruction": "Validate ≤10 projects for initial scope. If exceeded, force simplification or document in Complexity Tracking."
-      },
-      "architectureGate": {
-        "title": "Architecture Gate",
-        "everyFeatureAsLibrary": "{{EVERY_FEATURE_AS_LIBRARY}}",
-        "cliPerLibraryPlanned": "{{CLI_PER_LIBRARY_PLANNED}}",
-        "libraries": "{{LIBRARIES_LIST}}",
-        "instruction": "Ensure every feature starts as standalone library with CLI interface (for developer/system tools). UI/app layers are thin veneers."
-      },
-      "testingGate": {
-        "title": "Testing Gate (NON-NEGOTIABLE)",
-        "tddOrderEnforced": "{{TDD_ORDER_ENFORCED}}",
-        "realDependenciesUsed": "{{REAL_DEPENDENCIES_USED}}",
-        "contractTestsPlanned": "{{CONTRACT_TESTS_PLANNED}}",
-        "instruction": "Enforce TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration. Prefer real dependencies over mocks."
-      },
-      "platformSpecificGates": {
-        "title": "Platform-Specific Gates",
-        "content": "{{PLATFORM_SPECIFIC_GATES}}",
-        "instruction": "Validate platform-specific gates based on selected platform. Include API-First for web/mobile/backend platforms."
-      }
+      "instruction": "Extract key implementation decisions from specification. Focus on HOW to implement, not WHAT to implement. Include only essential technical context for implementation approach."
     },
     "projectStructure": {
       "title": "Project Structure",
@@ -82,23 +40,23 @@
       "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
     },
     "implementationPhases": {
-      "title": "Implementation Phases (Atomic 70-Task Structure with Mandatory Verification)",
+      "title": "Implementation Phases (Atomic 73-Task Structure with Mandatory Verification)",
       "taskApproach": "Atomic tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory proof requirements. RED-GREEN-REFACTOR-SMOKE pattern enforced.",
       "verificationFramework": "Every task requires proof of execution (terminal output, file counts, test results). Forbidden states prevent AI from gaming the system.",
       "phase1": {
-        "title": "Phase 1: Foundations & Data (25 tasks: TASK-001 to TASK-025)",
+        "title": "Phase 1: Foundations & Data (26 tasks: TASK-001 to TASK-025 + DESIGN-001)",
         "pattern": "CONTRACT (001-010) → RED (011-017) → GREEN (018-023) → SMOKE (024-025)",
         "content": "{{PHASE_1_FOUNDATIONS_DATA}}",
         "instruction": "Essential foundation work with atomic verification: API contracts (OpenAPI with validation proof), database setup (Prisma migrations with SQL shown), data models (TypeScript compilation with 0 errors). Each task requires proof: contracts must validate, tests must RED then GREEN, app must start and respond (200 OK). Pattern: Define contracts → Create tests (RED) → Implement code (GREEN) → Verify complete system (SMOKE)."
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (20 tasks: TASK-026 to TASK-045)",
+        "title": "Phase 2: Core Implementation (21 tasks: TASK-026 to TASK-045 + DESIGN-002)",
         "pattern": "Core Library (RED→GREEN) → Services (RED→GREEN) → Controllers (RED→GREEN) → Auth (RED→GREEN) → Integration → SMOKE",
         "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
         "instruction": "Core library, services, controllers, and authentication with RED-GREEN-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, compilation success. Final SMOKE test demonstrates all systems operational."
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (15 tasks: TASK-046 to TASK-060)",
+        "title": "Phase 3: UI Development with Real APIs (16 tasks: TASK-046 to TASK-060 + DESIGN-003)",
         "pattern": "Platform Setup → Design System (RED→GREEN) → Components (RED→GREEN) → Real API Integration (RED→GREEN) → Visual Testing → SMOKE",
         "content": "{{PHASE_3_UI_DEVELOPMENT_REAL_APIS}}",
         "instruction": "UI components with REAL API integration (NO MOCKS ALLOWED). Pattern: Configure platform → Design system (RED→GREEN) → Components (RED→GREEN) → Real API services (RED→GREEN with network proof) → Visual regression testing (screenshots shown) → Complete SMOKE test. Proof required: build success, real HTTP calls (grep count), network requests/responses shown, visual test screenshots generated."
@@ -132,6 +90,25 @@
         "title": "Connection Management",
         "content": "{{CONNECTION_MANAGEMENT}}",
         "instruction": "Plan connection management: connection pooling, timeout handling, retry logic, failover, monitoring, resource cleanup."
+      }
+    },
+    "designSystemPlanning": {
+      "title": "Design System Planning",
+      "description": "Comprehensive design system planning with modern UI requirements",
+      "designSystemArchitecture": {
+        "title": "Design System Architecture Planning",
+        "content": "{{DESIGN_SYSTEM_ARCHITECTURE}}",
+        "instruction": "Plan comprehensive design system for: {{FEATURE_NAME}}. **DESIGN SYSTEM PLANNING REQUIREMENTS**: **MODERN UI MANDATE**: Design MUST be modern, sophisticated, and visually appealing (NO basic/plain designs), **DESIGN SYSTEM ARCHITECTURE**: Plan component library, design tokens, and style guide, **VISUAL HIERARCHY**: Define typography scales, spacing systems, and color palettes, **INTERACTION DESIGN**: Plan animations, transitions, and micro-interactions, **RESPONSIVE STRATEGY**: Design mobile-first responsive layouts, **ACCESSIBILITY STANDARDS**: Plan WCAG compliance and inclusive design, **BRAND CONSISTENCY**: Define visual identity and brand guidelines, **ANTI-SIMPLE-DESIGN RULE**: Explicitly prohibit basic, minimal, or plain designs. **FORBIDDEN DESIGN PATTERNS**: Basic white backgrounds with simple text, Plain buttons without styling, Minimal layouts without visual hierarchy, Simple forms without proper styling, Basic navigation without modern patterns. **REQUIRED DESIGN PATTERNS**: Modern card-based layouts with shadows and gradients, Sophisticated color schemes with proper contrast, Professional typography with proper hierarchy, Interactive elements with hover states and animations, Responsive grid systems with proper spacing, Modern form designs with proper validation styling, Professional navigation with modern patterns"
+      },
+      "modernUIPatterns": {
+        "title": "Modern UI Patterns Planning",
+        "content": "{{MODERN_UI_PATTERNS}}",
+        "instruction": "Plan modern UI patterns implementation: card-based layouts, sophisticated color schemes, professional typography, interactive elements, responsive design, modern forms, professional navigation patterns"
+      },
+      "visualEnhancementPlanning": {
+        "title": "Visual Enhancement Planning",
+        "content": "{{VISUAL_ENHANCEMENT_PLANNING}}",
+        "instruction": "Plan visual enhancements: micro-interactions, animations, visual depth with shadows and layering, smooth transitions, loading states, error state styling"
       }
     },
     "apiFirstPlanning": {
@@ -196,248 +173,10 @@
         "instruction": "Plan AI-specific features: data quality, model performance, reproducibility, ethics compliance, deployment strategy."
       }
     },
-    "complexityTracking": {
-      "title": "Complexity Tracking",
-      "description": "Use only when a constitutional gate is intentionally broken",
-      "table": {
-        "headers": ["Violation", "Justification", "Simpler Alternative Rejected"],
-        "rows": "{{COMPLEXITY_TRACKING_ROWS}}"
-      },
-      "instruction": "If any constitutional gate is violated, document: 1) What was violated, 2) Why it was necessary, 3) Why simpler alternatives won't work"
-    },
-    "platformGates": {
-      "mobile": {
-        "gates": ["simplicity", "nativeFirst", "offlineFirst", "performance", "accessibility", "security", "storeCompliance", "apiFirst"],
-        "qualityGates": ["deviceCompatibility", "batteryOptimization", "memoryManagement", "touchInterface", "offlineSync", "apiTesting", "visualRegressionTesting"]
-      },
-      "web": {
-        "gates": ["simplicity", "progressiveEnhancement", "responsiveDesign", "performance", "security", "accessibility", "browserCompatibility", "apiFirst"],
-        "qualityGates": ["crossBrowserTesting", "responsiveDesign", "seoOptimization", "progressiveWebApp", "coreWebVitals", "apiTesting", "visualRegressionTesting"]
-      },
-      "desktop": {
-        "gates": ["simplicity", "nativeIntegration", "performance", "security", "accessibility", "distribution", "cliInterface"],
-        "qualityGates": ["osIntegration", "installerTesting", "autoUpdateTesting", "uninstallerTesting"]
-      },
-      "backend": {
-        "gates": ["simplicity", "apiFirst", "database", "security", "performance", "monitoring", "cliInterface"],
-        "qualityGates": ["apiTesting", "databaseTesting", "loadTesting", "securityTesting", "monitoringTesting"]
-      },
-      "ai": {
-        "gates": ["simplicity", "dataQuality", "modelPerformance", "reproducibility", "ethics", "deployment", "cliInterface"],
-        "qualityGates": ["dataValidation", "modelTesting", "biasTesting", "performanceTesting", "deploymentTesting"]
-      }
-    },
-    "constitutionalGates": {
-      "simplicityGate": {
-        "title": "Simplicity Gate",
-        "description": "≤ 10 projects for initial scope; otherwise, force simplification",
-        "check": "{{SIMPLICITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "libraryFirstGate": {
-        "title": "Library-First Gate",
-        "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
-        "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
-        "platforms": ["web", "desktop", "backend", "ai"]
-      },
-      "cliInterfaceGate": {
-        "title": "CLI Interface Gate",
-        "description": "Each developer/system tool library exposes a CLI with --json mode using stdin/stdout; errors go to stderr",
-        "check": "{{CLI_INTERFACE_GATE_CHECK}}",
-        "platforms": ["desktop", "backend", "ai"]
-      },
-      "testFirstGate": {
-        "title": "Test-First Gate",
-        "description": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation → UI-API Integration",
-        "check": "{{TEST_FIRST_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "integrationFirstTestingGate": {
-        "title": "Integration-First Testing Gate",
-        "description": "Prefer real dependencies (DBs/services).",
-        "check": "{{INTEGRATION_FIRST_TESTING_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "antiAbstractionGate": {
-        "title": "Anti-Abstraction Gate",
-        "description": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
-        "check": "{{ANTI_ABSTRACTION_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "traceabilityGate": {
-        "title": "Traceability Gate",
-        "description": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec",
-        "check": "{{TRACEABILITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend", "ai"]
-      },
-      "nativeFirstGate": {
-        "title": "Native-First Gate",
-        "description": "Use platform-native capabilities and patterns. Avoid cross-platform frameworks unless justified",
-        "check": "{{NATIVE_FIRST_GATE_CHECK}}",
-        "platforms": ["mobile"]
-      },
-      "offlineFirstGate": {
-        "title": "Offline-First Gate",
-        "description": "Core functionality works without internet. Local data storage and sync when online",
-        "check": "{{OFFLINE_FIRST_GATE_CHECK}}",
-        "platforms": ["mobile"]
-      },
-      "performanceGate": {
-        "title": "Performance Gate",
-        "description": "Platform-specific performance requirements: Mobile (60fps, <3s launch, <100MB), Web (<3s load, <100ms interaction), Desktop (<2s startup, <50MB base)",
-        "check": "{{PERFORMANCE_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop"]
-      },
-      "accessibilityGate": {
-        "title": "Accessibility Gate",
-        "description": "Full accessibility support: Mobile (screen reader, touch), Web (WCAG 2.1 AA), Desktop (OS accessibility features)",
-        "check": "{{ACCESSIBILITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop"]
-      },
-      "securityGate": {
-        "title": "Security Gate",
-        "description": "Platform-specific security: Mobile (encryption, secure storage), Web (HTTPS, CSP, XSS/CSRF), Backend (auth, validation), Desktop (code signing, sandboxing)",
-        "check": "{{SECURITY_GATE_CHECK}}",
-        "platforms": ["mobile", "web", "desktop", "backend"]
-      },
-      "storeComplianceGate": {
-        "title": "Store Compliance Gate",
-        "description": "App store guidelines and review readiness for mobile apps",
-        "check": "{{STORE_COMPLIANCE_GATE_CHECK}}",
-        "platforms": ["mobile"]
-      },
-      "progressiveEnhancementGate": {
-        "title": "Progressive Enhancement Gate",
-        "description": "Works without JavaScript, then enhances with JS. Graceful degradation",
-        "check": "{{PROGRESSIVE_ENHANCEMENT_GATE_CHECK}}",
-        "platforms": ["web"]
-      },
-      "responsiveDesignGate": {
-        "title": "Responsive Design Gate",
-        "description": "Mobile-first design with breakpoints for tablet and desktop. All screen sizes supported",
-        "check": "{{RESPONSIVE_DESIGN_GATE_CHECK}}",
-        "platforms": ["web"]
-      },
-      "browserCompatibilityGate": {
-        "title": "Browser Compatibility Gate",
-        "description": "Works on Chrome, Firefox, Safari, and Edge. 95% of target browsers supported",
-        "check": "{{BROWSER_COMPATIBILITY_GATE_CHECK}}",
-        "platforms": ["web"]
-      },
-      "nativeIntegrationGate": {
-        "title": "Native Integration Gate",
-        "description": "Integrate with OS features: menus, notifications, file associations, system preferences",
-        "check": "{{NATIVE_INTEGRATION_GATE_CHECK}}",
-        "platforms": ["desktop"]
-      },
-      "distributionGate": {
-        "title": "Distribution Gate",
-        "description": "Installer, auto-updates, and uninstaller. Code signing and update mechanisms",
-        "check": "{{DISTRIBUTION_GATE_CHECK}}",
-        "platforms": ["desktop"]
-      },
-      "apiFirstGate": {
-        "title": "API-First Gate",
-        "description": "RESTful/GraphQL APIs with OpenAPI specs. API documentation and versioning. All features expose well-defined APIs",
-        "check": "{{API_FIRST_GATE_CHECK}}",
-        "platforms": ["backend", "web", "mobile"]
-      },
-      "databaseGate": {
-        "title": "Database Gate",
-        "description": "Proper schema design, migrations, indexing, and data integrity",
-        "check": "{{DATABASE_GATE_CHECK}}",
-        "platforms": ["backend"]
-      },
-      "monitoringGate": {
-        "title": "Monitoring Gate",
-        "description": "Logging, metrics, health checks, and observability",
-        "check": "{{MONITORING_GATE_CHECK}}",
-        "platforms": ["backend"]
-      },
-      "dataQualityGate": {
-        "title": "Data Quality Gate",
-        "description": "Clean, validated, representative datasets. Data preprocessing and validation",
-        "check": "{{DATA_QUALITY_GATE_CHECK}}",
-        "platforms": ["ai"]
-      },
-      "modelPerformanceGate": {
-        "title": "Model Performance Gate",
-        "description": "Accuracy, precision, recall metrics. Model evaluation and benchmarking",
-        "check": "{{MODEL_PERFORMANCE_GATE_CHECK}}",
-        "platforms": ["ai"]
-      },
-      "reproducibilityGate": {
-        "title": "Reproducibility Gate",
-        "description": "Deterministic training, version control, and experiment tracking",
-        "check": "{{REPRODUCIBILITY_GATE_CHECK}}",
-        "platforms": ["ai"]
-      },
-      "ethicsGate": {
-        "title": "Ethics Gate",
-        "description": "Bias detection, fairness, explainability, and ethical AI principles",
-        "check": "{{ETHICS_GATE_CHECK}}",
-        "platforms": ["ai"]
-      },
-      "deploymentGate": {
-        "title": "Deployment Gate",
-        "description": "Model serving, monitoring, rollback, and production deployment",
-        "check": "{{DEPLOYMENT_GATE_CHECK}}",
-        "platforms": ["ai"]
-      }
-    },
-    "sddPrinciples": {
-      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
-      "multiStepRefinement": "Use iterative refinement over one-shot generation",
-      "libraryFirstTesting": "Prefer real dependencies over mocks",
-      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
-      "traceability": "Every line of code traces to numbered requirement",
-      "businessFacing": "Plans are for technical stakeholders but business-aligned",
-      "atomicTasks": "70 sequential tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM)",
-      "mandatoryVerification": "Every task requires proof of execution - terminal output, file counts, test results",
-      "antiGaming": "Forbidden states and expected states prevent AI from bypassing verification"
-    },
-    
-    "atomicTaskFramework": {
-      "title": "Atomic Task Framework (70 Tasks Total)",
-      "totalTasks": 70,
-      "phaseDistribution": "25-20-15-10 tasks across 4 phases",
-      "actionVerbs": ["EXECUTE", "RUN", "COMPILE", "SHOW", "CONFIRM", "CREATE", "IMPLEMENT", "GENERATE", "DOCUMENT", "CONFIGURE"],
-      "verificationTypes": {
-        "test_creation_confirmation": "SHOW test files created, test count, compilation success",
-        "test_execution_red_phase": "EXECUTE tests, CONFIRM RED (X failed, 0 passing)",
-        "test_execution_green_phase": "EXECUTE tests, CONFIRM GREEN (0 failed, X passing, coverage ≥80%)",
-        "implementation_with_green_verification": "IMPLEMENT code, COMPILE, EXECUTE tests, SHOW GREEN",
-        "compilation_verification": "COMPILE TypeScript/code, SHOW 0 errors",
-        "comprehensive_smoke_test": "EXECUTE all checks (tests+build+health+lint), SHOW all pass",
-        "setup_verification": "CONFIGURE environment, BUILD successfully, SHOW config files",
-        "visual_test_execution": "EXECUTE visual regression tests, SHOW screenshots generated",
-        "integration_test_execution": "EXECUTE integration tests with real dependencies, SHOW GREEN",
-        "complete_test_suite_execution": "EXECUTE ALL test suites, SHOW 0 failures total",
-        "application_startup_verification": "START application, SHOW health check 200 OK",
-        "manual_testing_documentation": "EXECUTE manual tests, DOCUMENT results with screenshots",
-        "performance_test_execution": "EXECUTE performance tests, SHOW benchmarks met",
-        "security_test_execution": "EXECUTE security audit, SHOW 0 vulnerabilities",
-        "accessibility_test_execution": "EXECUTE accessibility tests, SHOW WCAG compliance",
-        "cleanup_verification": "EXECUTE cleanup, SHOW no empty folders, lint passes",
-        "coverage_report_generation": "GENERATE coverage report, SHOW ≥90%",
-        "documentation_completeness": "CREATE final documentation, SHOW all proof attached",
-        "final_production_readiness": "EXECUTE final verification, CONFIRM production ready with complete proof trail"
-      },
-      "proofRequirements": {
-        "format": "terminal_output, file_listing, test_results, network_responses, screenshots",
-        "mustInclude": "Specific strings that must appear in proof (e.g., 'passing', '0 failed', '200 OK')",
-        "mustShow": "What must be demonstrated (e.g., 'Complete test run output', 'Health check response')"
-      },
-      "forbiddenStates": ["passing when in RED phase", "mock when real required", "0 test files when tests needed", "compilation error when should compile", "tests failing in final sign-off"],
-      "expectedStates": ["RED: X failed, 0 passing", "GREEN: 0 failed, X passing", "Compilation successful, 0 errors", "All systems operational"],
-      "cannotProceedWithout": "Gate conditions that must be met before advancing (e.g., 'Confirmed test failures', 'Passing tests with coverage', 'Working application')",
-      "aiWarnings": "Explicit instructions to prevent gaming (e.g., 'Tests MUST fail. DO NOT implement yet.', 'MUST show 0 compilation errors.')"
-    },
-   
     "sddVersion": {
-      "version": "SDD-Cursor-2.0-Atomic",
+      "version": "SDD-Cursor-2.0-Atomic-Condensed",
       "generated": "2025-10-11",
-      "description": "Atomic 70-task implementation plan with mandatory verification framework and anti-gaming mechanisms based on asy-sdd.md with all 26 constitutional gates"
+      "description": "Ultra-condensed implementation plan template focused on HOW to implement. Plan-specific content only - no duplication with specification data."
     }
   },
   "is_active": true

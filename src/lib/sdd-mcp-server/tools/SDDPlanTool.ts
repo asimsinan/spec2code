@@ -86,7 +86,7 @@ export class SDDPlanTool {
 
       // Detect platform from specification data
       const platform = this.detectPlatformFromSpec(repairedSpecData) || 'web';
-      console.error('Detected platform:', platform);
+    
 
 
       // Generate AI team analysis and time estimation first
@@ -125,217 +125,68 @@ export class SDDPlanTool {
         throw error;
       }
 
-      // Report success
+      // Report success with ultra-condensed output
       const successMessage = `
-📋 TASK: Create plan.md file in specs/plan.md directory using the specification and template data provided below.
+📋 TASK: Create plan.md file in specs/plan.md directory using the template data provided below.
+
 📊 PROJECT DETAILS:
 - Feature: ${feature.name}
 - Platform: ${platform.toUpperCase()}
 - Duration: ${timeEstimate.totalDuration} (Human) / ${aiTimeEstimate.totalDuration} (AI-assisted)
 - Team: ${teamAnalysis.teamSize} developers
- 
 
-8. SPECIFICATION DATA: The complete specification from the database is provided below. Use this data to understand the project requirements.
-8.1. SPECIFICATION DATA:
----BEGINNING OF SPECIFICATION DATA---
-${JSON.stringify(repairedSpecData, null, 2)}
----END OF SPECIFICATION DATA---
-8.2. SIMPLICITY GATE ANALYSIS:
-   Before creating the plan, analyze the specification above for architectural complexity:
-   8.2.1. ANALYSIS INSTRUCTIONS:
-   "Analyze the COMPLETE specification from section 8.1 above to determine the number of distinct projects/components.
-   A 'project' is a major architectural component that could be developed separately, such as:
-   8.2.1.1. Separate applications (web app, mobile app, desktop app)
-   8.2.1.2. Independent services (API service, payment service, notification service)
-   8.2.1.3. Distinct platforms (iOS app, Android app, web app)
-   8.2.1.4. Major system components (admin dashboard, user interface, backend API)
-   
-   NOT individual features, pages, or entities within the same application.
-   
-   Focus your analysis on:
-   - Technology stack diversity and complexity
-   - System boundaries and integration points
-   - Platform targets and deployment requirements
-   - Service architecture and component separation
-   
-   Based on this complete analysis, how many distinct projects/components does this specification describe?
-   Return only a number between 1-10. If unclear, default to 1.
-   
-   If the count is > 10, this violates the Simplicity Gate and should be documented in Complexity Tracking."
-   
-   8.2.2. Use this AI analysis to:
-      8.2.2.1. Determine if the specification violates the Simplicity Gate (≤5 projects)
-      8.2.2.2. Document any violations in the Complexity Tracking section
-      8.2.2.3. Adjust the implementation plan accordingly
+🎯 IMPLEMENTATION FOCUS:
+This plan focuses on HOW to implement (not WHAT to implement). The implement tool already has access to the full specification from the database, so this plan provides only the implementation approach, phases, and structure.
 
-9. TEMPLATE DATA FOR AI PROCESSING:
----BEGINNING OF TEMPLATE DATA---
-${JSON.stringify(templateWithInstructions, null, 2)}
----END OF TEMPLATE DATA---
-10. MARKDOWN CONVERSION GUIDE:
-   To create the plan.md file from the template JSON above, follow this ENHANCED structure for maximum readability:
-   
-   # 📋 [template_data.title]
-   
-   ## 📊 Metadata
-   - **Created:** [template_data.metadata.created]
-   - **Status:** [template_data.metadata.status]
-   - **Platform:** [template_data.metadata.platform]
-   - **Spec Path:** [template_data.metadata.specPath]
-   
-   ---
-   
-   ## 📝 Summary
-   [template_data.summary.content]
-   
-   ---
-   
-   ## 🔧 Technical Context
-   - **Language Version:** [template_data.technicalContext.languageVersion]
-   - **Primary Dependencies:** [template_data.technicalContext.primaryDependencies]
-   - **Technology Stack:** [template_data.technicalContext.technologyStack]
-   - **Frontend Stack:** [template_data.technicalContext.frontendStack]
-   - **Backend Stack:** [template_data.technicalContext.backendStack]
-   - **Styling Approach:** [template_data.technicalContext.stylingApproach]
-   - **Chart Libraries:** [template_data.technicalContext.chartLibraries]
-   - **State Management:** [template_data.technicalContext.stateManagement]
-   - **Storage:** [template_data.technicalContext.storage]
-   - **Testing:** [template_data.technicalContext.testing]
-   - **Target Platform:** [template_data.technicalContext.targetPlatform]
-   - **Performance Goals:** [template_data.technicalContext.performanceGoals]
-   
-   ---
-   
-   ## 🔍 Edge Case Analysis
-   [template_data.edgeCaseAnalysis.content]
-   
-   ---
-   
-   ## ✅ Constitution Check
-   [Convert template_data.constitutionCheck to markdown sections with proper formatting]
-   
-   ---
-   
-   ## 🏗️ Project Structure
-   [template_data.projectStructure.content]
-   
-   ---
-   
-   ## 🚀 Implementation Phases
-   
-   ### 🔬 Phase 1: Contracts & Tests
-   [template_data.implementationPhases.phase1.content]
-   
-   ---
-   
-   ### 🔗 Phase 2: Library Implementation
-   [template_data.implementationPhases.phase2.content]
-   
-   ---
-   
-   ### 🧪 Phase 3: Integration & Validation
-   [template_data.implementationPhases.phase3.content]
-   
-   ---
-   
-   ## 🗄️ Database Strategy
-   [Convert template_data.databaseStrategy to markdown sections with proper formatting]
-   
-   ---
-   
-   ## 🌐 API-First Planning
-   [Convert template_data.apiFirstPlanning to markdown sections with proper formatting]
-   
-   ---
-   
-   ## 📱 Platform-Specific Planning
-   [Convert template_data.platformSpecificPlanning to markdown sections with proper formatting]
-   
-   ---
-   
-   ## 🚪 Constitutional Gates
-   [Convert template_data.constitutionalGates to markdown sections with proper formatting]
-   
-   ---
-   
-   ## 🎯 Platform Gates
-   [Convert template_data.platformGates to markdown sections with proper formatting]
-   
-   **ENHANCED EXAMPLE FORMAT:**
-   
-   ### Platform-Specific Gates
-   **Description:** Validate platform-specific gates based on selected platform. Include API-First for web/mobile/backend platforms.
-   
-   **Status:**
-   - ✅ PASSED - Progressive Enhancement Gate: Basic room list and chat interface works without JS. WebRTC and real-time features enhance the experience with JavaScript enabled.
-   - ✅ PASSED - Responsive Design Gate: Mobile-first design with Tailwind breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px). Video grid adapts to screen size.
-   - ✅ PASSED - Performance Gate: Web performance targets: <3s initial load, <100ms interaction response, optimized WebRTC for smooth video, efficient WebSocket message handling.
-   - ✅ PASSED - Accessibility Gate: WCAG 2.1 AA compliance planned: keyboard navigation, screen reader support, high contrast mode, focus indicators, ARIA labels for video controls.
-   - ✅ PASSED - Security Gate: Web security measures: HTTPS enforcement, CSP headers, XSS/CSRF protection, input validation, secure WebRTC connections, message sanitization.
-   - ✅ PASSED - Browser Compatibility Gate: WebRTC support in all major browsers, WebSocket fallbacks, progressive enhancement for older browsers, polyfills for missing features.
-   - ✅ PASSED - API-First Gate: RESTful API with OpenAPI 3.0 spec, versioned endpoints (/api/v1/), comprehensive documentation, WebSocket API for real-time features.
-   
-   ## Complexity Tracking
-   [template_data.complexityTracking.description]
-   [template_data.complexityTracking.table.rows]
-   
-   ### 🎨 CRITICAL FORMATTING RULES FOR MAXIMUM READABILITY:
-   
-   **📋 Document Structure:**
-   - Always use blank lines between sections for readability
-   - Use emojis in headers for visual distinction (📋, 📊, 🔧, etc.)
-   - Add horizontal rules (---) between major sections
-   - Use consistent emoji patterns throughout the document
-   - Limit line length to ~80 characters for better readability
-   - Use spaces (not tabs) for indentation
-   
-   **🚪 Gate Formatting:**
-   - For Constitutional Gates and Platform Gates, format each gate as:
-     ### 🎯 [Gate Title]
-     **Description:** [Gate description]
-     
-     **Status:** [Gate status with checkmark]
-     
-     **Platforms:** [Platform list]
-     
-     ---
-   - Ensure "Status:" always appears on a new line after "Description:"
-   - Ensure "Platforms:" always appears on a new line after "Status:"
-   - Add horizontal rules (---) between different gates for visual separation
-   
-   **📝 Task Formatting:**
-   - Use proper numbering (TASK-001, TASK-002, etc.)
-   - Include [P] markers for parallelizable tasks
-   - Add duration and focus information for each phase
-   - Use consistent emoji patterns for phase headers
-   
-   **🎨 Visual Enhancements:**
-   - Use **bold** for labels and key information
-   - Add emojis to section headers for quick visual scanning
-   - Use horizontal rules (---) to separate major sections
-   - Ensure consistent spacing and formatting throughout
-   - Use bullet points and numbered lists for better readability
-   - Include metadata at the beginning for context
+📋 TEMPLATE DATA FOR AI PROCESSING:
+${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 
-11. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
-   11.1. Create file: plan.md in specs/plan.md directory
-   11.2. Fill the template data below with actual content
-   11.3. Convert JSON template to proper markdown format
-   11.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-   11.5. After creating plan.md, call sdd_plan with finalize=true to save to database
+📝 ULTRA-CONDENSED MARKDOWN STRUCTURE:
+Create plan.md with this focused structure:
 
-🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
-DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
-YOU MUST:
-1. CREATE the plan.md file in specs/plan.md
-2. FILL the template with actual content
-3. MAKE A TOOL CALL to sdd_plan with finalize=true to save to database
-4. THEN respond with a BRIEF confirmation (one sentence only)
+# 📋 [template_data.title]
 
-🚨 CRITICAL: Step 1 requires creating the actual FILE, not just text!
-🚨 CRITICAL: Step 2 requires an actual TOOL CALL, not just text!
+## 📊 Metadata
+- **Created:** [template_data.metadata.created]
+- **Platform:** [template_data.metadata.platform]
+- **Status:** [template_data.metadata.status]
 
-STOP READING AND START CREATING THE FILE NOW!
+## 📝 Summary
+[template_data.summary.content - 2-3 sentences max]
+
+## 🔧 Technical Context
+[template_data.technicalContext - Key implementation decisions only]
+
+## 🚀 Implementation Phases
+### Phase 1: Foundations (26 tasks)
+[template_data.implementationPhases.phase1.content - Brief overview]
+
+### Phase 2: Core Implementation (21 tasks)  
+[template_data.implementationPhases.phase2.content - Brief overview]
+
+### Phase 3: UI Development (16 tasks)
+[template_data.implementationPhases.phase3.content - Brief overview]
+
+### Phase 4: Testing & Deployment (10 tasks)
+[template_data.implementationPhases.phase4.content - Brief overview]
+
+## 🏗️ Project Structure
+[template_data.projectStructure.content - Directory structure only]
+
+## 🗄️ Database Strategy
+[template_data.databaseStrategy - Implementation approach only]
+
+## 🎨 Design System Planning
+[template_data.designSystemPlanning - Implementation approach only]
+
+🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
+1. Create file: specs/plan.md
+2. Fill template with actual content using the condensed structure above
+3. Focus on implementation approach, not requirements (implement tool gets those from DB)
+4. After creating plan.md, call sdd_plan with finalize=true to save to database
+
+🚨 IMMEDIATE ACTION REQUIRED 🚨
+DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!
 `;
 
       const outputData = {
@@ -438,13 +289,40 @@ STOP READING AND START CREATING THE FILE NOW!
         team: options.teamAnalysis
       },
       instructions: {
-        summary: `Create a comprehensive summary for: ${options.featureName}. Extract primary requirement and technical approach from specification.`,
+        summary: `🚨 CRITICAL: The summary field MUST remain as an OBJECT with title, content, and instruction properties. DO NOT convert it to a string! Create a comprehensive summary for: ${options.featureName}. Extract primary requirement and technical approach from specification.`,
         technicalContext: `Define technical context for: ${options.featureName}. Include language/version, dependencies, storage, testing, target platform, and performance goals.`,
         constitutionCheck: `Validate constitutional gates for: ${options.featureName} on ${options.platform} platform. Check simplicity (≤5 projects), library-first, CLI interface, test-first, integration-first testing, anti-abstraction, and traceability gates.`,
         languageAgnosticStandards: `CRITICAL LANGUAGE COMPLIANCE: Always use the correct comment syntax for the detected file type. JavaScript/TypeScript files MUST use // and /* */ comments, NEVER Python-style """ docstrings. Python files MUST use # and """ docstrings, NEVER JavaScript-style // comments. This is non-negotiable for professional code quality.
 
 CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json includes proper path mapping for @/ aliases. Configure baseUrl and paths to prevent "Cannot find module" errors. Example: {"compilerOptions": {"baseUrl": "./", "paths": {"@/*": ["src/*"]}}}.`,
         projectStructure: this.generateSmartPlatformStructureInstruction(options.featureName, options.specData, options.platform),
+        designSystemPlanning: `Plan comprehensive design system for: ${options.featureName}. 
+        
+🎨 **DESIGN SYSTEM PLANNING REQUIREMENTS**:
+- **MODERN UI MANDATE**: Design MUST be modern, sophisticated, and visually appealing (NO basic/plain designs)
+- **DESIGN SYSTEM ARCHITECTURE**: Plan component library, design tokens, and style guide
+- **VISUAL HIERARCHY**: Define typography scales, spacing systems, and color palettes
+- **INTERACTION DESIGN**: Plan animations, transitions, and micro-interactions
+- **RESPONSIVE STRATEGY**: Design mobile-first responsive layouts
+- **ACCESSIBILITY STANDARDS**: Plan WCAG compliance and inclusive design
+- **BRAND CONSISTENCY**: Define visual identity and brand guidelines
+- **ANTI-SIMPLE-DESIGN RULE**: Explicitly prohibit basic, minimal, or plain designs
+
+🚫 **FORBIDDEN DESIGN PATTERNS**:
+- Basic white backgrounds with simple text
+- Plain buttons without styling
+- Minimal layouts without visual hierarchy
+- Simple forms without proper styling
+- Basic navigation without modern patterns
+
+✅ **REQUIRED DESIGN PATTERNS**:
+- Modern card-based layouts with shadows and gradients
+- Sophisticated color schemes with proper contrast
+- Professional typography with proper hierarchy
+- Interactive elements with hover states and animations
+- Responsive grid systems with proper spacing
+- Modern form designs with proper validation styling
+- Professional navigation with modern patterns`,
         implementationPhases: `Create implementation phases for: ${options.featureName}. Follow TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration. Include realistic time estimates for each phase.`,
         apiFirstPlanning: `Plan API-First approach for: ${options.featureName} on ${options.platform} platform. Include API design, contracts, testing, and documentation planning.`,
         platformSpecificPlanning: `Create platform-specific planning for: ${options.featureName} on ${options.platform} platform. Include platform-specific gates and requirements.`,
@@ -1466,6 +1344,22 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         aiMultiplier: { development: 0.04, testing: 0.06, guidance: 0.02 },
         humanTime: '2-4 hours',
         aiTime: '5-12 minutes'
+      },
+      'design-system': {
+        keywords: ['design system', 'ui components', 'styling', 'theme', 'design tokens', 'component library', 'visual design', 'modern ui', 'sophisticated design'],
+        frequency: 0,
+        aiMultiplier: { development: 0.05, testing: 0.08, guidance: 0.03 },
+        humanTime: '2-4 hours',
+        aiTime: '5-12 minutes',
+        description: 'Design system implementation with modern UI patterns'
+      },
+      'advanced-ui': {
+        keywords: ['advanced ui', 'sophisticated design', 'modern components', 'interactive elements', 'animations', 'micro-interactions', 'visual hierarchy', 'responsive design'],
+        frequency: 0,
+        aiMultiplier: { development: 0.06, testing: 0.09, guidance: 0.04 },
+        humanTime: '3-6 hours',
+        aiTime: '8-15 minutes',
+        description: 'Advanced UI implementation with modern design patterns'
       },
 
       // AI GOOD (10-20x faster) - Standard development tasks
@@ -3152,10 +3046,13 @@ export default function App() {
         return this.error(`Feature '${featureId}' not found in database.`);
       }
 
+      // 🚨 CRITICAL FIX: Validate and fix summary field before saving
+      const validatedPlanData = this.validateAndFixPlanData(planData);
+
       // Save plan to database
       await this.db.save_plan_robust(
         featureId,
-        planData,
+        validatedPlanData,
         'sdd-plan-perfect-v1'
       );
 
@@ -3171,5 +3068,103 @@ export default function App() {
     } catch (error) {
       return this.error(`Failed to save plan: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Validate and fix plan data to ensure summary field is an object
+   */
+  private validateAndFixPlanData(planData: any): any {
+    const fixedData = JSON.parse(JSON.stringify(planData)); // Deep copy
+
+    // 🚨 CRITICAL FIX: Ensure summary field is an object, not a string
+    if (fixedData.summary && typeof fixedData.summary === 'string') {
+      console.warn('SDDPlanTool: Converting summary string to object structure');
+      fixedData.summary = {
+        title: 'Summary',
+        content: fixedData.summary,
+        instruction: 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.'
+      };
+    }
+
+    // Ensure summary has required structure
+    if (!fixedData.summary || typeof fixedData.summary !== 'object') {
+      console.warn('SDDPlanTool: Creating missing summary object');
+      fixedData.summary = {
+        title: 'Summary',
+        content: 'Implementation plan extracted from specification. Focus on business value and user outcomes.',
+        instruction: 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.'
+      };
+    }
+
+    // Ensure summary has all required properties
+    if (!fixedData.summary.title) {
+      fixedData.summary.title = 'Summary';
+    }
+    if (!fixedData.summary.content) {
+      fixedData.summary.content = 'Implementation plan extracted from specification. Focus on business value and user outcomes.';
+    }
+    if (!fixedData.summary.instruction) {
+      fixedData.summary.instruction = 'Extract from feature spec: primary requirement + technical approach. Focus on business value and user outcomes.';
+    }
+
+    return fixedData;
+  }
+
+  /**
+   * Filter template to include only plan-specific content (remove spec duplicates)
+   */
+  private filterPlanOnlyContent(template: any): any {
+    const filtered = JSON.parse(JSON.stringify(template)); // Deep copy
+
+    // Keep only plan-specific sections
+    const planOnlySections = [
+      'title',
+      'metadata', 
+      'summary',
+      'technicalContext',
+      'implementationPhases',
+      'projectStructure',
+      'databaseStrategy',
+      'designSystemPlanning',
+      'apiFirstPlanning',
+      'platformSpecificPlanning'
+    ];
+
+    // Remove sections that duplicate spec content
+    const sectionsToRemove = [
+      'constitutionalGates',    // Already in spec
+      'platformGates',         // Already in spec  
+      'edgeCaseAnalysis',      // Already in spec
+      'constitutionCheck',      // Already in spec
+      'complexityTracking',     // Only if violations exist
+      'atomicTaskFramework',   // Too detailed for plan
+      'sddPrinciples'          // Already in spec
+    ];
+
+    // Remove redundant sections
+    sectionsToRemove.forEach(section => {
+      if (filtered[section]) {
+        delete filtered[section];
+      }
+    });
+
+    // Keep only essential sections
+    const essentialTemplate: any = {};
+    planOnlySections.forEach(section => {
+      if (filtered[section]) {
+        essentialTemplate[section] = filtered[section];
+      }
+    });
+
+    // Add essential metadata
+    essentialTemplate.metadata = {
+      ...essentialTemplate.metadata,
+      filtered: true,
+      removedSections: sectionsToRemove,
+      reason: 'Removed sections that duplicate specification content (implement tool gets spec from DB)'
+    };
+
+
+    return essentialTemplate;
   }
 }

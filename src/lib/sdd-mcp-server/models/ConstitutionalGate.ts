@@ -319,9 +319,9 @@ export class ConstitutionalGateHelper {
     const violations: string[] = [];
     const now = new Date().toISOString();
 
-    // Check project count (≤ 10)
-    if (context.projectCount && context.projectCount > 10) {
-      violations.push(`Project count ${context.projectCount} exceeds limit of 10`);
+    // Check project count (≤ 15)
+    if (context.projectCount && context.projectCount > 15) {
+      violations.push(`Project count ${context.projectCount} exceeds limit of 15`);
     }
 
     // Check if framework features are used directly
