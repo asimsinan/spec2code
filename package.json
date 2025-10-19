@@ -1,6 +1,6 @@
 {
   "name": "@asimsinan/sdd-mcp-server",
-  "version": "2.7.0",
+  "version": "2.7.7",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",

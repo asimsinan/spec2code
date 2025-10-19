@@ -274,7 +274,7 @@ export class ConstitutionalGateHelper {
       }
     }
 
-    // Check for mock API endpoints
+  
     if (context.apiEndpoints) {
       const mockEndpoints = context.apiEndpoints.filter((endpoint: any) => 
         endpoint.mock || endpoint.placeholder || endpoint.todo

@@ -50,7 +50,7 @@ export class SDDPlanTool {
     try {
       // Check if this is a finalize call
       const { finalize, ...otherInput } = input;
-
+      
       if (finalize) {
 
         return await this.handleFinalize(otherInput);
@@ -66,7 +66,7 @@ export class SDDPlanTool {
       } catch (error) {
         return this.error(error instanceof Error ? error.message : 'Failed to get most recent feature');
       }
-
+      
       const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
         return this.error(`Feature '${featureId}' not found in database.`);
@@ -93,7 +93,7 @@ export class SDDPlanTool {
       const teamAnalysis = await this.generateTeamAnalysis(null, repairedSpecData);
       const timeEstimate = await this.generateTimeEstimate(null, repairedSpecData);
       const aiTimeEstimate = await this.generateAITimeEstimate(null, repairedSpecData);
-
+      
       // Analyze edge cases for complexity and planning
       const edgeCaseAnalysis = this.analyzeEdgeCases(repairedSpecData);
 
@@ -125,7 +125,10 @@ export class SDDPlanTool {
         throw error;
       }
 
-      // Report success with ultra-condensed output
+      // Extract specification context for AI planning decisions
+      const specContext = this.extractSpecificationContext(repairedSpecData);
+
+      // Report success with ultra-condensed output + rich spec context
       const successMessage = `
 📋 TASK: Create plan.md file in specs/plan.md directory using the template data provided below.
 
@@ -141,6 +144,9 @@ This plan focuses on HOW to implement (not WHAT to implement). The implement too
 📋 TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 
+📋 SPECIFICATION CONTEXT (Reference Only - Use for Informed Planning Decisions):
+${JSON.stringify(specContext, null, 2)}
+
 📝 ULTRA-CONDENSED MARKDOWN STRUCTURE:
 Create plan.md with this focused structure:
 
@@ -152,38 +158,48 @@ Create plan.md with this focused structure:
 - **Status:** [template_data.metadata.status]
 
 ## 📝 Summary
-[template_data.summary.content - 2-3 sentences max]
+[template_data.summary.content - 2-3 sentences max, reference specContext.functionalRequirements for context]
 
 ## 🔧 Technical Context
-[template_data.technicalContext - Key implementation decisions only]
+[template_data.technicalContext - Key implementation decisions only, reference specContext.technologyStack and specContext.dependencies]
 
 ## 🚀 Implementation Phases
-### Phase 1: Foundations (26 tasks)
-[template_data.implementationPhases.phase1.content - Brief overview]
+### Phase 1: Foundations (27 tasks)
+[template_data.implementationPhases.phase1.content - Brief overview, reference specContext.databaseRequirements]
 
-### Phase 2: Core Implementation (21 tasks)  
-[template_data.implementationPhases.phase2.content - Brief overview]
+### Phase 2: Core Implementation (22 tasks)  
+[template_data.implementationPhases.phase2.content - Brief overview, reference specContext.apiEndpoints]
 
-### Phase 3: UI Development (16 tasks)
-[template_data.implementationPhases.phase3.content - Brief overview]
+### Phase 3: UI Development (17 tasks)
+[template_data.implementationPhases.phase3.content - Brief overview, reference specContext.uiDesignRequirements]
 
 ### Phase 4: Testing & Deployment (10 tasks)
-[template_data.implementationPhases.phase4.content - Brief overview]
+[template_data.implementationPhases.phase4.content - Brief overview, reference specContext.acceptanceScenarios]
 
 ## 🏗️ Project Structure
-[template_data.projectStructure.content - Directory structure only]
+[template_data.projectStructure.content - Directory structure only, reference specContext.keyEntities]
 
 ## 🗄️ Database Strategy
-[template_data.databaseStrategy - Implementation approach only]
+[template_data.databaseStrategy - Implementation approach only, reference specContext.databaseRequirements]
 
 ## 🎨 Design System Planning
-[template_data.designSystemPlanning - Implementation approach only]
+[template_data.designSystemPlanning - Implementation approach only, reference specContext.uiDesignRequirements]
 
 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE plan.md FILE NOW
 1. Create file: specs/plan.md
 2. Fill template with actual content using the condensed structure above
-3. Focus on implementation approach, not requirements (implement tool gets those from DB)
-4. After creating plan.md, call sdd_plan with finalize=true to save to database
+3. Use specification context (specContext) to make informed planning decisions
+4. Focus on implementation approach, not requirements (implement tool gets those from DB)
+5. Reference specContext fields to ensure plan aligns with actual requirements
+6. After creating plan.md, call sdd_plan with finalize=true to save to database
+
+📋 SPECIFICATION CONTEXT USAGE GUIDE:
+- Use specContext.functionalRequirements to inform implementation phases
+- Use specContext.technologyStack to validate technical context decisions
+- Use specContext.apiEndpoints to plan API-first approach
+- Use specContext.databaseRequirements to inform database strategy
+- Use specContext.uiDesignRequirements to inform design system planning
+- Use specContext.userStories to ensure user-centric implementation approach
 
 🚨 IMMEDIATE ACTION REQUIRED 🚨
 DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!
@@ -274,7 +290,7 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!
 
     // Fill summary content
     if (filledTemplate.summary && filledTemplate.summary.content) {
-      filledTemplate.summary.content = filledTemplate.summary.content.replace('{{SUMMARY}}',
+      filledTemplate.summary.content = filledTemplate.summary.content.replace('{{SUMMARY}}', 
         `Implementation plan for ${options.featureName}. Extract primary requirement and technical approach from specification. Focus on business value and user outcomes.`);
     }
 
@@ -419,7 +435,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     if (!allFeatures.length) {
       throw new Error('No features found. Please provide featureId or create a feature first using /specify command.');
     }
-
+    
     const mostRecentFeature = allFeatures[0];
     return mostRecentFeature.id;
   }
@@ -974,16 +990,16 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
 
     // Analyze AI suitability for different task types
     const aiSuitability = this.analyzeAISuitability(lowerContent);
-
+    
     // Get AI-era contextual factors
     const aiEraFactors = this.analyzeAIEraFactors(specContent);
-
+    
     // Calculate realistic AI multipliers based on research
     const baseMultipliers = this.calculateRealisticAIMultipliers(aiSuitability, aiEraFactors);
-
+    
     // Apply AI-era overhead factors
     const overheadAdjusted = this.applyAIEraOverhead(baseMultipliers, aiEraFactors);
-
+    
     return {
       development: Math.max(0.05, Math.min(0.12, overheadAdjusted.development)), // REAL-WORLD TESTED: 5-12% of human time
       testing: Math.max(0.06, Math.min(0.15, overheadAdjusted.testing)),         // REAL-WORLD TESTED: 6-15% of human time
@@ -1008,19 +1024,19 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       'crud', 'api endpoint', 'database query', 'form validation', 'simple component',
       'boilerplate', 'configuration', 'setup', 'initialization', 'basic test'
     ];
-
+    
     // Medium AI suitability tasks  
     const mediumSuitabilityKeywords = [
       'integration', 'authentication', 'authorization', 'data transformation',
       'unit test', 'integration test', 'error handling', 'logging'
     ];
-
+    
     // Low AI suitability tasks
     const lowSuitabilityKeywords = [
       'business logic', 'algorithm', 'architecture', 'design pattern',
       'complex calculation', 'optimization', 'security review', 'performance tuning'
     ];
-
+    
     // Overhead tasks
     const overheadKeywords = [
       'code review', 'testing', 'validation', 'deployment', 'documentation',
@@ -1049,26 +1065,26 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private analyzeAIEraFactors(specContent: string): any {
     const lowerContent = specContent.toLowerCase();
-
+    
     return {
       // AI Tool Proficiency (affects productivity)
       teamAIExperience: this.detectTeamAIExperience(lowerContent),
-
+      
       // Task Suitability for AI
       aiSuitableTasks: this.calculateAISuitableTaskRatio(lowerContent),
-
+      
       // AI Output Quality Factors
       hasLegacyCode: this.detectLegacyCode(lowerContent),
       hasComplexBusinessLogic: this.detectComplexBusinessLogic(lowerContent),
-
+      
       // Integration Complexity
       hasThirdPartyIntegrations: this.detectThirdPartyIntegrations(lowerContent),
       hasMicroservices: this.detectMicroservices(lowerContent),
-
+      
       // AI-Era Overhead
       requiresSecurityReview: this.detectSecurityRequirements(lowerContent),
       requiresComplianceCheck: this.detectComplianceRequirements(lowerContent),
-
+      
       // Learning Curve
       isNewTechnology: this.detectNewTechnology(lowerContent),
       hasExistingPatterns: this.detectExistingPatterns(lowerContent)
@@ -1082,21 +1098,21 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private calculateRealisticAIMultipliers(aiSuitability: any, aiEraFactors: any): any {
     // ULTRA-AGGRESSIVE multipliers: AI is incredibly fast for most tasks
     const baseProductivityGain = 0.95; // 95% time reduction - AI is extremely fast
-
+    
     // Adjust based on AI suitability
-    const suitabilityRatio = (aiSuitability.high * 0.9 + aiSuitability.medium * 0.7 + aiSuitability.low * 0.5) /
-      (aiSuitability.high + aiSuitability.medium + aiSuitability.low + aiSuitability.overhead || 1);
-
+    const suitabilityRatio = (aiSuitability.high * 0.9 + aiSuitability.medium * 0.7 + aiSuitability.low * 0.5) / 
+                             (aiSuitability.high + aiSuitability.medium + aiSuitability.low + aiSuitability.overhead || 1);
+    
     // Adjust based on team AI experience
-    const experienceMultiplier = aiEraFactors.teamAIExperience === 'high' ? 1.5 :
-      aiEraFactors.teamAIExperience === 'medium' ? 1.2 : 1.0;
-
+    const experienceMultiplier = aiEraFactors.teamAIExperience === 'high' ? 1.5 : 
+                                aiEraFactors.teamAIExperience === 'medium' ? 1.2 : 1.0;
+    
     // Calculate ultra-aggressive multipliers based on real-world AI performance
     const developmentMultiplier = 1 - (baseProductivityGain * suitabilityRatio * experienceMultiplier);
     const testingMultiplier = 1 - (baseProductivityGain * 0.95 * suitabilityRatio); // Testing extremely fast with AI
     const guidanceMultiplier = 1 - (baseProductivityGain * 0.6); // Human guidance still needed but much faster
     const reviewMultiplier = 1 - (baseProductivityGain * 0.5); // Review much faster with AI
-
+    
     return {
       development: Math.max(0.01, Math.min(0.08, developmentMultiplier)), // 1-8% of human time
       testing: Math.max(0.01, Math.min(0.06, testingMultiplier)),           // 1-6% of human time
@@ -1110,7 +1126,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private applyAIEraOverhead(baseMultipliers: any, aiEraFactors: any): any {
     let overheadMultiplier = 1.0;
-
+    
     // Minimal overhead factors - AI handles most complexity well
     if (aiEraFactors.hasLegacyCode) overheadMultiplier += 0.02; // 2% overhead
     if (aiEraFactors.hasComplexBusinessLogic) overheadMultiplier += 0.03; // 3% overhead
@@ -1118,7 +1134,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     if (aiEraFactors.requiresSecurityReview) overheadMultiplier += 0.05; // 5% overhead
     if (aiEraFactors.requiresComplianceCheck) overheadMultiplier += 0.03; // 3% overhead
     if (aiEraFactors.isNewTechnology) overheadMultiplier += 0.02; // 2% overhead
-
+    
     return {
       development: baseMultipliers.development * overheadMultiplier,
       testing: baseMultipliers.testing * overheadMultiplier,
@@ -1272,7 +1288,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private detectTeamAIExperience(content: string): string {
     const highExperienceKeywords = ['ai tools', 'copilot', 'cursor', 'chatgpt', 'experienced with ai'];
     const mediumExperienceKeywords = ['some ai', 'basic ai', 'learning ai'];
-
+    
     if (highExperienceKeywords.some(keyword => content.includes(keyword))) return 'high';
     if (mediumExperienceKeywords.some(keyword => content.includes(keyword))) return 'medium';
     return 'low';
@@ -1281,10 +1297,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   private calculateAISuitableTaskRatio(content: string): number {
     const aiSuitableKeywords = ['crud', 'api', 'form', 'component', 'test', 'validation'];
     const totalKeywords = ['crud', 'api', 'form', 'component', 'test', 'validation', 'business logic', 'algorithm', 'architecture'];
-
+    
     const suitableCount = aiSuitableKeywords.filter(keyword => content.includes(keyword)).length;
     const totalCount = totalKeywords.filter(keyword => content.includes(keyword)).length;
-
+    
     return totalCount > 0 ? suitableCount / totalCount : 0.5;
   }
 
@@ -1541,7 +1557,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private adjustTimeEstimateWithCap(timeEstimate: string, adjustmentFactor: number, maxHours: number): string {
     const adjusted = this.adjustTimeEstimate(timeEstimate, adjustmentFactor);
-
+    
     // Check if the adjusted estimate exceeds the cap
     const hoursMatch = adjusted.match(/(\d+)-?(\d+)?\s*hours?/);
     if (hoursMatch) {
@@ -1557,7 +1573,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         return `${Math.round(maxHours)} hours`;
       }
     }
-
+    
     return adjusted;
   }
 
@@ -1655,7 +1671,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private formatDurationWithCap(days: number, maxHours: number): string {
     const totalHours = days * 8; // 8 hours per day
-
+    
     if (totalHours > maxHours) {
       // Cap at the maximum hours
       if (maxHours <= 1) return '1 hour';
@@ -1666,7 +1682,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       if (maxHours <= 6) return '5-6 hours';
       return `${Math.round(maxHours)} hours`;
     }
-
+    
     // Use normal formatting if under the cap
     return this.formatDuration(days);
   }
@@ -1803,10 +1819,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       // specData is already repaired, use it directly
       const content = specData || {};
       const analysisResult = this.edgeCaseAnalyzer.analyzeEdgeCases(content, 1);
-
+      
       // Extract edge cases from template_data if available
       const edgeCasesContent = content.edgeCases || content.edgeCaseAnalysis?.content || '';
-
+      
       if (!edgeCasesContent && analysisResult.totalEdgeCases === 0) {
         return {
           hasEdgeCases: false,
@@ -1830,7 +1846,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
 
       // Use EdgeCaseAnalyzer results for complexity analysis
       const totalEdgeCases = Math.max(edgeCaseLines.length, analysisResult.totalEdgeCases);
-
+      
       // Determine complexity based on critical and high impact edge cases
       let complexity = 'low';
       if (analysisResult.criticalEdgeCases > 0 || analysisResult.highImpactEdgeCases > 2) {
@@ -1838,7 +1854,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       } else if (analysisResult.highImpactEdgeCases > 0 || analysisResult.totalEdgeCases > 3) {
         complexity = 'medium';
       }
-
+      
       // Estimate additional time based on edge case count and complexity
       const additionalTime = analysisResult.totalEdgeCases * (complexity === 'high' ? 2 : complexity === 'medium' ? 1 : 0.5);
 
@@ -1879,14 +1895,14 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
    */
   private getSpecificationPreview(content: string): string {
     if (!content) return '';
-
+    
     // Try to get the first meaningful sentence or paragraph
     const firstParagraph = content.split('\n\n')[0];
     const firstSentence = content.split(/[.!?]/)[0];
-
+    
     // Use the shorter of the two, but prefer complete sentences
     let preview = firstSentence.length <= 120 ? firstSentence : firstParagraph;
-
+    
     // If still too long, try to find a good breaking point
     if (preview.length > 120) {
       const words = preview.split(' ');
@@ -1900,7 +1916,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       }
       preview = truncated;
     }
-
+    
     return preview + (content.length > preview.length ? '...' : '');
   }
 
@@ -1912,7 +1928,7 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
     // Smart platform detection from spec data
     const detectedPlatform = this.detectPlatformFromSpec(specData);
     const platform = detectedPlatform || fallbackPlatform;
-
+    
     return this.generatePlatformSpecificStructureInstruction(featureName, platform);
   }
 
@@ -1931,10 +1947,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       const dependencies = specData.template_data.dependencies || '';
       const targetPlatform = specData.template_data.targetPlatforms || '';
       const businessContext = specData.template_data.businessContext || '';
-
+      
       // Combine all text for analysis
       const combinedText = `${techStack} ${platformReq} ${dependencies} ${targetPlatform} ${businessContext}`.toLowerCase();
-
+      
       // Platform detection patterns with confidence scoring
       const platformPatterns = {
         'nextjs': {
@@ -1982,21 +1998,21 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
       // Calculate confidence scores
       for (const [platform, pattern] of Object.entries(platformPatterns)) {
         let score = 0;
-
+        
         // Check for framework mentions (high confidence)
         for (const framework of pattern.frameworks) {
           if (combinedText.includes(framework)) {
             score += 3;
           }
         }
-
+        
         // Check for keyword mentions (medium confidence)
         for (const keyword of pattern.keywords) {
           if (combinedText.includes(keyword)) {
             score += 1;
           }
         }
-
+        
         // Check for specific combinations (bonus confidence)
         if (platform === 'nextjs' && combinedText.includes('react') && combinedText.includes('typescript')) {
           score += 2;
@@ -2010,23 +2026,23 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         if (platform === 'android-native' && (combinedText.includes('kotlin') || combinedText.includes('java')) && combinedText.includes('android')) {
           score += 2;
         }
-
+        
         pattern.confidence = score;
       }
 
       // Find platform with highest confidence
       const sortedPlatforms = Object.entries(platformPatterns)
         .sort(([, a], [, b]) => b.confidence - a.confidence);
-
+      
       const [detectedPlatform, pattern] = sortedPlatforms[0];
-
+      
       // Only return if confidence is high enough (threshold: 3)
       if (pattern.confidence >= 3) {
         return detectedPlatform;
       }
-
+      
       return null;
-
+      
     } catch (error) {
       console.error('[SDDPlanTool] Error in platform detection:', error);
       return null;
@@ -3108,6 +3124,55 @@ export default function App() {
     }
 
     return fixedData;
+  }
+
+  /**
+   * Extract key specification context for AI planning decisions
+   */
+  private extractSpecificationContext(specData: any): any {
+    if (!specData || !specData.template_data) {
+      return null;
+    }
+
+    const templateData = specData.template_data;
+    
+    return {
+      // Core Requirements
+      functionalRequirements: templateData.requirements?.functionalRequirements?.content || null,
+      userStories: templateData.userScenarios?.comprehensiveUserStories?.content || null,
+      acceptanceScenarios: templateData.userScenarios?.acceptanceScenarios?.content || null,
+      
+      // Technical Context
+      technologyStack: templateData.technologyStack || null,
+      platformRequirements: templateData.platformRequirements || null,
+      dependencies: templateData.dependencies || null,
+      targetPlatforms: templateData.targetPlatforms || null,
+      
+      // Data & Database
+      keyEntities: templateData.requirements?.keyEntities?.content || null,
+      databaseRequirements: templateData.requirements?.databaseRequirements?.content || null,
+      
+      // API & Integration
+      apiEndpoints: templateData.apiSpecification?.endpoints?.content || null,
+      apiContracts: templateData.apiSpecification?.contracts?.content || null,
+      openApiSpec: templateData.apiSpecification?.openApiSpec?.content || null,
+      
+      // UI & Design
+      uiDesignRequirements: templateData.requirements?.uiDesignRequirements?.content || null,
+      
+      // Business Context
+      businessContext: templateData.businessContext || null,
+      successCriteria: templateData.successCriteria || null,
+      
+      // Constraints & Non-Functional
+      constraints: templateData.constraints || null,
+      nonFunctionalRequirements: templateData.nonFunctionalRequirements || null,
+      
+      // Metadata
+      extractedAt: new Date().toISOString(),
+      specTitle: templateData.title || null,
+      specStatus: templateData.metadata?.status || null
+    };
   }
 
   /**

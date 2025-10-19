@@ -72,25 +72,6 @@ try {
 
   console.log('✅ Perfect plan template installed in pre-filled database');
 
-  // Install the perfect status template
-  const statusTemplatePath = path.join(__dirname, '..', 'src', 'templates', 'status.json');
-  const statusTemplateData = JSON.parse(fs.readFileSync(statusTemplatePath, 'utf8'));
-
-  const insertStatusStmt = db.prepare(`
-    INSERT INTO status_templates (id, name, version, description, template_data, is_active)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-
-  insertStatusStmt.run(
-    statusTemplateData.id,
-    statusTemplateData.name,
-    statusTemplateData.version,
-    statusTemplateData.description,
-    JSON.stringify(statusTemplateData.template_data),
-    statusTemplateData.is_active ? 1 : 0
-  );
-
-  console.log('✅ Perfect status template installed in pre-filled database');
 
   // Install the perfect tasks template
   const tasksTemplatePath = path.join(__dirname, '..', 'src', 'templates', 'tasks.json');
@@ -122,13 +103,11 @@ try {
   const verifyPlanStmt = db.prepare('SELECT COUNT(*) as count FROM plan_templates WHERE id = ?');
   const planResult = verifyPlanStmt.get('sdd-plan-perfect-v1');
 
-  const verifyStatusStmt = db.prepare('SELECT COUNT(*) as count FROM status_templates WHERE id = ?');
-  const statusResult = verifyStatusStmt.get('sdd-status-perfect-v1');
 
   const verifyTasksStmt = db.prepare('SELECT COUNT(*) as count FROM task_templates WHERE id = ?');
   const tasksResult = verifyTasksStmt.get('sdd-tasks-atomic-v5');
 
-  if (specResult.count > 0  && planResult.count > 0 && statusResult.count > 0 && tasksResult.count > 0) {
+  if (specResult.count > 0  && planResult.count > 0 && tasksResult.count > 0) {
     console.log('✅ All templates verification successful');
   } else {
     throw new Error('Template verification failed');

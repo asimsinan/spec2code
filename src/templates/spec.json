@@ -50,7 +50,7 @@
       "databaseRequirements": {
         "title": "Database Requirements",
         "content": "{{DATABASE_REQUIREMENTS}}",
-        "instruction": "Define database requirements if feature involves data: - **Database Type**: [Relational/Document/Key-Value/Graph] - **Data Volume**: [Expected records, growth rate] - **Performance**: [Response time, throughput requirements] - **Consistency**: [ACID, eventual consistency, etc.] - **Security**: [Authentication, encryption, access control] - **Scalability**: [Horizontal/vertical scaling needs] - **Backup/Recovery**: [RTO/RPO requirements]",
+        "instruction": "AI must choose appropriate production-ready database based on project requirements. Use SAME database for both development and production. 🚨 CRITICAL: SQLite is FORBIDDEN for any project. Choose from: PostgreSQL (preferred for relational/ACID), MongoDB (for documents), MySQL (for web apps), Redis (for caching). Consider: - **Database Type**: [PostgreSQL for relational/ACID, MongoDB for documents, MySQL for web apps, Redis for caching] - **Data Volume**: [Expected records, growth rate] - **Performance**: [Response time, throughput requirements] - **Consistency**: [ACID, eventual consistency, etc.] - **Security**: [Authentication, encryption, access control] - **Scalability**: [Horizontal/vertical scaling needs] - **Backup/Recovery**: [RTO/RPO requirements] - **Justification**: [Explain why this database is optimal for this project]",
         "conditional": "only_if_data_involved"
       },
       "uiDesignRequirements": {
@@ -360,17 +360,16 @@
       "instruction": "If any constitutional gate is violated, document: 1) What was violated, 2) Why it was necessary, 3) Why simpler alternatives won't work"
     },
     "sddPrinciples": {
-      "intentBeforeMechanism": "Focus on WHAT and WHY before HOW",
-      "multiStepRefinement": "Use iterative refinement over one-shot generation",
-      "libraryFirstTesting": "Prefer real dependencies over mocks",
-      "cliInterfaceMandate": "Every developer/system tool capability has CLI with --json mode",
-      "traceability": "Every line of code traces to numbered requirement",
-      "businessFacing": "Specifications are for non-technical stakeholders"
-    },
-    "sddVersion": {
-      "version": "SDD-Cursor-1.2",
-      "generated": "2025-09-20",
-      "description": "Specification-Driven Development template based on asy-sdd.md"
+      "intentBeforeMechanism": "Intent before mechanism: what and why precede how",
+      "multiStepRefinement": "Multi-step refinement over one-shot code generation",
+      "libraryFirstTesting": "Library-first and integration-first testing",
+      "cliInterfaceMandate": "Every developer/system tool capability has a CLI-style interface (stdin/stdout, JSON option)",
+      "libraryFirstPrinciple": "Start as a standalone library (desktop/backend) or modular component (web/mobile/embedded)",
+      "testFirstImperative": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation",
+      "integrationFirstTesting": "Prefer real dependencies (DBs/services). Mocks require written justification",
+      "simplicityConstraints": "≤ 5 projects at start; use framework features directly; document any complexity",
+      "antiAbstraction": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
+      "traceability": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec"
     }
   },
   "is_active": true

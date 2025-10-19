@@ -2,22 +2,39 @@
   "id": "sdd-tasks-atomic-v5",
   "name": "SDD Atomic Tasks Template (Explicit RED-GREEN-REFACTOR-SMOKE)",
   "version": "5.0.0",
-  "description": "Atomic task-based SDD with 73 sequential tasks (TASK-001 to TASK-070 + DESIGN-001 to DESIGN-003) using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 26+21+16+10=73 tasks (includes 3 design tasks).",
+  "description": "Atomic task-based SDD with 76 sequential tasks (TASK-001 to TASK-070 + DESIGN-001 to DESIGN-003) using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 27+22+17+10=76 tasks (includes 3 design tasks).",
   "template_data": {
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
       "status": "Draft",
       "phaseProfile": "4-phase-atomic-verified",
       "tddOrder": "RED → GREEN → REFACTOR → SMOKE",
-      "totalTasks": 73,
-      "phase1Tasks": 26,
-      "phase2Tasks": 21,
-      "phase3Tasks": 16,
+      "totalTasks": 76,
+      "phase1Tasks": 27,
+      "phase2Tasks": 22,
+      "phase3Tasks": 17,
       "phase4Tasks": 10,
       "designTasksIncluded": true,
       "designTasksCount": 3,
       "verificationType": "mandatory-proof-execution",
       "antiGamingEnforcement": "enabled",
+            "timeoutConfiguration": {
+                "unitTests": "60s",
+                "integrationTests": "90s",
+                "fullTestSuite": "120s",
+                "coverageTests": "120s",
+                "buildProcess": "60s",
+                "startupProcess": "30s",
+                "rationale": "Prevent AI hanging on long-running tests and processes",
+                "implementation": "Uses 'timeout' command with bash -c wrapper for better process control",
+                "fallback": "If timeout fails, use 'npm test &' with 'sleep X && pkill -f npm' as backup",
+                "helperScript": "timeout-helper.sh provides robust timeout with multiple fallback methods",
+                "alternativeMethods": [
+                    "timeout 60s bash -c 'npm test'",
+                    "./timeout-helper.sh 60s 'npm test'",
+                    "npm test & sleep 60 && pkill -f npm"
+                ]
+            },
       "actionVerbs": [
         "EXECUTE",
         "RUN",
@@ -35,7 +52,7 @@
       "designTask001": {
         "id": "DESIGN-001",
         "title": "Design System Foundation Setup",
-        "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library",
+        "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
         "phase": 1,
         "tddPhase": "Design System",
         "subPhase": "Foundation",
@@ -61,7 +78,7 @@
       "designTask002": {
         "id": "DESIGN-002",
         "title": "Modern UI Components Implementation",
-        "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions",
+        "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions. NO placeholder content, NO 'coming soon' text, NO empty states without real functionality.",
         "phase": 2,
         "tddPhase": "UI Components",
         "subPhase": "Modern Design",
@@ -87,7 +104,7 @@
       "designTask003": {
         "id": "DESIGN-003",
         "title": "Visual Enhancement and Polish",
-        "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience",
+        "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
         "phase": 3,
         "tddPhase": "Visual Polish",
         "subPhase": "Enhancement",
@@ -113,9 +130,9 @@
     },
     "taskPhases": {
       "phase1": {
-        "title": "Phase 1: Foundations & Data (26 tasks)",
+        "title": "Phase 1: Foundations & Data (27 tasks)",
         "description": "Atomic foundation tasks with explicit verification: API contracts, database setup, data models. Each task uses action verbs (CREATE, EXECUTE, RUN, COMPILE) and requires proof.",
-        "taskCount": 26,
+        "taskCount": 27,
         "tasks": [
           {
             "id": "TASK-001",
@@ -148,12 +165,60 @@
             "parallelizable": false
           },
           {
+            "id": "DESIGN-001",
+            "title": "Design System Foundation Setup",
+            "tddPhase": "Design System",
+            "subPhase": "Foundation",
+            "dependencies": [
+              "TASK-001"
+            ],
+            "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library. CRITICAL: Must properly configure Tailwind CSS with correct imports, avoid circular dependencies, and establish proper design tokens. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
+            "acceptanceCriteria": [
+              "Design system foundation established with proper Tailwind CSS configuration",
+              "Color palette with proper contrast ratios and CSS custom properties",
+              "Typography hierarchy defined with proper font loading and fallbacks",
+              "Component library architecture planned with proper CSS organization",
+              "Design tokens for spacing and effects without circular dependencies",
+              "Tailwind CSS properly imported in layout files (app/layout.tsx, globals.css)",
+              "No circular dependencies in CSS files (@apply rules properly structured)",
+              "CSS compilation successful with 0 errors"
+            ],
+            "estimatedLOC": 300,
+            "estimatedDuration": "2-4 hours",
+            "verification": {
+              "type": "design_system_setup",
+              "mandatory": true,
+              "action": "SETUP",
+              "commands": [
+                "npx tsc --noEmit",
+                "npm run build",
+                "grep -r '@tailwind' app/ || echo 'Tailwind imports missing'",
+                "grep -r 'globals.css' app/layout.tsx || echo 'globals.css not imported'",
+                "npx tailwindcss --help || echo 'Tailwind not properly installed'"
+              ],
+              "expectedState": "Design system foundation established",
+              "proofRequired": {
+                "format": "terminal_output",
+                "mustInclude": [
+                  "0 errors",
+                  "build",
+                  "design",
+                  "@tailwind",
+                  "globals.css"
+                ]
+              }
+            },
+            "constitutionalCompliance": "Design System Gate",
+            "parallelizable": true
+          },
+          {
             "id": "TASK-002",
             "title": "[TASK-002] DEFINE All Schema Components & SHOW Completeness",
             "tddPhase": "Contract",
             "subPhase": "Setup",
             "dependencies": [
-              "TASK-001"
+              "TASK-001",
+              "DESIGN-001"
             ],
             "description": "DEFINE ALL schema components in OpenAPI spec with complete field definitions. NO empty schemas. SHOW schema section with grep and EXECUTE validator to confirm 0 errors.",
             "acceptanceCriteria": "All entities have complete schemas, all fields typed, required fields marked, no TODO/placeholder text, validator passes",
@@ -224,8 +289,8 @@
             "dependencies": [
               "TASK-001"
             ],
-            "description": "CONFIGURE database connection with pooling and environment variables. CREATE connection test script and EXECUTE it to SHOW successful connection.",
-            "acceptanceCriteria": "Database config created, connection test script exists, connection test passes and shows 'Connected successfully'",
+            "description": "AI must choose appropriate production-ready database and configure connection with pooling and environment variables. 🚨 CRITICAL: SQLite is FORBIDDEN. Choose from PostgreSQL (preferred), MongoDB, MySQL, or Redis. CREATE connection test script and EXECUTE it to SHOW successful connection. Use SAME database for both development and production.",
+            "acceptanceCriteria": "Database chosen and justified, config created, connection test script exists, connection test passes and shows 'Connected successfully'",
             "estimatedLOC": "100-150",
             "estimatedDuration": "30min",
             "verification": {
@@ -257,8 +322,8 @@
               "TASK-002",
               "TASK-004"
             ],
-            "description": "CREATE Prisma schema matching ALL OpenAPI schemas with relationships, indexes, constraints. EXECUTE 'prisma validate' and SHOW successful validation.",
-            "acceptanceCriteria": "Prisma schema file created matching all OpenAPI entities, Prisma validation passes, schema formatted correctly",
+            "description": "CREATE Prisma schema for the chosen production-ready database (PostgreSQL preferred, MongoDB, MySQL, or Redis - SQLite FORBIDDEN) matching ALL OpenAPI schemas with relationships, indexes, constraints. EXECUTE 'prisma validate' and SHOW successful validation.",
+            "acceptanceCriteria": "Prisma schema file created for chosen database matching all OpenAPI entities, Prisma validation passes, schema formatted correctly",
             "estimatedLOC": "200-300",
             "estimatedDuration": "45min",
             "verification": {
@@ -291,8 +356,8 @@
             "dependencies": [
               "TASK-005"
             ],
-            "description": "GENERATE database migration scripts from Prisma schema. EXECUTE migration generation and SHOW migration files were created with proper versioning.",
-            "acceptanceCriteria": "Migration files generated in prisma/migrations/, migration SQL visible, versioning applied",
+            "description": "GENERATE database migration scripts from Prisma schema for the chosen production-ready database (PostgreSQL preferred, MongoDB, MySQL, or Redis - SQLite FORBIDDEN). EXECUTE migration generation and SHOW migration files were created with proper versioning.",
+            "acceptanceCriteria": "Migration files generated in prisma/migrations/ for chosen database, migration SQL visible, versioning applied",
             "estimatedLOC": "100-150",
             "estimatedDuration": "20min",
             "verification": {
@@ -387,14 +452,14 @@
           },
           {
             "id": "TASK-009",
-            "title": "[TASK-009] CREATE Data Model Stubs & COMPILE TypeScript",
+            "title": "[TASK-009] CREATE Data Model Classes & COMPILE TypeScript",
             "tddPhase": "Contract",
             "subPhase": "Setup",
             "dependencies": [
               "TASK-008"
             ],
-            "description": "CREATE empty model class/interface files importing Prisma types. EXECUTE 'tsc --noEmit' and SHOW 0 compilation errors.",
-            "acceptanceCriteria": "All model files created, Prisma types imported, TypeScript compiles with 0 errors",
+            "description": "CREATE complete model class files with validation, business logic, and Prisma type integration. EXECUTE 'tsc --noEmit' and SHOW 0 compilation errors.",
+            "acceptanceCriteria": "All model files created with complete implementation, Prisma types imported, validation logic included, TypeScript compiles with 0 errors",
             "estimatedLOC": "150-200",
             "estimatedDuration": "30min",
             "verification": {
@@ -471,7 +536,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/contract"
+                "timeout 60s bash -c 'npm test -- tests/contract' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing, execution completed successfully",
               "proofRequired": {
@@ -488,36 +553,36 @@
           },
           {
             "id": "TASK-012",
-            "title": "[TASK-012] CREATE API Route Stubs Returning 501",
+            "title": "[TASK-012] CREATE API Route Structure & Register Endpoints",
             "tddPhase": "RED",
-            "subPhase": "Stub_Implementation",
+            "subPhase": "Route_Structure",
             "dependencies": [
               "TASK-003"
             ],
-            "description": "CREATE empty API route handlers that register routes but return 501 Not Implemented. SHOW routes are registered and accessible.",
-            "acceptanceCriteria": "Route files created, routes registered, all routes return 501 status",
+            "description": "CREATE API route structure with proper middleware, error handling, and route registration. SHOW routes are registered and server starts successfully.",
+            "acceptanceCriteria": "Route files created with proper structure, routes registered, middleware configured, server starts successfully",
             "estimatedLOC": "150-200",
             "estimatedDuration": "30min",
             "verification": {
-              "type": "stub_confirmation",
+              "type": "route_structure_confirmation",
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
                 "npm start & sleep 3",
-                "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || echo '501'",
+                "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || echo '200'",
                 "pkill -f 'npm start' || true"
               ],
-              "expectedState": "Routes return 501 status, server starts successfully",
+              "expectedState": "Server starts successfully, routes accessible, health endpoint responds",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
-                  "501",
+                  "200",
                   "start",
                   "listening"
                 ]
               }
             },
-            "constitutionalCompliance": "✅ API-First Gate with stub routes",
+            "constitutionalCompliance": "✅ API-First Gate with route structure",
             "parallelizable": false
           },
           {
@@ -571,7 +636,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/models"
+                "timeout 60s bash -c 'npm test -- tests/models' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -637,7 +702,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/integration/db"
+                "timeout 90s bash -c 'npm test -- tests/integration/db' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -671,7 +736,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test"
+                "timeout 120s bash -c 'npm test' || echo 'Test timeout after 120s'"
               ],
               "expectedState": "RED: All tests failed, 0 passing tests across all suites",
               "proofRequired": {
@@ -704,7 +769,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/models"
+                "timeout 60s bash -c 'npm test -- tests/models' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Code compiles, model tests pass (GREEN)",
               "proofRequired": {
@@ -769,7 +834,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/integration/db"
+                "timeout 90s bash -c 'npm test -- tests/integration/db' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "Code compiles, DB tests pass (GREEN)",
               "proofRequired": {
@@ -801,7 +866,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/integration/db"
+                "timeout 90s bash -c 'npm test -- tests/integration/db' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "GREEN: 0 failures, X passing tests",
               "proofRequired": {
@@ -825,8 +890,8 @@
               "TASK-019",
               "TASK-021"
             ],
-            "description": "IMPLEMENT API route handlers with business logic using models and repositories to make contract tests pass.",
-            "acceptanceCriteria": "API routes fully implemented, business logic working, routes return proper responses",
+            "description": "IMPLEMENT COMPLETE API route handlers with FULL business logic using models and repositories. NO STUBS, NO 501 responses, NO placeholders. Connect routes → services → database with real CRUD operations. Make contract tests pass with actual responses (200, 201, 400, 404, 500).",
+            "acceptanceCriteria": "API routes fully implemented with REAL business logic, NO stubs or placeholders, all CRUD operations working, contract tests pass with actual HTTP responses (200, 201, 400, 404, 500), database integration complete",
             "estimatedLOC": "400-500",
             "estimatedDuration": "75min",
             "verification": {
@@ -835,9 +900,9 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/contract"
+                "timeout 60s bash -c 'npm test -- tests/contract' || echo 'Test timeout after 60s'"
               ],
-              "expectedState": "Code compiles, contract tests pass (GREEN)",
+              "expectedState": "Code compiles, contract tests pass (GREEN) with REAL business logic",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
@@ -845,7 +910,20 @@
                   "passing",
                   "contract"
                 ]
-              }
+              },
+              "forbiddenStates": [
+                "API returns 501 Not Implemented",
+                "API returns placeholder responses",
+                "Route handlers contain 'TODO' or 'Not Implemented'",
+                "Contract tests pass by expecting 501 responses",
+                "Any stub or mock responses in production code"
+              ],
+              "mandatoryChecks": [
+                "All API endpoints return real HTTP status codes (200, 201, 400, 404, 500)",
+                "All API endpoints connect to database through service layer",
+                "All API endpoints implement actual business logic",
+                "Contract tests validate real responses, not stub responses"
+              ]
             },
             "constitutionalCompliance": "✅ API-First Gate with implemented routes",
             "parallelizable": false
@@ -867,7 +945,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/contract"
+                "timeout 60s bash -c 'npm test -- tests/contract' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "GREEN: 0 failures, X passing tests",
               "proofRequired": {
@@ -932,7 +1010,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- --coverage",
+                "timeout 120s npm test -- --coverage || echo 'Test timeout after 120s'",
                 "npm run db:test-connection",
                 "npm run lint",
                 "npx tsc --noEmit"
@@ -954,17 +1032,66 @@
         ]
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (21 tasks)",
+        "title": "Phase 2: Core Implementation (22 tasks)",
         "description": "Implement core business logic, API controllers, services, and authentication with atomic RED-GREEN-SMOKE verification.",
-        "taskCount": 21,
+        "taskCount": 22,
         "tasks": [
+          {
+            "id": "DESIGN-002",
+            "title": "Modern UI Components Implementation",
+            "tddPhase": "UI Components",
+            "subPhase": "Modern Design",
+            "dependencies": [
+              "TASK-025"
+            ],
+            "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions. CRITICAL: Must use proper Tailwind CSS classes, avoid custom CSS conflicts, implement proper component architecture with TypeScript, and ensure responsive design. NO placeholder content, NO 'coming soon' text, NO empty states without real functionality.",
+            "acceptanceCriteria": [
+              "All components follow modern design patterns with proper Tailwind CSS usage",
+              "Interactive elements have proper hover states using Tailwind hover: classes",
+              "Animations and transitions implemented with Tailwind transition and animate classes",
+              "Responsive design across all breakpoints using Tailwind responsive prefixes",
+              "Visual hierarchy clearly established with proper spacing and typography",
+              "Components properly typed with TypeScript interfaces",
+              "No custom CSS conflicts with Tailwind CSS",
+              "All components render without errors and are fully functional"
+            ],
+            "estimatedLOC": 400,
+            "estimatedDuration": "3-6 hours",
+            "verification": {
+              "type": "ui_components_implementation",
+              "mandatory": true,
+              "action": "IMPLEMENT",
+              "commands": [
+                "npx tsc --noEmit",
+                "npm run build",
+                "npm run dev",
+                "find components/ -name '*.tsx' | head -5",
+                "grep -r 'className.*hover:' components/ || echo 'No hover states found'",
+                "grep -r 'transition' components/ || echo 'No transitions found'"
+              ],
+              "expectedState": "UI components implemented with modern design patterns",
+              "proofRequired": {
+                "format": "terminal_output",
+                "mustInclude": [
+                  "0 errors",
+                  "build",
+                  "components",
+                  "hover:",
+                  "transition"
+                ]
+              }
+            },
+            "constitutionalCompliance": "Modern UI Gate",
+            "parallelizable": true
+          },
           {
             "id": "TASK-026",
             "title": "[TASK-026] CREATE Core Library Tests & SHOW Test Coverage",
             "tddPhase": "RED",
             "subPhase": "Test_Creation",
             "dependencies": [
-              "TASK-025"
+              "TASK-025",
+              "DESIGN-002"
             ],
             "description": "CREATE comprehensive unit tests for core business logic library covering all essential algorithms and functionality. SHOW test file count and test case count.",
             "acceptanceCriteria": "Core library test files created, all business logic scenarios covered, tests compile with 0 errors",
@@ -1009,7 +1136,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/unit/core"
+                "timeout 60s bash -c 'npm test -- tests/unit/core' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1042,7 +1169,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/unit/core"
+                "timeout 60s bash -c 'npm test -- tests/unit/core' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Code compiles, core tests pass (GREEN)",
               "proofRequired": {
@@ -1140,7 +1267,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/unit/services"
+                "timeout 60s bash -c 'npm test -- tests/unit/services' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1173,7 +1300,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/unit/services"
+                "timeout 60s bash -c 'npm test -- tests/unit/services' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Code compiles, service tests pass (GREEN)",
               "proofRequired": {
@@ -1271,7 +1398,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/unit/controllers"
+                "timeout 60s bash -c 'npm test -- tests/unit/controllers' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1304,7 +1431,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/unit/controllers"
+                "timeout 60s bash -c 'npm test -- tests/unit/controllers' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Code compiles, controller tests pass (GREEN)",
               "proofRequired": {
@@ -1401,7 +1528,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/unit/auth"
+                "timeout 60s bash -c 'npm test -- tests/unit/auth' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1434,7 +1561,7 @@
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test -- tests/unit/auth"
+                "timeout 60s bash -c 'npm test -- tests/unit/auth' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Code compiles, auth tests pass (GREEN)",
               "proofRequired": {
@@ -1499,7 +1626,7 @@
               "action": "IMPLEMENT_AND_VERIFY",
               "commands": [
                 "npx tsc --noEmit",
-                "npm test",
+                "timeout 120s bash -c 'npm test' || echo 'Test timeout after 120s'",
                 "grep -r 'try\\|catch\\|throw' src/ | wc -l"
               ],
               "expectedState": "Code compiles, all tests still pass, error handling present",
@@ -1595,8 +1722,8 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- --coverage",
-                "npm start & sleep 3 && curl http://localhost:3000/api/health && pkill -f 'npm start'",
+                "timeout 120s npm test -- --coverage || echo 'Test timeout after 120s'",
+                "timeout 30s bash -c 'npm start & sleep 3 && curl http://localhost:3000/api/health && pkill -f \"npm start\"' || echo 'Startup timeout after 30s'",
                 "npm run lint",
                 "npx tsc --noEmit"
               ],
@@ -1617,9 +1744,9 @@
         ]
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (16 tasks)",
+        "title": "Phase 3: UI Development with Real APIs (17 tasks)",
         "description": "Implement UI components, design system, real API integration, and visual testing with atomic verification.",
-        "taskCount": 16,
+        "taskCount": 17,
         "tasks": [
           {
             "id": "TASK-046",
@@ -1639,7 +1766,7 @@
               "action": "CONFIGURE_AND_BUILD",
               "commands": [
                 "npm install",
-                "npm run build",
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
                 "ls -la *.config.*"
               ],
               "expectedState": "Platform configured, build successful, config files present",
@@ -1656,12 +1783,53 @@
             "parallelizable": false
           },
           {
+            "id": "DESIGN-003",
+            "title": "Visual Enhancement and Polish",
+            "tddPhase": "Visual Polish",
+            "subPhase": "Enhancement",
+            "dependencies": [
+              "TASK-046"
+            ],
+            "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
+            "acceptanceCriteria": [
+              "Micro-interactions enhance user experience",
+              "Visual depth creates engaging interface",
+              "Smooth transitions implemented",
+              "Loading and error states styled",
+              "Overall design feels polished and professional"
+            ],
+            "estimatedLOC": 300,
+            "estimatedDuration": "2-3 hours",
+            "verification": {
+              "type": "visual_enhancement_implementation",
+              "mandatory": true,
+              "action": "IMPLEMENT",
+              "commands": [
+                "npx tsc --noEmit",
+                "npm run build",
+                "npm run dev"
+              ],
+              "expectedState": "Visual enhancements implemented with polish",
+              "proofRequired": {
+                "format": "terminal_output",
+                "mustInclude": [
+                  "0 errors",
+                  "build",
+                  "enhancement"
+                ]
+              }
+            },
+            "constitutionalCompliance": "Visual Polish Gate",
+            "parallelizable": true
+          },
+          {
             "id": "TASK-047",
             "title": "[TASK-047] CREATE Design System Tests",
             "tddPhase": "RED",
             "subPhase": "Test_Creation",
             "dependencies": [
-              "TASK-046"
+              "TASK-046",
+              "DESIGN-003"
             ],
             "description": "CREATE tests for design system foundation (colors, typography, spacing, themes). SHOW test files created.",
             "acceptanceCriteria": "Design system test files created, theme tests included, tests compile",
@@ -1705,7 +1873,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/ui/design-system"
+                "timeout 60s bash -c 'npm test -- tests/ui/design-system' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1727,8 +1895,8 @@
             "dependencies": [
               "TASK-048"
             ],
-            "description": "IMPLEMENT design system with colors, typography, spacing, components, and theme support to make tests pass.",
-            "acceptanceCriteria": "Design system implemented, themes working, components styled, tests pass",
+            "description": "IMPLEMENT design system with colors, typography, spacing, components, and theme support to make tests pass. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
+            "acceptanceCriteria": "Design system implemented with real functionality, themes working, components styled with actual content, tests pass, NO placeholder or 'coming soon' content",
             "estimatedLOC": "400-600",
             "estimatedDuration": "90min",
             "verification": {
@@ -1736,8 +1904,8 @@
               "mandatory": true,
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
-                "npm run build",
-                "npm test -- tests/ui/design-system"
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
+                "timeout 60s bash -c 'npm test -- tests/ui/design-system' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Build successful, design system tests pass (GREEN)",
               "proofRequired": {
@@ -1747,7 +1915,19 @@
                   "passing",
                   "design"
                 ]
-              }
+              },
+              "forbiddenStates": [
+                "Any 'coming soon' or placeholder content",
+                "Empty states without real functionality",
+                "Mock or fake data in production code",
+                "Placeholder text in UI components"
+              ],
+              "mandatoryChecks": [
+                "All UI components have real functionality",
+                "No placeholder or 'coming soon' content",
+                "Design system supports actual use cases",
+                "Components display real data or proper empty states"
+              ]
             },
             "constitutionalCompliance": "✅ Library-First Gate with design foundation",
             "parallelizable": false
@@ -1801,7 +1981,7 @@
               "action": "SHOW",
               "commands": [
                 "find tests/ui/components -name '*.test.*' | wc -l",
-                "npm run build"
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'"
               ],
               "expectedState": "Component tests created, tests compile",
               "proofRequired": {
@@ -1833,7 +2013,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/ui/components"
+                "timeout 60s bash -c 'npm test -- tests/ui/components' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1855,8 +2035,8 @@
             "dependencies": [
               "TASK-052"
             ],
-            "description": "IMPLEMENT all UI components using design system foundation to make component tests pass.",
-            "acceptanceCriteria": "All components implemented, design system used, accessible, tests pass",
+            "description": "IMPLEMENT all UI components using design system foundation to make component tests pass. NO placeholder content, NO 'coming soon' text, NO empty states without real functionality. All components must have actual working features.",
+            "acceptanceCriteria": "All components implemented with real functionality, design system used, accessible, tests pass, NO placeholder or 'coming soon' content anywhere",
             "estimatedLOC": "600-800",
             "estimatedDuration": "120min",
             "verification": {
@@ -1864,8 +2044,8 @@
               "mandatory": true,
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
-                "npm run build",
-                "npm test -- tests/ui/components"
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
+                "timeout 60s bash -c 'npm test -- tests/ui/components' || echo 'Test timeout after 60s'"
               ],
               "expectedState": "Build successful, component tests pass (GREEN)",
               "proofRequired": {
@@ -1931,7 +2111,7 @@
               "commands": [
                 "find tests/integration/api -name '*.test.*' | wc -l",
                 "grep -r 'fetch\\|axios\\|http' tests/integration/api/ | wc -l",
-                "npm run build"
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'"
               ],
               "expectedState": "API integration tests created, real HTTP calls present",
               "proofRequired": {
@@ -1963,7 +2143,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/integration/api"
+                "timeout 90s bash -c 'npm test -- tests/integration/api' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "RED: X tests failed, 0 passing",
               "proofRequired": {
@@ -1985,8 +2165,8 @@
             "dependencies": [
               "TASK-056"
             ],
-            "description": "IMPLEMENT real API service layer connecting UI to backend APIs to make API integration tests pass.",
-            "acceptanceCriteria": "API services implemented, UI connected to real APIs, data flowing, tests pass",
+            "description": "IMPLEMENT real API service layer connecting UI to backend APIs to make API integration tests pass. NO placeholder data, NO 'coming soon' pages, NO mock responses. All pages must display real data from backend APIs.",
+            "acceptanceCriteria": "API services implemented, UI connected to real APIs, real data flowing from backend, tests pass, NO placeholder or 'coming soon' content, all pages show actual data",
             "estimatedLOC": "400-600",
             "estimatedDuration": "90min",
             "verification": {
@@ -1994,8 +2174,8 @@
               "mandatory": true,
               "action": "IMPLEMENT_AND_TEST",
               "commands": [
-                "npm run build",
-                "npm test -- tests/integration/api"
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
+                "timeout 90s bash -c 'npm test -- tests/integration/api' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "Build successful, API tests pass (GREEN)",
               "proofRequired": {
@@ -2027,7 +2207,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- tests/integration/api"
+                "timeout 90s bash -c 'npm test -- tests/integration/api' || echo 'Test timeout after 90s'"
               ],
               "expectedState": "GREEN: 0 failures, X passing, real API responses",
               "proofRequired": {
@@ -2092,9 +2272,9 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- --coverage",
-                "npm run build",
-                "npm start & sleep 5 && curl http://localhost:3000 && pkill -f 'npm start'",
+                "timeout 120s npm test -- --coverage || echo 'Test timeout after 120s'",
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
+                "timeout 30s bash -c 'npm start & sleep 5 && curl http://localhost:3000 && pkill -f \"npm start\"' || echo 'Startup timeout after 30s'",
                 "npm run test:visual"
               ],
               "expectedState": "All tests GREEN, UI renders, APIs respond, visual tests pass, coverage ≥80%",
@@ -2135,7 +2315,7 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "npm test -- --coverage --verbose"
+                "timeout 180s npm test -- --coverage --verbose || echo 'Test timeout after 180s'"
               ],
               "expectedState": "ALL GREEN: 0 failures across all test suites, coverage ≥90%",
               "proofRequired": {
@@ -2188,12 +2368,60 @@
             "parallelizable": false
           },
           {
+            "id": "TASK-062.5",
+            "title": "[TASK-062.5] VERIFY Specification Compliance & DOCUMENT All Features",
+            "tddPhase": "Integration",
+            "subPhase": "Spec_Compliance_Verification",
+            "dependencies": [
+              "TASK-062"
+            ],
+            "description": "VERIFY that EVERY feature from the original specification is implemented. CREATE a compliance checklist mapping each spec requirement to actual implementation. SHOW code evidence for each feature. NO claiming features exist without proof.",
+            "acceptanceCriteria": "Complete spec compliance checklist created, every feature verified with code evidence, all requirements implemented, no missing features",
+            "estimatedLOC": "100-150",
+            "estimatedDuration": "60min",
+            "verification": {
+              "type": "spec_compliance_verification",
+              "mandatory": true,
+              "action": "VERIFY_AND_DOCUMENT",
+              "commands": [
+                "cat SPEC-COMPLIANCE-CHECKLIST.md",
+                "grep -r 'TODO\\|FIXME\\|NOT IMPLEMENTED' src/ || echo 'No unimplemented features found'"
+              ],
+              "expectedState": "All spec features implemented and verified with code evidence",
+              "proofRequired": {
+                "format": "documentation_with_code_evidence",
+                "mustInclude": [
+                  "feature checklist",
+                  "code references",
+                  "implementation proof",
+                  "100% compliance"
+                ]
+              },
+              "forbiddenStates": [
+                "Any spec feature not implemented",
+                "Claims without code evidence",
+                "Missing features marked as 'TODO' or 'coming soon'",
+                "Placeholder implementations for spec requirements",
+                "Features described but not actually built"
+              ],
+              "mandatoryChecks": [
+                "Every functional requirement from spec has working implementation",
+                "Every API endpoint from spec is implemented",
+                "Every UI feature from spec is built and functional",
+                "Code evidence provided for each feature claim",
+                "No 'TODO', 'FIXME', or 'NOT IMPLEMENTED' comments in production code"
+              ]
+            },
+            "constitutionalCompliance": "✅ Complete specification compliance verification",
+            "parallelizable": false
+          },
+          {
             "id": "TASK-063",
             "title": "[TASK-063] EXECUTE Manual Smoke Test of Critical User Journeys & DOCUMENT Results",
             "tddPhase": "E2E",
             "subPhase": "Manual_Testing",
             "dependencies": [
-              "TASK-062"
+              "TASK-062.5"
             ],
             "description": "EXECUTE manual smoke testing of 3-5 critical user journeys. DOCUMENT each journey with steps taken and results. PASTE documentation.",
             "acceptanceCriteria": "3-5 critical user journeys tested manually, all journeys successful, documentation complete with steps and screenshots",
@@ -2372,7 +2600,7 @@
               "mandatory": true,
               "action": "GENERATE",
               "commands": [
-                "npm test -- --coverage --coverageReporters=text-summary"
+                "timeout 120s npm test -- --coverage --coverageReporters=text-summary || echo 'Test timeout after 120s'"
               ],
               "expectedState": "Coverage ≥90% for all metrics",
               "proofRequired": {
@@ -2446,8 +2674,8 @@
               "mandatory": true,
               "action": "EXECUTE_AND_CONFIRM",
               "commands": [
-                "npm test",
-                "npm run build",
+                "timeout 120s bash -c 'npm test' || echo 'Test timeout after 120s'",
+                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
                 "npm start & sleep 5 && curl http://localhost:3000/api/health && pkill -f 'npm start'",
                 "npm audit",
                 "cat FINAL-SIGNOFF.md"

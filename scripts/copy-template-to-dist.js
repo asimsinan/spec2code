@@ -20,7 +20,7 @@ try {
   }
 
   // Copy all template files from src/templates to dist
-  const templateFiles = ['spec.json', 'plan.json', 'status.json', 'tasks.json'];
+  const templateFiles = ['spec.json', 'plan.json', 'tasks.json'];
   
   for (const templateFile of templateFiles) {
     const srcTemplatePath = path.join(srcTemplatesPath, templateFile);

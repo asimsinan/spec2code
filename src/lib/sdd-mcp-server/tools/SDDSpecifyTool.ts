@@ -22,115 +22,6 @@ export class SDDSpecifyTool {
     this.specTemplate = new SpecificationTemplate(this.db);
   }
 
-  /**
-   * Initialize database if it doesn't exist
-   * This ensures the database is created in the project root where the user is working
-   * SDDSpecifyTool is the primary template installer since it's typically called first
-   */
-  private async initializeDatabaseIfNeeded(): Promise<void> {
-    try {
-      // Touch the database to ensure schema is created
-      await this.db.get_all_features_robust();
-      
-      // Check if templates exist, install if missing (SDDSpecifyTool is primary installer)
-      const specTemplate = await this.db.get_spec_template_robust('sdd-spec-perfect-v1');
-      if (!specTemplate) {
-        await this.ensureTemplatesInstalled();
-      }
-    } catch (error) {
-      console.error('SDDSpecifyTool: Database initialization failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Ensure all required templates are installed in the database
-   */
-  private async ensureTemplatesInstalled(): Promise<void> {
-    try {
-     
-      await this.installTemplates();
-     
-    } catch (error) {
-      console.error('SDDSpecifyTool: Error installing templates:', error);
-      throw error;
-    }
-  }
-
-
-  /**
-   * Install templates from JSON files
-   */
-  private async installTemplates(): Promise<void> {
-    try {
-      // Install spec template
-      await this.installTemplate('spec.json', 'spec_templates', 'sdd-spec-perfect-v1');
-      
-      // Install plan template
-      await this.installTemplate('plan.json', 'plan_templates', 'sdd-plan-perfect-v1');
-      
-      // Install status template
-      await this.installTemplate('status.json', 'status_templates', 'sdd-status-perfect-v1');
-      
-      // Install tasks template
-      await this.installTemplate('tasks.json', 'task_templates', 'sdd-tasks-perfect-v1');
-      
-      
-      // Install implement template
-    } catch (error) {
-      console.error('SDDSpecifyTool: Error installing templates:', error);
-    }
-  }
-
-  /**
-   * Install a single template from JSON file
-   */
-  private async installTemplate(
-    fileName: string, 
-    tableName: string, 
-    _templateId: string
-  ): Promise<void> {
-    try {
-      // Look for template file in various locations
-      const templatePaths = [
-        path.join(this.basePath, 'src', 'templates', fileName),
-        path.join(this.basePath, fileName),
-        path.join(this.basePath, 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName),
-        path.join(process.cwd(), 'src', 'templates', fileName),
-        path.join(process.cwd(), 'dist', 'lib', 'sdd-mcp-server', 'templates', fileName)
-      ];
-
-      let templatePath = null;
-      for (const templatePathCandidate of templatePaths) {
-        if (fs.existsSync(templatePathCandidate)) {
-          templatePath = templatePathCandidate;
-          break;
-        }
-      }
-
-      if (!templatePath) {
-        // Template file not found - returning silently
-        return;
-      }
-
-      // Read and parse template
-      const templateContent = fs.readFileSync(templatePath, 'utf8');
-      const templateData = JSON.parse(templateContent);
-
-      // Insert template into database
-      this.db.install_template(
-        tableName,
-        templateData.id,
-        templateData.name,
-        templateData.version,
-        templateData.description,
-        templateData.template_data,
-        templateData.is_active
-      );
-    } catch (error) {
-      console.error(`SDDSpecifyTool: Error installing template ${fileName}:`, error);
-    }
-  }
 
   getToolDefinition(): Tool {
     return {
@@ -227,7 +118,7 @@ export class SDDSpecifyTool {
       const { finalize, ...otherInput } = input;
  
       if (finalize) {
-
+   
         return await this.handleFinalize(otherInput);
       }
 
@@ -236,14 +127,10 @@ export class SDDSpecifyTool {
         return this.error('Missing required parameter: input is required when not in finalize mode');
       }
 
-      // Initialize database if needed (creates sdd.db in project root)
-      await this.initializeDatabaseIfNeeded();
-
-   
       
       // Validate input
       const validatedInput = SpecifyInputSchema.parse(input);
-
+     
    
       let featureName: string;
       let featureId: string;
@@ -252,7 +139,7 @@ export class SDDSpecifyTool {
         // Use provided featureName
         featureName = validatedInput.featureName;
         featureId = this.createFeatureId(featureName);
-    
+  
 
       } else {
         // Get most recent feature from database
@@ -281,8 +168,8 @@ export class SDDSpecifyTool {
         userInput: validatedInput.input,
         featureName: featureName,
         platform: platform
-      });
-     
+        });
+ 
       if (!fillResult.success) {
         return this.error(`Failed to prepare specification template: ${fillResult.error}`);
       }
@@ -293,7 +180,7 @@ export class SDDSpecifyTool {
         return this.error(`Constitutional Gates Violation: ${gatesValidation.violations.join(', ')}. Please simplify your feature or document violations in Complexity Tracking.`);
       }
    
-      // Note: Specification will be saved via sdd_db_filler tool after AI fills the template
+      // Note: Specification will be saved via finalize call after AI creates spec.md file
 
       // Extract template information for dynamic instructions
       const templateData = fillResult.data;
@@ -351,10 +238,8 @@ Create a comprehensive, production-ready specification document that serves as t
    2.4. Applicable constitutional gates for ${platform}:
 ${constitutionalGatesList}
    2.5. Quality gates enforcement: ${Object.keys(qualityGates).join(', ')}
-   2.6. SDD principles: ${Object.keys(sddPrinciples).join(', ')}
-   2.7. Template version: ${templateData.sddVersion?.version || 'Unknown'}
-   2.8. Placeholder content ({{...}}) ready for AI generation
-   2.9. Structured template following complete SDD methodology
+   2.6. Placeholder content ({{...}}) ready for AI generation
+   2.7. Structured template following complete SDD methodology
 
 3. DETAILED INSTRUCTIONS FOR CURSOR AI (MANDATORY COMPLIANCE):
 
@@ -509,6 +394,10 @@ ${JSON.stringify(fillResult.data, null, 2)}
         }
       7.2. This is NOT just text - you must actually CALL the sdd_specify tool with finalize=true
       7.3. The specificationData should be the complete JSON object you created from the template
+      7.4. 🚨 CRITICAL: You MUST replace ALL {{...}} placeholders with actual content
+      7.5. 🚨 CRITICAL: You MUST fill ALL empty fields with real data
+      7.6. 🚨 CRITICAL: The specificationData must contain: title, metadata, userScenarios, requirements, apiSpecification
+      7.7. 🚨 CRITICAL: Do NOT pass empty or incomplete data - the tool will reject it
 
 🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
 DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
@@ -556,6 +445,7 @@ YOU MUST:
         return this.error('Missing required parameters: featureId and specificationData are required for finalize mode');
       }
 
+
       // Get feature to verify it exists and get the name
       const feature = await this.db.get_feature_robust(featureId);
       if (!feature) {
@@ -570,7 +460,7 @@ YOU MUST:
       );
 
       return this.success(
-        `Saved`,
+        `Specification saved successfully`,
         {
           featureId,
           featureName: feature.name,
@@ -578,7 +468,6 @@ YOU MUST:
           aiGenerated: true
         }
       );
-
     } catch (error) {
       return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -1470,49 +1359,6 @@ YOU MUST:
     return {};
   }
 
-  /**
-   * Determine platform from specification and plan data
-   */
-  private determinePlatform(specData: any, planData: any): string {
-    // Try to determine platform from various sources
-    // Note: specData and planData contain raw markdown content, not JSON
-
-    // Try to extract platform from markdown content
-    if (planData?.content) {
-      const planContent = planData.content.toLowerCase();
-      if (planContent.includes('platform: mobile') || planContent.includes('mobile platform')) {
-        return 'mobile';
-      }
-      if (planContent.includes('platform: desktop') || planContent.includes('desktop platform')) {
-        return 'desktop';
-      }
-      if (planContent.includes('platform: backend') || planContent.includes('backend platform')) {
-        return 'backend';
-      }
-      if (planContent.includes('platform: ai') || planContent.includes('ai platform')) {
-        return 'ai';
-      }
-    }
-
-    if (specData?.content) {
-      const specContent = specData.content.toLowerCase();
-      if (specContent.includes('platform: mobile') || specContent.includes('mobile platform')) {
-        return 'mobile';
-      }
-      if (specContent.includes('platform: desktop') || specContent.includes('desktop platform')) {
-        return 'desktop';
-      }
-      if (specContent.includes('platform: backend') || specContent.includes('backend platform')) {
-        return 'backend';
-      }
-      if (specContent.includes('platform: ai') || specContent.includes('ai platform')) {
-        return 'ai';
-      }
-    }
-
-    // Default to web if not specified
-    return 'web';
-  }
 
   /**
    * Error helper method

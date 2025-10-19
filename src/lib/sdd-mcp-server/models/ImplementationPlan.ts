@@ -193,24 +193,24 @@ export class ImplementationPlanHelper {
       implementationPhases: {
         title: 'Implementation Phases (Balanced 4-Phase Structure)',
         phase1: {
-          title: 'Phase 1: Foundations & Data (11 tasks)',
+          title: 'Phase 1: Foundations & Data (27 tasks)',
           content: 'Essential foundation work: API contracts, database setup, data models, and core infrastructure.',
           instruction: 'Essential foundation work: API contracts, database setup, data models, and core infrastructure. This phase establishes the fundamental building blocks that all other phases depend on.'
         },
         phase2: {
-          title: 'Phase 2: Core Implementation (11 tasks)',
+          title: 'Phase 2: Core Implementation (22 tasks)',
           content: 'Core library implementation, data models, business logic, and basic API structure.',
           instruction: 'Core library implementation, data models, business logic, and basic API structure. This phase builds the core functionality that powers the application.'
         },
         phase3: {
-          title: 'Phase 3: UI Development with Mock APIs (11 tasks)',
-          content: 'Create UI components with mock API services, platform setup, and complete user flow testing with simulated data.',
-          instruction: 'Create UI components with mock API services, platform setup, and complete user flow testing with simulated data. This phase enables parallel frontend development while backend is being implemented.'
+          title: 'Phase 3: UI Development with Real APIs (17 tasks)',
+          content: 'Create UI components with real API services, platform setup, and complete user flow testing with live backend data.',
+          instruction: 'Create UI components with real API services, platform setup, and complete user flow testing with live backend data. This phase implements the complete frontend with real backend integration.'
         },
         phase4: {
-          title: 'Phase 4: Real API Integration & Verification (11 tasks)',
-          content: 'Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality.',
-          instruction: 'Replace mock APIs with real API implementations, conduct integration testing with live backend services, and verify complete end-to-end functionality. This phase delivers the final working application.'
+          title: 'Phase 4: Full Integration & Verification (10 tasks)',
+          content: 'Complete integration testing with live backend services, documentation, and verify complete end-to-end functionality.',
+          instruction: 'Complete integration testing with live backend services, documentation, and verify complete end-to-end functionality. This phase delivers the final working application.'
         }
       },
       complexityTracking: {

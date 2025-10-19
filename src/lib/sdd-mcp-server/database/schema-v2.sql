@@ -61,18 +61,6 @@ CREATE TABLE IF NOT EXISTS plan_templates (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Status templates
-CREATE TABLE IF NOT EXISTS status_templates (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  version TEXT NOT NULL DEFAULT '1.0.0',
-  description TEXT,
-  template_data JSON NOT NULL,
-  is_active BOOLEAN DEFAULT TRUE,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 
 
 
@@ -150,27 +138,6 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 
-
-
-
-
-
-
-
--- Status (AI-filled) - Keep existing table structure
-CREATE TABLE IF NOT EXISTS status (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  feature_id TEXT NOT NULL,
-  template_id TEXT,
-  content JSON NOT NULL,
-  ai_generated BOOLEAN DEFAULT TRUE,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (feature_id) REFERENCES features(id) ON DELETE CASCADE,
-  FOREIGN KEY (template_id) REFERENCES status_templates(id)
-);
-
-
 -- ========================================
 -- INDEXES FOR PERFORMANCE
 -- ========================================
@@ -178,7 +145,6 @@ CREATE TABLE IF NOT EXISTS status (
 -- Template table indexes
 CREATE INDEX IF NOT EXISTS idx_spec_templates_active ON spec_templates(is_active);
 CREATE INDEX IF NOT EXISTS idx_plan_templates_active ON plan_templates(is_active);
-CREATE INDEX IF NOT EXISTS idx_status_templates_active ON status_templates(is_active);
 CREATE INDEX IF NOT EXISTS idx_task_templates_active ON task_templates(is_active);
 
 -- Filled data table indexes
@@ -236,13 +202,6 @@ CREATE TRIGGER IF NOT EXISTS update_plan_templates_updated_at
   AFTER UPDATE ON plan_templates
   BEGIN
     UPDATE plan_templates SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-  END;
-
--- Triggers for status_templates
-CREATE TRIGGER IF NOT EXISTS update_status_templates_updated_at
-  AFTER UPDATE ON status_templates
-  BEGIN
-    UPDATE status_templates SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
   END;
 
 

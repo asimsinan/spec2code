@@ -113,18 +113,18 @@ Create tasks.md with this comprehensive structure:
 ## Phase 3: UI Development
 ## Phase 4: Testing & Deployment
 ### 🎨 Design Tasks
-### DESIGN-001: Design System Foundation Setup
-- **Description**: [template_data.designTasks.designTask001.description]
-**TDD Phase**: [template_data.designTasks.designTask001.tddPhase]
-**Sub Phase**: [template_data.designTasks.designTask001.subPhase]
-- **Dependencies**: [template_data.designTasks.designTask001.dependencies]
-- **Requirements**: [template_data.designTasks.designTask001.requirements]
-**Acceptance Criteria**: [template_data.designTasks.designTask001.acceptanceCriteria]
-**Estimated Duration**: [template_data.designTasks.designTask001.estimatedDuration]
-**Estimated LOC**: [template_data.designTasks.designTask001.estimatedLOC]
-**Constitutional Compliance**: [template_data.designTasks.designTask001.constitutionalCompliance]
-**Parallelizable**: [template_data.designTasks.designTask001.parallelizable]
-**Verification**: [template_data.designTasks.designTask001.verification]
+### DESIGN-001: [template_data.designTasks[0].title]
+- **Description**: [template_data.designTasks[0].description]
+**TDD Phase**: [template_data.designTasks[0].tddPhase]
+**Sub Phase**: [template_data.designTasks[0].subPhase]
+- **Dependencies**: [template_data.designTasks[0].dependencies]
+- **Requirements**: [template_data.designTasks[0].requirements]
+**Acceptance Criteria**: [template_data.designTasks[0].acceptanceCriteria]
+**Estimated Duration**: [template_data.designTasks[0].estimatedDuration]
+**Estimated LOC**: [template_data.designTasks[0].estimatedLOC]
+**Constitutional Compliance**: [template_data.designTasks[0].constitutionalCompliance]
+**Parallelizable**: [template_data.designTasks[0].parallelizable]
+**Verification**: [template_data.designTasks[0].verification]
 
 ### 📋 Implementation Tasks
 ### TASK-001: [template_data.taskPhases.phase1.tasks[0].title]
@@ -144,16 +144,16 @@ Create tasks.md with this comprehensive structure:
 
 ## Phase 2: Core Implementation
 ### 🎨 Design Tasks
-### DESIGN-002: Modern UI Components Implementation
-[Use template_data.designTasks.designTask002.* properties with correct format: ### DESIGN-002: title, then **Property**: value format]
+### DESIGN-002: [template_data.designTasks[1].title]
+[Use template_data.designTasks[1].* properties with correct format: ### DESIGN-002: title, then **Property**: value format]
 
 ### 📋 Implementation Tasks
 [Use template_data.taskPhases.phase2.tasks[0] to tasks[20] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]
 
 ## Phase 3: UI Development
 ### 🎨 Design Tasks
-### DESIGN-003: Visual Enhancement and Polish
-[Use template_data.designTasks.designTask003.* properties with correct format: ### DESIGN-003: title, then **Property**: value format]
+### DESIGN-003: [template_data.designTasks[2].title]
+[Use template_data.designTasks[2].* properties with correct format: ### DESIGN-003: title, then **Property**: value format]
 
 ### 📋 Implementation Tasks
 [Use template_data.taskPhases.phase3.tasks[0] to tasks[15] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]

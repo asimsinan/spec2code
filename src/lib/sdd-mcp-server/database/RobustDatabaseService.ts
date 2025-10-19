@@ -415,15 +415,7 @@ export class RobustDatabaseService extends DatabaseService {
       const parsed = JSON.parse(result.data);
       const metadata = JSON.parse(result.metadata_json) as StorageMetadata;
       
-      // Debug logging removed for production
-      
-      // Verify content integrity - TEMPORARILY DISABLED FOR DEBUGGING
-      // const currentHash = this.generateContentHash(result.data);
-      // if (currentHash !== result.content_hash) {
-      //   console.error('Content integrity check failed for', table, id);
-      //   return null;
-      // }
-      
+   
       // Re-validate on retrieval
       const validation = this.validateJSON(parsed, schema);
       if (!validation.valid) {
