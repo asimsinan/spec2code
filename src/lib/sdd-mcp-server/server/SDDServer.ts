@@ -84,6 +84,8 @@ export class SDDServer {
         const def = tool.getToolDefinition();
         if (this.isInternalTool(name)) {
           def.description = `[INTERNAL AI TOOL] ${def.description}`;
+        } else if (name === 'sdd_implement') {
+          def.description = `🚨🚨🚨 [DO NOT READ FILES - CALL DIRECTLY] ${def.description}`;
         }
         return def;
       });

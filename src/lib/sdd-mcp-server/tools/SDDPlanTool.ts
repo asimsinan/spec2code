@@ -164,16 +164,16 @@ Create plan.md with this focused structure:
 [template_data.technicalContext - Key implementation decisions only, reference specContext.technologyStack and specContext.dependencies]
 
 ## 🚀 Implementation Phases
-### Phase 1: Foundations (27 tasks)
+### Phase 1: Foundations (25 tasks)
 [template_data.implementationPhases.phase1.content - Brief overview, reference specContext.databaseRequirements]
 
-### Phase 2: Core Implementation (22 tasks)  
+### Phase 2: Core Implementation (20 tasks)  
 [template_data.implementationPhases.phase2.content - Brief overview, reference specContext.apiEndpoints]
 
-### Phase 3: UI Development (17 tasks)
+### Phase 3: UI Development (15 tasks)
 [template_data.implementationPhases.phase3.content - Brief overview, reference specContext.uiDesignRequirements]
 
-### Phase 4: Testing & Deployment (10 tasks)
+### Phase 4: Testing & Deployment (12 tasks)
 [template_data.implementationPhases.phase4.content - Brief overview, reference specContext.acceptanceScenarios]
 
 ## 🏗️ Project Structure

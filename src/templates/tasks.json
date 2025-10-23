@@ -1,21 +1,19 @@
 {
-  "id": "sdd-tasks-atomic-v5",
+  "id": "sdd-tasks-atomic-v6",
   "name": "SDD Atomic Tasks Template (Explicit RED-GREEN-REFACTOR-SMOKE)",
-  "version": "5.0.0",
-  "description": "Atomic task-based SDD with 76 sequential tasks (TASK-001 to TASK-070 + DESIGN-001 to DESIGN-003) using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 27+22+17+10=76 tasks (includes 3 design tasks).",
+  "version": "6.0.0",
+  "description": "Atomic task-based SDD with 72 sequential tasks across four phases using explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. NO vague terms like 'verify', 'check', or 'ensure'. Phase breakdown: 25 + 20 + 15 + 12 = 72 tasks.",
   "template_data": {
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
       "status": "Draft",
       "phaseProfile": "4-phase-atomic-verified",
       "tddOrder": "RED → GREEN → REFACTOR → SMOKE",
-      "totalTasks": 76,
-      "phase1Tasks": 27,
-      "phase2Tasks": 22,
-      "phase3Tasks": 17,
-      "phase4Tasks": 10,
-      "designTasksIncluded": true,
-      "designTasksCount": 3,
+      "totalTasks": 72,
+      "phase1Tasks": 25,
+      "phase2Tasks": 20,
+      "phase3Tasks": 15,
+      "phase4Tasks": 12,
       "verificationType": "mandatory-proof-execution",
       "antiGamingEnforcement": "enabled",
             "timeoutConfiguration": {
@@ -48,91 +46,12 @@
         "CONFIGURE"
       ]
     },
-    "designTasks": {
-      "designTask001": {
-        "id": "DESIGN-001",
-        "title": "Design System Foundation Setup",
-        "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
-        "phase": 1,
-        "tddPhase": "Design System",
-        "subPhase": "Foundation",
-        "requirements": [
-          "Modern color palette with proper contrast ratios",
-          "Professional typography hierarchy",
-          "Design tokens for spacing, colors, and effects",
-          "Component library architecture",
-          "Visual design guidelines"
-        ],
-        "acceptanceCriteria": [
-          "Design system documented and implemented",
-          "Color palette meets WCAG accessibility standards",
-          "Typography hierarchy established",
-          "Component library structure created",
-          "Design tokens system implemented"
-        ],
-        "estimatedDuration": "2-4 hours",
-        "estimatedLOC": 200,
-        "constitutionalCompliance": "Design System Gate",
-        "parallelizable": true
-      },
-      "designTask002": {
-        "id": "DESIGN-002",
-        "title": "Modern UI Components Implementation",
-        "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions. NO placeholder content, NO 'coming soon' text, NO empty states without real functionality.",
-        "phase": 2,
-        "tddPhase": "UI Components",
-        "subPhase": "Modern Design",
-        "requirements": [
-          "Card-based layouts with shadows and gradients",
-          "Interactive elements with hover states",
-          "Modern button designs with animations",
-          "Sophisticated form styling",
-          "Professional navigation patterns"
-        ],
-        "acceptanceCriteria": [
-          "All components follow modern design patterns",
-          "Interactive elements have proper hover states",
-          "Animations and transitions implemented",
-          "Responsive design across all breakpoints",
-          "Visual hierarchy clearly established"
-        ],
-        "estimatedDuration": "3-6 hours",
-        "estimatedLOC": 400,
-        "constitutionalCompliance": "Modern UI Gate",
-        "parallelizable": true
-      },
-      "designTask003": {
-        "id": "DESIGN-003",
-        "title": "Visual Enhancement and Polish",
-        "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
-        "phase": 3,
-        "tddPhase": "Visual Polish",
-        "subPhase": "Enhancement",
-        "requirements": [
-          "Micro-interactions and animations",
-          "Visual depth with shadows and layering",
-          "Smooth transitions between states",
-          "Loading states and feedback",
-          "Error state styling"
-        ],
-        "acceptanceCriteria": [
-          "Micro-interactions enhance user experience",
-          "Visual depth creates engaging interface",
-          "Smooth transitions implemented",
-          "Loading and error states styled",
-          "Overall design feels polished and professional"
-        ],
-        "estimatedDuration": "2-3 hours",
-        "estimatedLOC": 300,
-        "constitutionalCompliance": "Visual Polish Gate",
-        "parallelizable": true
-      }
-    },
+    
     "taskPhases": {
       "phase1": {
-        "title": "Phase 1: Foundations & Data (27 tasks)",
+        "title": "Phase 1: Foundations & Data (25 tasks)",
         "description": "Atomic foundation tasks with explicit verification: API contracts, database setup, data models. Each task uses action verbs (CREATE, EXECUTE, RUN, COMPILE) and requires proof.",
-        "taskCount": 27,
+        "taskCount": 25,
         "tasks": [
           {
             "id": "TASK-001",
@@ -165,60 +84,12 @@
             "parallelizable": false
           },
           {
-            "id": "DESIGN-001",
-            "title": "Design System Foundation Setup",
-            "tddPhase": "Design System",
-            "subPhase": "Foundation",
-            "dependencies": [
-              "TASK-001"
-            ],
-            "description": "Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library. CRITICAL: Must properly configure Tailwind CSS with correct imports, avoid circular dependencies, and establish proper design tokens. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
-            "acceptanceCriteria": [
-              "Design system foundation established with proper Tailwind CSS configuration",
-              "Color palette with proper contrast ratios and CSS custom properties",
-              "Typography hierarchy defined with proper font loading and fallbacks",
-              "Component library architecture planned with proper CSS organization",
-              "Design tokens for spacing and effects without circular dependencies",
-              "Tailwind CSS properly imported in layout files (app/layout.tsx, globals.css)",
-              "No circular dependencies in CSS files (@apply rules properly structured)",
-              "CSS compilation successful with 0 errors"
-            ],
-            "estimatedLOC": 300,
-            "estimatedDuration": "2-4 hours",
-            "verification": {
-              "type": "design_system_setup",
-              "mandatory": true,
-              "action": "SETUP",
-              "commands": [
-                "npx tsc --noEmit",
-                "npm run build",
-                "grep -r '@tailwind' app/ || echo 'Tailwind imports missing'",
-                "grep -r 'globals.css' app/layout.tsx || echo 'globals.css not imported'",
-                "npx tailwindcss --help || echo 'Tailwind not properly installed'"
-              ],
-              "expectedState": "Design system foundation established",
-              "proofRequired": {
-                "format": "terminal_output",
-                "mustInclude": [
-                  "0 errors",
-                  "build",
-                  "design",
-                  "@tailwind",
-                  "globals.css"
-                ]
-              }
-            },
-            "constitutionalCompliance": "Design System Gate",
-            "parallelizable": true
-          },
-          {
-            "id": "TASK-002",
+            "id": "TASK-002", 
             "title": "[TASK-002] DEFINE All Schema Components & SHOW Completeness",
             "tddPhase": "Contract",
             "subPhase": "Setup",
             "dependencies": [
-              "TASK-001",
-              "DESIGN-001"
+              "TASK-001"
             ],
             "description": "DEFINE ALL schema components in OpenAPI spec with complete field definitions. NO empty schemas. SHOW schema section with grep and EXECUTE validator to confirm 0 errors.",
             "acceptanceCriteria": "All entities have complete schemas, all fields typed, required fields marked, no TODO/placeholder text, validator passes",
@@ -1032,66 +903,17 @@
         ]
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (22 tasks)",
+        "title": "Phase 2: Core Implementation (20 tasks)",
         "description": "Implement core business logic, API controllers, services, and authentication with atomic RED-GREEN-SMOKE verification.",
-        "taskCount": 22,
+        "taskCount": 20,
         "tasks": [
-          {
-            "id": "DESIGN-002",
-            "title": "Modern UI Components Implementation",
-            "tddPhase": "UI Components",
-            "subPhase": "Modern Design",
-            "dependencies": [
-              "TASK-025"
-            ],
-            "description": "Implement sophisticated UI components with modern design patterns, animations, and interactions. CRITICAL: Must use proper Tailwind CSS classes, avoid custom CSS conflicts, implement proper component architecture with TypeScript, and ensure responsive design. NO placeholder content, NO 'coming soon' text, NO empty states without real functionality.",
-            "acceptanceCriteria": [
-              "All components follow modern design patterns with proper Tailwind CSS usage",
-              "Interactive elements have proper hover states using Tailwind hover: classes",
-              "Animations and transitions implemented with Tailwind transition and animate classes",
-              "Responsive design across all breakpoints using Tailwind responsive prefixes",
-              "Visual hierarchy clearly established with proper spacing and typography",
-              "Components properly typed with TypeScript interfaces",
-              "No custom CSS conflicts with Tailwind CSS",
-              "All components render without errors and are fully functional"
-            ],
-            "estimatedLOC": 400,
-            "estimatedDuration": "3-6 hours",
-            "verification": {
-              "type": "ui_components_implementation",
-              "mandatory": true,
-              "action": "IMPLEMENT",
-              "commands": [
-                "npx tsc --noEmit",
-                "npm run build",
-                "npm run dev",
-                "find components/ -name '*.tsx' | head -5",
-                "grep -r 'className.*hover:' components/ || echo 'No hover states found'",
-                "grep -r 'transition' components/ || echo 'No transitions found'"
-              ],
-              "expectedState": "UI components implemented with modern design patterns",
-              "proofRequired": {
-                "format": "terminal_output",
-                "mustInclude": [
-                  "0 errors",
-                  "build",
-                  "components",
-                  "hover:",
-                  "transition"
-                ]
-              }
-            },
-            "constitutionalCompliance": "Modern UI Gate",
-            "parallelizable": true
-          },
           {
             "id": "TASK-026",
             "title": "[TASK-026] CREATE Core Library Tests & SHOW Test Coverage",
             "tddPhase": "RED",
             "subPhase": "Test_Creation",
             "dependencies": [
-              "TASK-025",
-              "DESIGN-002"
+              "TASK-025"
             ],
             "description": "CREATE comprehensive unit tests for core business logic library covering all essential algorithms and functionality. SHOW test file count and test case count.",
             "acceptanceCriteria": "Core library test files created, all business logic scenarios covered, tests compile with 0 errors",
@@ -1744,9 +1566,9 @@
         ]
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (17 tasks)",
+        "title": "Phase 3: UI Development with Real APIs (15 tasks)",
         "description": "Implement UI components, design system, real API integration, and visual testing with atomic verification.",
-        "taskCount": 17,
+        "taskCount": 15,
         "tasks": [
           {
             "id": "TASK-046",
@@ -1783,53 +1605,12 @@
             "parallelizable": false
           },
           {
-            "id": "DESIGN-003",
-            "title": "Visual Enhancement and Polish",
-            "tddPhase": "Visual Polish",
-            "subPhase": "Enhancement",
-            "dependencies": [
-              "TASK-046"
-            ],
-            "description": "Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience. NO placeholder content, NO 'coming soon' pages, NO empty states without real functionality.",
-            "acceptanceCriteria": [
-              "Micro-interactions enhance user experience",
-              "Visual depth creates engaging interface",
-              "Smooth transitions implemented",
-              "Loading and error states styled",
-              "Overall design feels polished and professional"
-            ],
-            "estimatedLOC": 300,
-            "estimatedDuration": "2-3 hours",
-            "verification": {
-              "type": "visual_enhancement_implementation",
-              "mandatory": true,
-              "action": "IMPLEMENT",
-              "commands": [
-                "npx tsc --noEmit",
-                "npm run build",
-                "npm run dev"
-              ],
-              "expectedState": "Visual enhancements implemented with polish",
-              "proofRequired": {
-                "format": "terminal_output",
-                "mustInclude": [
-                  "0 errors",
-                  "build",
-                  "enhancement"
-                ]
-              }
-            },
-            "constitutionalCompliance": "Visual Polish Gate",
-            "parallelizable": true
-          },
-          {
             "id": "TASK-047",
             "title": "[TASK-047] CREATE Design System Tests",
             "tddPhase": "RED",
             "subPhase": "Test_Creation",
             "dependencies": [
-              "TASK-046",
-              "DESIGN-003"
+              "TASK-046"
             ],
             "description": "CREATE tests for design system foundation (colors, typography, spacing, themes). SHOW test files created.",
             "acceptanceCriteria": "Design system test files created, theme tests included, tests compile",
@@ -2294,20 +2075,20 @@
         ]
       },
       "phase4": {
-        "title": "Phase 4: Comprehensive Testing & Deployment (10 tasks)",
+        "title": "Phase 4: Comprehensive Testing & Deployment (12 tasks)",
         "description": "Execute all test suites, verify complete application, validate performance and security, prepare for production deployment with comprehensive proof requirements.",
-        "taskCount": 10,
+        "taskCount": 12,
         "tasks": [
           {
             "id": "TASK-061",
-            "title": "[TASK-061] EXECUTE Complete Test Suite & SHOW All Tests GREEN",
+            "title": "[TASK-061] EXECUTE Automated Test Suites Only & SHOW All Tests GREEN",
             "tddPhase": "Integration",
             "subPhase": "Complete_Testing",
             "dependencies": [
               "TASK-060"
             ],
-            "description": "EXECUTE ALL test suites (contract, unit, integration, E2E, visual) and CONFIRM all GREEN. PASTE complete test run showing 0 failures across all suites.",
-            "acceptanceCriteria": "All test suites executed, all tests pass (GREEN), 0 failures across contract+unit+integration+E2E+visual",
+            "description": "EXECUTE ALL automated test suites (contract, unit, integration, E2E, visual) and CONFIRM all GREEN. Manual verifications are EXCLUDED here and handled later.",
+            "acceptanceCriteria": "All automated suites pass (GREEN) with 0 failures across contract+unit+integration+E2E+visual. No manual steps claimed here.",
             "estimatedLOC": "100-150",
             "estimatedDuration": "45min",
             "verification": {
@@ -2368,47 +2149,45 @@
             "parallelizable": false
           },
           {
-            "id": "TASK-062.5",
-            "title": "[TASK-062.5] VERIFY Specification Compliance & DOCUMENT All Features",
+            "id": "TASK-063",
+            "title": "[TASK-063] CREATE Spec Traceability Matrix (Draft) & MAP Spec→Code/Tests",
             "tddPhase": "Integration",
             "subPhase": "Spec_Compliance_Verification",
             "dependencies": [
               "TASK-062"
             ],
-            "description": "VERIFY that EVERY feature from the original specification is implemented. CREATE a compliance checklist mapping each spec requirement to actual implementation. SHOW code evidence for each feature. NO claiming features exist without proof.",
-            "acceptanceCriteria": "Complete spec compliance checklist created, every feature verified with code evidence, all requirements implemented, no missing features",
+            "description": "CREATE a Spec Traceability Matrix (draft) that maps EACH spec requirement to the implementing code paths and corresponding tests. This is a DRAFT mapping artifact used for final audit in TASK-075.",
+            "acceptanceCriteria": "Traceability matrix created with 1:1 mapping from spec requirements → code (files/paths) → tests. Clear, complete, and unambiguous. No claims without references.",
             "estimatedLOC": "100-150",
             "estimatedDuration": "60min",
             "verification": {
-              "type": "spec_compliance_verification",
+              "type": "spec_traceability_matrix",
               "mandatory": true,
-              "action": "VERIFY_AND_DOCUMENT",
+              "action": "CREATE_AND_MAP",
               "commands": [
-                "cat SPEC-COMPLIANCE-CHECKLIST.md",
+                "cat SPEC-TRACEABILITY-MATRIX.md",
                 "grep -r 'TODO\\|FIXME\\|NOT IMPLEMENTED' src/ || echo 'No unimplemented features found'"
               ],
-              "expectedState": "All spec features implemented and verified with code evidence",
+              "expectedState": "Draft traceability matrix exists with spec→code→tests mappings",
               "proofRequired": {
-                "format": "documentation_with_code_evidence",
+                "format": "documentation_with_references",
                 "mustInclude": [
-                  "feature checklist",
-                  "code references",
-                  "implementation proof",
-                  "100% compliance"
+                  "spec requirement",
+                  "code path",
+                  "test reference",
+                  "mapping completeness"
                 ]
               },
               "forbiddenStates": [
-                "Any spec feature not implemented",
-                "Claims without code evidence",
+                "Claims without code or test references",
                 "Missing features marked as 'TODO' or 'coming soon'",
                 "Placeholder implementations for spec requirements",
-                "Features described but not actually built"
+                "Features described but not mapped"
               ],
               "mandatoryChecks": [
-                "Every functional requirement from spec has working implementation",
-                "Every API endpoint from spec is implemented",
-                "Every UI feature from spec is built and functional",
-                "Code evidence provided for each feature claim",
+                "Every functional requirement from spec has a code mapping",
+                "Every requirement has at least one test reference",
+                "Mappings point to real files/paths",
                 "No 'TODO', 'FIXME', or 'NOT IMPLEMENTED' comments in production code"
               ]
             },
@@ -2416,12 +2195,12 @@
             "parallelizable": false
           },
           {
-            "id": "TASK-063",
-            "title": "[TASK-063] EXECUTE Manual Smoke Test of Critical User Journeys & DOCUMENT Results",
+            "id": "TASK-064",
+            "title": "[TASK-064] EXECUTE Manual Smoke Test of Critical User Journeys & DOCUMENT Results",
             "tddPhase": "E2E",
             "subPhase": "Manual_Testing",
             "dependencies": [
-              "TASK-062.5"
+              "TASK-063"
             ],
             "description": "EXECUTE manual smoke testing of 3-5 critical user journeys. DOCUMENT each journey with steps taken and results. PASTE documentation.",
             "acceptanceCriteria": "3-5 critical user journeys tested manually, all journeys successful, documentation complete with steps and screenshots",
@@ -2450,8 +2229,8 @@
             "parallelizable": false
           },
           {
-            "id": "TASK-064",
-            "title": "[TASK-064] EXECUTE Performance Tests & SHOW Benchmarks Met",
+            "id": "TASK-065",
+            "title": "[TASK-065] EXECUTE Performance Tests & SHOW Benchmarks Met",
             "tddPhase": "Integration",
             "subPhase": "Performance_Testing",
             "dependencies": [
@@ -2484,8 +2263,8 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-065",
-            "title": "[TASK-065] EXECUTE Security Tests & SHOW No Vulnerabilities",
+            "id": "TASK-066",
+            "title": "[TASK-066] EXECUTE Security Tests & SHOW No Vulnerabilities",
             "tddPhase": "Integration",
             "subPhase": "Security_Testing",
             "dependencies": [
@@ -2517,8 +2296,8 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-066",
-            "title": "[TASK-066] EXECUTE Accessibility Tests & SHOW WCAG Compliance",
+            "id": "TASK-067",
+            "title": "[TASK-067] EXECUTE Accessibility Tests & SHOW WCAG Compliance",
             "tddPhase": "Integration",
             "subPhase": "Accessibility_Testing",
             "dependencies": [
@@ -2550,149 +2329,175 @@
             "parallelizable": true
           },
           {
-            "id": "TASK-067",
-            "title": "[TASK-067] EXECUTE Project Cleanup & SHOW Structure Validated",
-            "tddPhase": "Implementation",
-            "subPhase": "Project_Cleanup",
+            "id": "TASK-068",
+            "title": "[TASK-068] VALIDATE Code Quality (Compile+Lint+Unit Summary) & SHOW Standards Met",
+            "tddPhase": "SMOKE",
+            "subPhase": "Code_Quality_Verification",
             "dependencies": [
               "TASK-061"
             ],
-            "description": "EXECUTE project cleanup (remove empty folders, legacy code, unused dependencies). SHOW clean project structure validated.",
-            "acceptanceCriteria": "Empty folders removed, legacy code cleaned, unused dependencies removed, project structure clean and validated",
-            "estimatedLOC": "100-150",
+            "description": "VALIDATE code quality by executing compile, lint, and a UNIT TEST PASS SUMMARY. This is broader than compile-only checks in earlier phases.",
+            "acceptanceCriteria": "Compilation 0 errors, lint passes, unit tests GREEN (summary with 0 failed).",
+            "estimatedLOC": "50-75",
             "estimatedDuration": "30min",
             "verification": {
-              "type": "cleanup_verification",
+              "type": "code_quality_validation",
               "mandatory": true,
-              "action": "EXECUTE",
+              "action": "VALIDATE",
               "commands": [
-                "find . -type d -empty",
+                "npx tsc --noEmit",
+                "npm run build",
                 "npm run lint",
-                "npm prune"
+                "npm test -- --reporter=list"
               ],
-              "expectedState": "No empty folders, linting passes, no unused dependencies",
+              "expectedState": "Code quality validated with all standards met",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
-                  "no empty",
+                  "0 errors",
+                  "build",
                   "lint",
-                  "prune"
+                  "0 failed"
                 ]
               }
             },
-            "constitutionalCompliance": "✅ Simplicity Gate with clean structure",
-            "parallelizable": false
-          },
-          {
-            "id": "TASK-068",
-            "title": "[TASK-068] GENERATE Test Coverage Report & SHOW ≥90% Coverage",
-            "tddPhase": "Integration",
-            "subPhase": "Coverage_Verification",
-            "dependencies": [
-              "TASK-061"
-            ],
-            "description": "GENERATE comprehensive test coverage report. PASTE results showing ≥90% coverage across all modules.",
-            "acceptanceCriteria": "Coverage report generated, coverage ≥90% for statements/branches/functions/lines",
-            "estimatedLOC": "50-75",
-            "estimatedDuration": "15min",
-            "verification": {
-              "type": "coverage_report_generation",
-              "mandatory": true,
-              "action": "GENERATE",
-              "commands": [
-                "timeout 120s npm test -- --coverage --coverageReporters=text-summary || echo 'Test timeout after 120s'"
-              ],
-              "expectedState": "Coverage ≥90% for all metrics",
-              "proofRequired": {
-                "format": "terminal_output",
-                "mustInclude": [
-                  "coverage",
-                  "90%",
-                  "statements",
-                  "branches"
-                ]
-              }
-            },
-            "constitutionalCompliance": "✅ Test coverage verification",
+            "constitutionalCompliance": "✅ Code quality verification",
             "parallelizable": false
           },
           {
             "id": "TASK-069",
-            "title": "[TASK-069] CREATE Final Sign-off Documentation & SHOW All Proof Attached",
-            "tddPhase": "Documentation",
-            "subPhase": "Final_Documentation",
+            "title": "[TASK-069] CONFIRM Functionality (Manual Journeys) & SHOW Real UX Working",
+            "tddPhase": "SMOKE",
+            "subPhase": "Functionality_Verification",
             "dependencies": [
-              "TASK-063",
-              "TASK-064",
-              "TASK-065",
-              "TASK-066",
-              "TASK-067",
               "TASK-068"
             ],
-            "description": "CREATE comprehensive final sign-off document with ALL proof from previous tasks attached (test results, performance benchmarks, security audit, accessibility report, coverage report). SHOW complete documentation.",
-            "acceptanceCriteria": "Sign-off document created with all proof attached, all verification results documented, ready for approval",
-            "estimatedLOC": "100-150",
+            "description": "CONFIRM functionality via MANUAL user journeys (3–5 flows). Attach screenshots or screen recordings. Do NOT rely on test runners here.",
+            "acceptanceCriteria": "3–5 manual journeys executed successfully; screenshots/recordings attached; issues documented.",
+            "estimatedLOC": "50-75",
             "estimatedDuration": "45min",
             "verification": {
-              "type": "documentation_completeness",
+              "type": "functionality_confirmation",
               "mandatory": true,
-              "action": "CREATE_AND_SHOW",
+              "action": "CONFIRM",
               "commands": [
-                "cat FINAL-SIGNOFF.md",
-                "ls -la test-results/",
-                "ls -la coverage/"
+                "npm run dev",
+                "curl -f http://localhost:3000/api/health || echo 'Health check failed'",
+                "ls -la screenshots/ || echo 'Provide screenshots or recordings of manual journeys'"
               ],
-              "expectedState": "Complete sign-off document with all proof attached",
+              "expectedState": "All functionality confirmed and working",
               "proofRequired": {
-                "format": "documentation",
+                "format": "mixed",
                 "mustInclude": [
-                  "test results",
-                  "performance",
-                  "security",
-                  "accessibility",
-                  "coverage"
+                  "dev",
+                  "health",
+                  "screenshots"
                 ]
               }
             },
-            "constitutionalCompliance": "✅ Complete documentation with proof trail",
+            "constitutionalCompliance": "✅ Functionality verification",
             "parallelizable": false
           },
           {
             "id": "TASK-070",
-            "title": "[TASK-070] EXECUTE Final Verification & CONFIRM Production Readiness",
-            "tddPhase": "E2E",
-            "subPhase": "Final_Sign_Off",
+            "title": "[TASK-070] VERIFY System Integration (UI→API→DB) & SHOW End-to-End Data Flow",
+            "tddPhase": "SMOKE",
+            "subPhase": "Integration_Verification",
             "dependencies": [
               "TASK-069"
             ],
-            "description": "EXECUTE final comprehensive verification: all tests GREEN, application running, performance met, security verified, accessibility compliant, documentation complete. CONFIRM production readiness with COMPLETE PROOF TRAIL.",
-            "acceptanceCriteria": "ALL PRECONDITIONS MET: All tests GREEN (0 failures), application starts successfully, performance benchmarks achieved, security verified (0 vulnerabilities), WCAG 2.1 AA compliant, coverage ≥90%, documentation complete with proof, production-ready",
-            "estimatedLOC": "100-150",
-            "estimatedDuration": "60min",
+            "description": "VERIFY system-level integration: demonstrate UI→API→DB roundtrip with captured HTTP request/response and persisted data proof. This is beyond subsystem integration in Phase 2.",
+            "acceptanceCriteria": "End-to-end data flow demonstrated (request→response captured, data persisted and readable), integration verified at system level.",
+            "estimatedLOC": "50-75",
+            "estimatedDuration": "30min",
             "verification": {
-              "type": "final_production_readiness",
+              "type": "integration_verification",
               "mandatory": true,
-              "action": "EXECUTE_AND_CONFIRM",
+              "action": "VERIFY",
               "commands": [
-                "timeout 120s bash -c 'npm test' || echo 'Test timeout after 120s'",
-                "timeout 60s bash -c 'npm run build' || echo 'Build timeout after 60s'",
-                "npm start & sleep 5 && curl http://localhost:3000/api/health && pkill -f 'npm start'",
-                "npm audit",
-                "cat FINAL-SIGNOFF.md"
+                "npm run dev",
+                "curl -sS http://localhost:3000/api/health || echo 'Health check failed'",
+                "echo 'Capture HTTP request/response and show persisted data evidence'"
               ],
-              "expectedState": "ALL SYSTEMS GREEN: Tests pass, build succeeds, app runs, health check 200 OK, 0 vulnerabilities, documentation complete",
+              "expectedState": "System integration verified with captured requests/responses and persisted data",
               "proofRequired": {
-                "format": "complete_verification_suite",
+                "format": "mixed",
                 "mustInclude": [
-                  "all tests pass",
-                  "build success",
-                  "200 OK",
-                  "0 vulnerabilities",
-                  "documentation"
+                  "request",
+                  "response",
+                  "persisted data"
                 ]
               }
             },
-            "constitutionalCompliance": "✅ COMPLETE PROJECT VERIFICATION - PRODUCTION READY WITH PROOF",
+            "constitutionalCompliance": "✅ Integration verification",
+            "parallelizable": false
+          },
+          {
+            "id": "TASK-071",
+            "title": "[TASK-071] VERIFY Spec Compliance & SHOW All Requirements Met",
+            "tddPhase": "SMOKE",
+            "subPhase": "Spec_Compliance_Verification",
+            "dependencies": [
+              "TASK-070"
+            ],
+            "description": "VERIFY EVERY feature from specification is implemented with code evidence. SHOW spec requirements against actual implementation with code references.",
+            "acceptanceCriteria": "All spec requirements implemented, code evidence provided for each feature, compliance verified",
+            "estimatedLOC": "100-150",
+            "estimatedDuration": "60min",
+            "verification": {
+              "type": "spec_compliance_verification",
+              "mandatory": true,
+              "action": "VERIFY",
+              "commands": [
+                "grep -r 'TODO\\|FIXME\\|placeholder' src/ || echo 'No placeholders found'",
+                "find src/ -name '*.ts' -o -name '*.tsx' | wc -l",
+                "npm run build"
+              ],
+              "expectedState": "Spec compliance verified with all requirements met",
+              "proofRequired": {
+                "format": "terminal_output",
+                "mustInclude": [
+                  "placeholders",
+                  "src/",
+                  "build"
+                ]
+              }
+            },
+            "constitutionalCompliance": "✅ Spec compliance verification",
+            "parallelizable": false
+          },
+          {
+            "id": "TASK-072",
+            "title": "[TASK-072] VERIFY Design System Quality & SHOW All Components Render",
+            "tddPhase": "SMOKE",
+            "subPhase": "Design_Quality_Verification",
+            "dependencies": [
+              "TASK-071"
+            ],
+            "description": "VERIFY Tailwind CSS is working properly, no circular dependencies, and all components render correctly. SHOW design system quality verification.",
+            "acceptanceCriteria": "Design system working properly, no circular dependencies, all components render correctly",
+            "estimatedLOC": "50-75",
+            "estimatedDuration": "30min",
+            "verification": {
+              "type": "design_quality_verification",
+              "mandatory": true,
+              "action": "VERIFY",
+              "commands": [
+                "grep -r '@tailwind' src/ || echo 'Tailwind imports missing'",
+                "npm run build",
+                "npm run dev"
+              ],
+              "expectedState": "Design system quality verified with all components rendering",
+              "proofRequired": {
+                "format": "terminal_output",
+                "mustInclude": [
+                  "@tailwind",
+                  "build",
+                  "dev"
+                ]
+              }
+            },
+            "constitutionalCompliance": "✅ Design system quality verification",
             "parallelizable": false
           }
         ]

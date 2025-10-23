@@ -2,13 +2,12 @@
  * SDD Tasks Tool - Generates comprehensive task breakdown from feature plan
  * 
  * This tool creates a detailed task breakdown with:
- * - 70 atomic tasks across 4 phases (25+20+15+10)
+ * - 79 atomic tasks across 4 phases
  * - TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration
  * - Explicit verification requirements for each task
  * - Constitutional gate compliance tracking
  * - Duration estimation and project planning capabilities
- * - Identifies parallel execution opportunities (60-70% of tasks can run concurrently)
- * - Includes 45 atomic tasks across 4 phases with Implement-Run-Verify pattern
+ * - Identifies parallel execution opportunities
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -34,7 +33,7 @@ export class SDDTasksTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_tasks',
-      description: 'Generate task breakdown from the most recent feature specification. Creates Markdown file with all 73 tasks (70 + 3 design tasks). Automatically detects platform and uses latest feature from database. No parameters needed.',
+      description: 'Generate task breakdown from the most recent feature specification. Creates Markdown with all 72 tasks across four phases. Automatically detects platform and uses latest feature from database. No parameters needed.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -87,7 +86,7 @@ export class SDDTasksTool {
 📊 PROJECT DETAILS:
 - Feature: ${templateWithInstructions.metadata?.generatedFrom || 'Latest feature'}
 - Platform: ${templateWithInstructions.metadata?.platform || 'web'}
-- Total Tasks: 73 tasks (70 implementation + 3 design tasks)
+- Total Tasks: ${templateWithInstructions.metadata?.totalTasks || 79} tasks
 - Phases: 4 phases with atomic task structure
 
 🎯 TASK GENERATION FOCUS:
@@ -104,27 +103,10 @@ Create tasks.md with this comprehensive structure:
 ## 📊 Metadata
 - **Generated**: [template_data.metadata.generated]
 - **Platform**: [template_data.metadata.platform]
-- **Total Tasks**: 73 (70 implementation + 3 design)
+- **Total Tasks**: [template_data.metadata.totalTasks]
 - **Status**: [template_data.metadata.status]
 
-🚨 CRITICAL: Phase headers MUST be EXACTLY this format (no emojis, no task counts):
-## Phase 1: Foundations
-## Phase 2: Core Implementation
-## Phase 3: UI Development
-## Phase 4: Testing & Deployment
-### 🎨 Design Tasks
-### DESIGN-001: [template_data.designTasks[0].title]
-- **Description**: [template_data.designTasks[0].description]
-**TDD Phase**: [template_data.designTasks[0].tddPhase]
-**Sub Phase**: [template_data.designTasks[0].subPhase]
-- **Dependencies**: [template_data.designTasks[0].dependencies]
-- **Requirements**: [template_data.designTasks[0].requirements]
-**Acceptance Criteria**: [template_data.designTasks[0].acceptanceCriteria]
-**Estimated Duration**: [template_data.designTasks[0].estimatedDuration]
-**Estimated LOC**: [template_data.designTasks[0].estimatedLOC]
-**Constitutional Compliance**: [template_data.designTasks[0].constitutionalCompliance]
-**Parallelizable**: [template_data.designTasks[0].parallelizable]
-**Verification**: [template_data.designTasks[0].verification]
+🚨 CRITICAL: Use phase titles EXACTLY as provided in template_data.taskPhases[*].title (do not alter wording).
 
 ### 📋 Implementation Tasks
 ### TASK-001: [template_data.taskPhases.phase1.tasks[0].title]
@@ -140,27 +122,19 @@ Create tasks.md with this comprehensive structure:
 **Parallelizable**: [template_data.taskPhases.phase1.tasks[0].parallelizable]
 **Verification**: [template_data.taskPhases.phase1.tasks[0].verification]
 
-[Repeat this pattern for ALL 73 tasks using the template data above - tasks are in arrays, not objects]
+[Repeat this pattern for ALL ${templateWithInstructions.metadata?.totalTasks || 79} tasks using the template data above - tasks are in arrays, not objects]
 
-## Phase 2: Core Implementation
-### 🎨 Design Tasks
-### DESIGN-002: [template_data.designTasks[1].title]
-[Use template_data.designTasks[1].* properties with correct format: ### DESIGN-002: title, then **Property**: value format]
-
+## [template_data.taskPhases.phase2.title]
 ### 📋 Implementation Tasks
 [Use template_data.taskPhases.phase2.tasks[0] to tasks[20] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]
 
-## Phase 3: UI Development
-### 🎨 Design Tasks
-### DESIGN-003: [template_data.designTasks[2].title]
-[Use template_data.designTasks[2].* properties with correct format: ### DESIGN-003: title, then **Property**: value format]
-
+## [template_data.taskPhases.phase3.title]
 ### 📋 Implementation Tasks
 [Use template_data.taskPhases.phase3.tasks[0] to tasks[15] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]
 
-## Phase 4: Testing & Deployment
+## [template_data.taskPhases.phase4.title]
 ### 📋 Implementation Tasks
-[Use template_data.taskPhases.phase4.tasks[0] to tasks[9] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]
+[Use template_data.taskPhases.phase4.tasks[0] to tasks[15] array elements with correct format: ### TASK-XXX: title, then **Property**: value format]
 
 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE tasks.md FILE NOW
 1. Create file: specs/tasks.md
@@ -176,7 +150,7 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
         const outputData = {
           success: true,
           nextStep: successMessage,
-          taskCount: 73
+          taskCount: templateWithInstructions.metadata?.totalTasks || 79
         };
         return outputData;
     } catch (error) {
@@ -223,15 +197,15 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
    * Prepare tasks template from database with caching
    */
   private async prepareTasksTemplate(): Promise<any> {
-    const cacheKey = 'sdd-tasks-atomic-v5';
+    const cacheKey = 'sdd-tasks-atomic-v6';
     
     // Check cache first
     if (this.templateCache.has(cacheKey)) {
       return this.templateCache.get(cacheKey);
     }
 
-    // Get the 70-task template from database
-    const templateData = await this.db.get_task_template_robust('sdd-tasks-atomic-v5');
+    // Get the latest 79-task template from database
+    const templateData = await this.db.get_task_template_robust('sdd-tasks-atomic-v6');
     
     if (!templateData) {
       throw new Error('Tasks template not found in database. Please run sdd_specify first to install templates.');
@@ -258,9 +232,6 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
     try {
       const platform = this.detectPlatformFromSpec(specData);
       
-      // Generate design tasks
-      const designTasks = this.generateDesignTasks(platform, specData);
-      
       // Fill template with actual data
       const filledTemplate = {
         ...template,
@@ -269,18 +240,18 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
           generated: new Date().toISOString().split('T')[0],
           status: 'Draft',
           phaseProfile: '4-phase-atomic-verified-with-design',
-          totalTasks: 73, // 70 + 3 design tasks
-          phase1Tasks: 26, // 25 + 1 design task
-          phase2Tasks: 21, // 20 + 1 design task
-          phase3Tasks: 16, // 15 + 1 design task
-          phase4Tasks: 10,
+          totalTasks: template.metadata?.totalTasks || 72,
+          phase1Tasks: template.taskPhases?.phase1?.taskCount || 25,
+          phase2Tasks: template.taskPhases?.phase2?.taskCount || 20,
+          phase3Tasks: template.taskPhases?.phase3?.taskCount || 15,
+          phase4Tasks: template.taskPhases?.phase4?.taskCount || 12,
           platform: platform,
           generatedFrom: `database (${specData.metadata?.name || 'unknown'})`,
-          designTasksIncluded: true,
-          designTasksCount: designTasks.length
+          designTasksIncluded: !!template.designTasks,
+          designTasksCount: Array.isArray(template.designTasks) ? template.designTasks.length : Object.keys(template.designTasks || {}).length
         },
-        // Add design tasks to the template
-        designTasks: designTasks
+        // Preserve template-provided design tasks verbatim
+        designTasks: template.designTasks
       };
 
       return filledTemplate;
@@ -290,203 +261,7 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
     }
   }
 
-  /**
-   * Generate design-specific tasks based on platform and requirements
-   */
-  private generateDesignTasks(platform: string, specData: any): any[] {
-    const designTasks = [];
-    
-    // Design System Tasks (Phase 1)
-    designTasks.push({
-      id: 'DESIGN-001',
-      title: 'Design System Foundation Setup',
-      description: 'Set up comprehensive design system with modern UI patterns, color schemes, typography, and component library',
-      phase: 1,
-      tddPhase: 'Design System',
-      subPhase: 'Foundation',
-      requirements: [
-        'Modern color palette with proper contrast ratios',
-        'Professional typography hierarchy',
-        'Design tokens for spacing, colors, and effects',
-        'Component library architecture',
-        'Visual design guidelines'
-      ],
-      acceptanceCriteria: [
-        'Design system documented and implemented',
-        'Color palette meets WCAG accessibility standards',
-        'Typography hierarchy established',
-        'Component library structure created',
-        'Design tokens system implemented'
-      ],
-      estimatedDuration: '2-4 hours',
-      estimatedLOC: 200,
-      constitutionalCompliance: 'Design System Gate',
-      parallelizable: true
-    });
-
-    // Advanced UI Components (Phase 2)
-    designTasks.push({
-      id: 'DESIGN-002',
-      title: 'Modern UI Components Implementation',
-      description: 'Implement sophisticated UI components with modern design patterns, animations, and interactions',
-      phase: 2,
-      tddPhase: 'UI Components',
-      subPhase: 'Modern Design',
-      requirements: [
-        'Card-based layouts with shadows and gradients',
-        'Interactive elements with hover states',
-        'Modern button designs with animations',
-        'Sophisticated form styling',
-        'Professional navigation patterns'
-      ],
-      acceptanceCriteria: [
-        'All components follow modern design patterns',
-        'Interactive elements have proper hover states',
-        'Animations and transitions implemented',
-        'Responsive design across all breakpoints',
-        'Visual hierarchy clearly established'
-      ],
-      estimatedDuration: '3-6 hours',
-      estimatedLOC: 400,
-      constitutionalCompliance: 'Modern UI Gate',
-      parallelizable: true
-    });
-
-    // Visual Enhancement Tasks (Phase 3)
-    designTasks.push({
-      id: 'DESIGN-003',
-      title: 'Visual Enhancement and Polish',
-      description: 'Apply visual enhancements, micro-interactions, and design polish to create sophisticated user experience',
-      phase: 3,
-      tddPhase: 'Visual Polish',
-      subPhase: 'Enhancement',
-      requirements: [
-        'Micro-interactions and animations',
-        'Visual depth with shadows and layering',
-        'Smooth transitions between states',
-        'Loading states and feedback',
-        'Error state styling'
-      ],
-      acceptanceCriteria: [
-        'Micro-interactions enhance user experience',
-        'Visual depth creates engaging interface',
-        'Smooth transitions implemented',
-        'Loading and error states styled',
-        'Overall design feels polished and professional'
-      ],
-      estimatedDuration: '2-3 hours',
-      estimatedLOC: 300,
-      constitutionalCompliance: 'Visual Polish Gate',
-      parallelizable: true
-    });
-
-    return designTasks;
-  }
-
-  /**
-   * Generate Markdown file directly from template data
-   */
-  private generateMarkdownFile(templateData: any): string {
-    let markdown = `# SDD Tasks Breakdown\n\n`;
-    markdown += `**Generated**: ${templateData.metadata?.generated || new Date().toISOString().split('T')[0]}\n`;
-    markdown += `**Platform**: ${templateData.metadata?.platform || 'web'}\n`;
-    markdown += `**Total Tasks**: ${templateData.metadata?.totalTasks || 70}\n`;
-    markdown += `**Status**: ${templateData.metadata?.status || 'Draft'}\n\n`;
-
-    // Generate phase sections
-    Object.keys(templateData.taskPhases || {}).forEach(phaseKey => {
-      const phase = templateData.taskPhases[phaseKey];
-      if (phase.tasks && Array.isArray(phase.tasks)) {
-        markdown += `## ${phase.title}\n\n`;
-        markdown += `${phase.description}\n\n`;
-        
-        // Add design tasks for this phase if they exist
-        const phaseDesignTasks = templateData.designTasks?.filter((task: any) => task.phase === parseInt(phaseKey.replace('phase', ''))) || [];
-        if (phaseDesignTasks.length > 0) {
-          markdown += `### 🎨 Design Tasks\n\n`;
-          phaseDesignTasks.forEach((task: any) => {
-            markdown += `#### ${task.id}: ${task.title}\n\n`;
-            markdown += `- **Description**: ${task.description}\n`;
-            markdown += `- **TDD Phase**: ${task.tddPhase}\n`;
-            markdown += `- **Sub Phase**: ${task.subPhase}\n`;
-            markdown += `- **Dependencies**: None\n`;
-            markdown += `- **Requirements**: ${task.requirements?.join(', ') || 'Design system implementation'}\n`;
-            markdown += `- **Acceptance Criteria**: ${task.acceptanceCriteria?.join(', ') || 'Design requirements met'}\n`;
-            markdown += `- **Estimated Duration**: ${task.estimatedDuration}\n`;
-            markdown += `- **Estimated LOC**: ${task.estimatedLOC}\n`;
-            markdown += `- **Constitutional Compliance**: ${task.constitutionalCompliance}\n`;
-            markdown += `- **Parallelizable**: ${task.parallelizable ? 'Yes' : 'No'}\n`;
-            markdown += `- **Verification**: Design implementation verified and tested\n\n`;
-          });
-        }
-        
-        markdown += `### 📋 Implementation Tasks\n\n`;
-        phase.tasks.forEach((task: any, index: number) => {
-          markdown += `### ${task.id}: ${task.title}\n\n`;
-          markdown += `**TDD Phase**: ${task.tddPhase}\n`;
-          markdown += `**Sub Phase**: ${task.subPhase}\n`;
-          markdown += `**Dependencies**: ${task.dependencies?.join(', ') || 'None'}\n`;
-          markdown += `**Estimated LOC**: ${task.estimatedLOC}\n`;
-          markdown += `**Estimated Duration**: ${task.estimatedDuration}\n\n`;
-          
-          markdown += `**Description**:\n${task.description}\n\n`;
-          markdown += `**Acceptance Criteria**:\n${task.acceptanceCriteria}\n\n`;
-          
-          if (task.verification) {
-            markdown += `**Verification**:\n`;
-            if (typeof task.verification === 'object') {
-              markdown += `- Type: ${task.verification.type}\n`;
-              markdown += `- Action: ${task.verification.action}\n`;
-              markdown += `- Expected State: ${task.verification.expectedState}\n`;
-              if (task.verification.commands) {
-                markdown += `- Commands:\n`;
-                task.verification.commands.forEach((cmd: string) => {
-                  markdown += `  \`${cmd}\`\n`;
-                });
-              }
-            } else {
-              markdown += `- ${task.verification}\n`;
-            }
-            markdown += `\n`;
-          }
-          
-          markdown += `**Constitutional Compliance**: ${task.constitutionalCompliance}\n`;
-          markdown += `**Parallelizable**: ${task.parallelizable ? 'Yes' : 'No'}\n\n`;
-          markdown += `---\n\n`;
-        });
-      }
-    });
-
-    // Add constitutional gates
-    if (templateData.constitutionalGates) {
-      markdown += `## Constitutional Gates\n\n`;
-      Object.keys(templateData.constitutionalGates).forEach(gateKey => {
-        const gate = templateData.constitutionalGates[gateKey];
-        markdown += `### ${gate.title}\n`;
-        markdown += `${gate.description}\n`;
-        markdown += `**Check**: ${gate.check}\n`;
-        markdown += `**Platforms**: ${gate.platforms?.join(', ')}\n\n`;
-      });
-    }
-
-    // Add definition of done
-    if (templateData.definitionOfDone) {
-      markdown += `## Definition of Done\n\n`;
-      Object.keys(templateData.definitionOfDone).forEach(sectionKey => {
-        const section = templateData.definitionOfDone[sectionKey];
-        markdown += `### ${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}\n`;
-        if (Array.isArray(section)) {
-          section.forEach(item => {
-            markdown += `- ${item}\n`;
-          });
-        }
-        markdown += `\n`;
-      });
-    }
-
-    
-    return markdown;
-  }
+  
 
   /**
    * Detect platform from specification data with caching and optimization

@@ -1,6 +1,6 @@
 {
-  "name": "@asimsinan/sdd-mcp-server",
-  "version": "2.7.7",
+  "name": "ai-sdd-mcp",
+  "version": "3.0.14",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",
@@ -16,8 +16,8 @@
     "build:complete": "npm run build:lib && npm run copy-template-to-dist && npm run create-prefilled-db",
     "dev:lib": "tsc --watch",
     "start:lib": "node dist/index.js",
-    "install:global": "npm run build:complete && npm pack && npm install -g asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz && rm asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz",
-    "reinstall:global": "npm run build:complete && npm pack && npm uninstall -g sdd-mcp && npm install -g asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz && rm asimsinan-sdd-mcp-server-$(node -p \"require('./package.json').version\").tgz",
+    "install:global": "npm run build:complete && npm pack && npm install -g ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz && rm ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz",
+    "reinstall:global": "npm run build:complete && npm pack && npm uninstall -g sdd-mcp && npm install -g ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz && rm ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz",
     "update:global": "./scripts/update-global.sh",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -47,7 +47,6 @@
   },
   "files": [
     "dist/",
-    "src/",
     "scripts/",
     "package.json",
     "README.md",
@@ -136,8 +135,5 @@
       "json",
       "node"
     ]
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   }
 }

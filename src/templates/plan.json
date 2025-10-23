@@ -1,8 +1,8 @@
 {
   "id": "sdd-plan-perfect-v1",
-  "name": "SDD Plan Template (Atomic 73-Task Structure)",
+  "name": "SDD Plan Template (Atomic 72-Task Structure)",
   "version": "3.0.0",
-  "description": "Ultra-condensed implementation plan template focused on HOW to implement (not WHAT to implement). Plan-specific content only - no duplication with specification data. Atomic 73-task structure with implementation approach, phases, and structure.",
+  "description": "Ultra-condensed implementation plan template focused on HOW to implement (not WHAT to implement). Plan-specific content only - no duplication with specification data. Atomic 72-task structure with implementation approach, phases, and structure.",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
@@ -40,31 +40,31 @@
       "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
     },
     "implementationPhases": {
-      "title": "Implementation Phases (Atomic 73-Task Structure with Mandatory Verification)",
+      "title": "Implementation Phases (Atomic 79-Task Structure with Mandatory Verification)",
       "taskApproach": "Atomic tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory proof requirements. RED-GREEN-REFACTOR-SMOKE pattern enforced.",
       "verificationFramework": "Every task requires proof of execution (terminal output, file counts, test results). Forbidden states prevent AI from gaming the system.",
       "timeoutConfiguration": "All test executions include timeouts to prevent AI hanging: Unit tests (60s), Integration tests (90s), Full test suite (120s), Build process (60s), Startup process (30s). Timeout messages indicate when processes exceed limits.",
       "phase1": {
-        "title": "Phase 1: Foundations & Data (27 tasks: TASK-001 to TASK-025 + DESIGN-001)",
+        "title": "Phase 1: Foundations & Data (25 tasks: TASK-001 to TASK-025)",
         "pattern": "CONTRACT (001-010) → RED (011-017) → GREEN (018-023) → SMOKE (024-025)",
         "content": "{{PHASE_1_FOUNDATIONS_DATA}}",
         "instruction": "Essential foundation work with atomic verification: API contracts (OpenAPI with validation proof), database setup (Prisma migrations with SQL shown), data models (TypeScript compilation with 0 errors). Each task requires proof: contracts must validate, tests must RED then GREEN, app must start and respond (200 OK). Pattern: Define contracts → Create tests (RED) → Implement code (GREEN) → Verify complete system (SMOKE)."
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (22 tasks: TASK-026 to TASK-045 + DESIGN-002)",
+        "title": "Phase 2: Core Implementation (20 tasks: TASK-026 to TASK-045)",
         "pattern": "Core Library (RED→GREEN) → Services (RED→GREEN) → Controllers (RED→GREEN) → Auth (RED→GREEN) → Integration → SMOKE",
         "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
         "instruction": "Core library, services, controllers, and authentication with RED-GREEN-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, compilation success. Final SMOKE test demonstrates all systems operational."
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (17 tasks: TASK-046 to TASK-060 + DESIGN-003)",
+        "title": "Phase 3: UI Development with Real APIs (15 tasks: TASK-046 to TASK-060)",
         "pattern": "Platform Setup → Design System (RED→GREEN) → Components (RED→GREEN) → Real API Integration (RED→GREEN) → Visual Testing → SMOKE",
         "content": "{{PHASE_3_UI_DEVELOPMENT_REAL_APIS}}",
         "instruction": "UI components with REAL API integration (NO MOCKS ALLOWED). Pattern: Configure platform → Design system (RED→GREEN) → Components (RED→GREEN) → Real API services (RED→GREEN with network proof) → Visual regression testing (screenshots shown) → Complete SMOKE test. Proof required: build success, real HTTP calls (grep count), network requests/responses shown, visual test screenshots generated."
       },
-      "phase4": {
-        "title": "Phase 4: Comprehensive Testing & Deployment (10 tasks: TASK-061 to TASK-070)",
-        "pattern": "Test All Suites → Verify Application → Performance → Security → Accessibility → Cleanup → Coverage → Documentation → Final Sign-off",
+        "phase4": {
+          "title": "Phase 4: Comprehensive Testing & Deployment (12 tasks: TASK-061 to TASK-074)",
+        "pattern": "Test All Suites → Verify Application → Performance → Security → Accessibility",
         "content": "{{PHASE_4_COMPREHENSIVE_TESTING_DEPLOYMENT}}",
         "instruction": "Complete testing and production readiness verification. ALL test suites executed (contract+unit+integration+E2E+visual) with 0 failures shown. Application startup demonstrated (200 OK required). Manual smoke tests documented (3-5 journeys). Performance benchmarks verified (load <3s, API <100ms). Security audit (0 vulnerabilities). Accessibility (WCAG 2.1 AA). Coverage ≥90%. Final sign-off with COMPLETE PROOF TRAIL. NO SHORTCUTS - every verification must be demonstrated."
       }
