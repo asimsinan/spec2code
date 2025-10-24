@@ -101,11 +101,11 @@ try {
 
 
   const verifyPlanStmt = db.prepare('SELECT COUNT(*) as count FROM plan_templates WHERE id = ?');
-  const planResult = verifyPlanStmt.get('sdd-plan-perfect-v1');
+  const planResult = verifyPlanStmt.get('sdd-plan-perfect-v2');
 
 
   const verifyTasksStmt = db.prepare('SELECT COUNT(*) as count FROM task_templates WHERE id = ?');
-  const tasksResult = verifyTasksStmt.get('sdd-tasks-atomic-v6');
+  const tasksResult = verifyTasksStmt.get('sdd-tasks-atomic-v9');
 
   if (specResult.count > 0  && planResult.count > 0 && tasksResult.count > 0) {
     console.log('✅ All templates verification successful');

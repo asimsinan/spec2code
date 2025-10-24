@@ -111,8 +111,8 @@ export class MarkdownTaskParser {
     for (let i = startLine; i < endLine; i++) {
       const line = lines[i];
 
-      // Check for task header (supports both ### and #### formats, includes DESIGN tasks)
-      const taskMatch = line.match(/^#{3,4} ((?:TASK|DESIGN)-\d+): (.+)$/);
+      // Check for task header (supports both ### and #### formats)
+      const taskMatch = line.match(/^#{3,4} (TASK-\d+): (.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -142,33 +142,23 @@ export class MarkdownTaskParser {
           currentTask.verification = line.replace('- **Verification**:', '').trim();
         } else if (line.startsWith('- **Status**:')) {
           currentTask.status = line.replace('- **Status**:', '').trim();
-        } else if (line.startsWith('**TDD Phase**:')) {
-          currentTask.tddPhase = line.replace('**TDD Phase**:', '').trim();
-        } else if (line.startsWith('**Sub Phase**:')) {
-          currentTask.subPhase = line.replace('**Sub Phase**:', '').trim();
-        } else if (line.startsWith('**Estimated LOC**:')) {
-          currentTask.estimatedLOC = line.replace('**Estimated LOC**:', '').trim();
-        } else if (line.startsWith('**Estimated Duration**:')) {
-          currentTask.estimatedDuration = line.replace('**Estimated Duration**:', '').trim();
-        } else if (line.startsWith('**Description**:')) {
-          // Get description from next line
-          if (i + 1 < lines.length) {
-            currentTask.description = lines[i + 1].trim();
-            i++; // Skip the description line
-          }
-        } else if (line.startsWith('**Acceptance Criteria**:')) {
-          // Get acceptance criteria from next line
-          if (i + 1 < lines.length) {
-            currentTask.acceptanceCriteria = lines[i + 1].trim();
-            i++; // Skip the acceptance criteria line
-          }
+        } else if (line.startsWith('**TDD Phase**:') || line.startsWith('- **TDD Phase**:')) {
+          currentTask.tddPhase = line.replace(/^-?\s*\*\*TDD Phase\*\*:\s*/, '').trim();
+        } else if (line.startsWith('**Sub Phase**:') || line.startsWith('- **Sub Phase**:')) {
+          currentTask.subPhase = line.replace(/^-?\s*\*\*Sub Phase\*\*:\s*/, '').trim();
+        } else if (line.startsWith('**Estimated LOC**:') || line.startsWith('- **Estimated LOC**:')) {
+          currentTask.estimatedLOC = line.replace(/^-?\s*\*\*Estimated LOC\*\*:\s*/, '').trim();
+        } else if (line.startsWith('**Estimated Duration**:') || line.startsWith('- **Estimated Duration**:')) {
+          currentTask.estimatedDuration = line.replace(/^-?\s*\*\*Estimated Duration\*\*:\s*/, '').trim();
+        } else if (line.startsWith('**Acceptance Criteria**:') || line.startsWith('- **Acceptance Criteria**:')) {
+          currentTask.acceptanceCriteria = line.replace(/^-?\s*\*\*Acceptance Criteria\*\*:\s*/, '').trim();
         } else if (line.startsWith('**Verification**:')) {
           // Parse verification section
           currentTask.verification = this.parseVerificationSection(lines, i);
-        } else if (line.startsWith('**Constitutional Compliance**:')) {
-          currentTask.constitutionalCompliance = line.replace('**Constitutional Compliance**:', '').trim();
-        } else if (line.startsWith('**Parallelizable**:')) {
-          const parallelizable = line.replace('**Parallelizable**:', '').trim();
+        } else if (line.startsWith('**Constitutional Compliance**:') || line.startsWith('- **Constitutional Compliance**:')) {
+          currentTask.constitutionalCompliance = line.replace(/^-?\s*\*\*Constitutional Compliance\*\*:\s*/, '').trim();
+        } else if (line.startsWith('**Parallelizable**:') || line.startsWith('- **Parallelizable**:')) {
+          const parallelizable = line.replace(/^-?\s*\*\*Parallelizable\*\*:\s*/, '').trim();
           currentTask.parallelizable = parallelizable === 'Yes';
         }
       }

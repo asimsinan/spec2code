@@ -1,8 +1,8 @@
 {
-  "id": "sdd-plan-perfect-v1",
-  "name": "SDD Plan Template (Atomic 72-Task Structure)",
-  "version": "3.0.0",
-  "description": "Ultra-condensed implementation plan template focused on HOW to implement (not WHAT to implement). Plan-specific content only - no duplication with specification data. Atomic 72-task structure with implementation approach, phases, and structure.",
+  "id": "sdd-plan-perfect-v2",
+  "name": "SDD Plan Template (AI-Driven Task Structure)",
+  "version": "4.0.0",
+  "description": "Implementation plan template focused on HOW to implement (not WHAT to implement)",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
@@ -40,33 +40,37 @@
       "enforcement": "This project structure is MANDATORY and must be followed exactly during implementation. Any deviation will result in implementation failure."
     },
     "implementationPhases": {
-      "title": "Implementation Phases (Atomic 79-Task Structure with Mandatory Verification)",
+      "title": "Implementation Phases (AI-Driven 72-Task Structure with Mandatory Verification)",
       "taskApproach": "Atomic tasks with explicit action verbs (EXECUTE, RUN, COMPILE, SHOW, CONFIRM) and mandatory proof requirements. RED-GREEN-REFACTOR-SMOKE pattern enforced.",
       "verificationFramework": "Every task requires proof of execution (terminal output, file counts, test results). Forbidden states prevent AI from gaming the system.",
       "timeoutConfiguration": "All test executions include timeouts to prevent AI hanging: Unit tests (60s), Integration tests (90s), Full test suite (120s), Build process (60s), Startup process (30s). Timeout messages indicate when processes exceed limits.",
+      "aiDrivenGeneration": "AI-driven platform-specific content generation with multi-source platform detection, compilation safety enforcement, and comprehensive task validation. Platform detection uses spec data, plan data, technology stack, user stories, and API endpoints for accurate platform identification with confidence scoring.",
+      "compilationSafety": "Every task includes compilation verification with platform-specific timeout protection: Web/Desktop/Backend (60s), Mobile (90s), AI (60s). All commands wrapped with timeout protection and error handling. Compilation safety validation ensures 0 errors before task completion.",
+      "taskValidation": "Comprehensive task validation with 100-point scoring system. Validates required fields, platform-specific content, compilation safety, and dependencies. Error penalties: -20 points per error, -5 points per warning. Tasks must achieve 85+ points for approval.",
       "phase1": {
-        "title": "Phase 1: Foundations & Data (25 tasks: TASK-001 to TASK-025)",
-        "pattern": "CONTRACT (001-010) → RED (011-017) → GREEN (018-023) → SMOKE (024-025)",
-        "content": "{{PHASE_1_FOUNDATIONS_DATA}}",
-        "instruction": "Essential foundation work with atomic verification: API contracts (OpenAPI with validation proof), database setup (Prisma migrations with SQL shown), data models (TypeScript compilation with 0 errors). Each task requires proof: contracts must validate, tests must RED then GREEN, app must start and respond (200 OK). Pattern: Define contracts → Create tests (RED) → Implement code (GREEN) → Verify complete system (SMOKE)."
+        "title": "Phase 1: Project Setup & Foundations (18 tasks: TASK-001 to TASK-018)",
+        "pattern": "CONTRACT (001-006) → RED (007-009) → GREEN (010-012) → REFACTOR (013-015) → SMOKE (016-018)",
+        "content": "{{PHASE_1_PROJECT_SETUP_FOUNDATIONS}}",
+        "instruction": "Essential foundation work with atomic verification: Project structure configuration, development environment setup, environment variables, OpenAPI contracts with validation proof, database engine setup with schema definition, data model classes with compilation proof. Each task requires proof: contracts must validate, tests must RED then GREEN, architectural review ensures proper structure, app must start and respond (200 OK). Pattern: Define contracts → Create tests (RED) → Implement code (GREEN) → Architectural review (REFACTOR) → Verify complete system (SMOKE)."
       },
       "phase2": {
-        "title": "Phase 2: Core Implementation (20 tasks: TASK-026 to TASK-045)",
-        "pattern": "Core Library (RED→GREEN) → Services (RED→GREEN) → Controllers (RED→GREEN) → Auth (RED→GREEN) → Integration → SMOKE",
+        "title": "Phase 2: Core Implementation (18 tasks: TASK-019 to TASK-036)",
+        "pattern": "Business Logic (RED→GREEN→REFACTOR) → Service Layer (RED→GREEN→REFACTOR) → Controllers (RED→GREEN→REFACTOR) → Integration → SMOKE",
         "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
-        "instruction": "Core library, services, controllers, and authentication with RED-GREEN-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, compilation success. Final SMOKE test demonstrates all systems operational."
+        "instruction": "Core business logic, service layer, controllers, and authentication with RED-GREEN-REFACTOR-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) → REFACTOR (architectural review, service boundaries, code quality) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, architectural validation, compilation success. Final SMOKE test demonstrates all systems operational."
       },
       "phase3": {
-        "title": "Phase 3: UI Development with Real APIs (15 tasks: TASK-046 to TASK-060)",
-        "pattern": "Platform Setup → Design System (RED→GREEN) → Components (RED→GREEN) → Real API Integration (RED→GREEN) → Visual Testing → SMOKE",
-        "content": "{{PHASE_3_UI_DEVELOPMENT_REAL_APIS}}",
-        "instruction": "UI components with REAL API integration (NO MOCKS ALLOWED). Pattern: Configure platform → Design system (RED→GREEN) → Components (RED→GREEN) → Real API services (RED→GREEN with network proof) → Visual regression testing (screenshots shown) → Complete SMOKE test. Proof required: build success, real HTTP calls (grep count), network requests/responses shown, visual test screenshots generated."
+        "title": "Phase 3: UI Development (18 tasks: TASK-037 to TASK-054)",
+        "pattern": "Platform Setup → Design System (RED→GREEN→REFACTOR) → App Structure → Components (RED→GREEN→REFACTOR) → API Service Layer (RED→GREEN→REFACTOR) → UI Integration → SMOKE",
+        "content": "{{PHASE_3_UI_DEVELOPMENT}}",
+        "instruction": "UI components with REAL API integration (NO MOCKS ALLOWED). Pattern: Configure frontend platform → Design system (RED→GREEN→REFACTOR) → Application structure setup → UI components (RED→GREEN→REFACTOR) → API service layer (RED→GREEN→REFACTOR) → UI-API integration with real data flow → Complete SMOKE test. Each component follows RED-GREEN-REFACTOR cycle with architectural review. Proof required: build success, real HTTP calls (grep count), network requests/responses shown, architectural validation, visual test screenshots generated."
       },
         "phase4": {
-          "title": "Phase 4: Comprehensive Testing & Deployment (12 tasks: TASK-061 to TASK-074)",
-        "pattern": "Test All Suites → Verify Application → Performance → Security → Accessibility",
-        "content": "{{PHASE_4_COMPREHENSIVE_TESTING_DEPLOYMENT}}",
-        "instruction": "Complete testing and production readiness verification. ALL test suites executed (contract+unit+integration+E2E+visual) with 0 failures shown. Application startup demonstrated (200 OK required). Manual smoke tests documented (3-5 journeys). Performance benchmarks verified (load <3s, API <100ms). Security audit (0 vulnerabilities). Accessibility (WCAG 2.1 AA). Coverage ≥90%. Final sign-off with COMPLETE PROOF TRAIL. NO SHORTCUTS - every verification must be demonstrated."
+          "title": "Phase 4: Testing, Documentation & Deployment (18 tasks: TASK-055 to TASK-072)",
+          "pattern": "Comprehensive Testing → Documentation → Performance Refactor → Security Refactor → Code Quality Refactor → Documentation Refactor → Production Build → Deployment → Final Verification",
+          "content": "{{PHASE_4_TESTING_DOCUMENTATION_DEPLOYMENT}}",
+          "instruction": "Complete testing, documentation, and production readiness verification with RED-GREEN-REFACTOR pattern per domain. Comprehensive Testing: ALL test suites executed with architectural review. Documentation: API docs, user guides, deployment instructions. Performance Refactor: optimization without behavior changes. Security Refactor: hardening without behavior changes. Code Quality Refactor: standards without functionality changes. Documentation Refactor: clarity without behavior changes. Production Build: optimized assets and configuration. Deployment: successful deployment with verification. Final verification with COMPLETE PROOF TRAIL. NO SHORTCUTS - every verification must be demonstrated with architectural compliance."
+        }
       }
     },
     "databaseStrategy": {
@@ -147,38 +151,48 @@
       }
     },
     "platformSpecificPlanning": {
-      "title": "Platform-Specific Planning",
-      "mobile": {
-        "title": "Mobile Platform Planning",
-        "content": "{{MOBILE_PLATFORM_PLANNING}}",
-        "instruction": "Plan mobile-specific features: native capabilities, offline strategy, performance targets, accessibility, security, store compliance."
+      "title": "AI-Driven Platform-Specific Planning",
+      "description": "AI-driven platform detection and platform-specific implementation considerations with compilation safety",
+      "platformDetection": {
+        "title": "Platform Detection Strategy",
+        "content": "{{PLATFORM_DETECTION_STRATEGY}}",
+        "instruction": "Multi-source platform detection using: specification data, plan data, technology stack, user stories, API endpoints. Confidence scoring (0-100%) with fallback mechanisms. Detected platforms: web, mobile, desktop, backend, ai with framework and language identification."
+      },
+      "compilationSafety": {
+        "title": "Compilation Safety Strategy",
+        "content": "{{COMPILATION_SAFETY_STRATEGY}}",
+        "instruction": "Platform-specific timeout protection: Web/Desktop/Backend (60s), Mobile (90s), AI (60s). Command wrapping with error handling. Compilation verification for all tasks. Safety validation with scoring system."
       },
       "web": {
-        "title": "Web Platform Planning",
+        "title": "Web Platform Planning (AI-Generated)",
         "content": "{{WEB_PLATFORM_PLANNING}}",
-        "instruction": "Plan web-specific features: progressive enhancement, responsive design, browser compatibility, performance optimization, accessibility."
+        "instruction": "AI-generated web-specific considerations: React/Vue/Angular framework detection, TypeScript/JavaScript language support, responsive design, browser compatibility, performance optimization, SEO, accessibility, progressive web app features. Compilation commands: npm run build, npx tsc --noEmit with timeout protection."
+      },
+      "mobile": {
+        "title": "Mobile Platform Planning (AI-Generated)", 
+        "content": "{{MOBILE_PLATFORM_PLANNING}}",
+        "instruction": "AI-generated mobile-specific considerations: React Native/Flutter framework detection, TypeScript/Dart language support, native performance, platform guidelines, app store requirements, offline capabilities, push notifications. Compilation commands: npx react-native bundle with 90s timeout protection."
       },
       "desktop": {
-        "title": "Desktop Platform Planning",
+        "title": "Desktop Platform Planning (AI-Generated)",
         "content": "{{DESKTOP_PLATFORM_PLANNING}}",
-        "instruction": "Plan desktop-specific features: OS integration, distribution strategy, performance optimization, accessibility, security."
+        "instruction": "AI-generated desktop-specific considerations: Electron/Tauri framework detection, TypeScript/Rust language support, native OS integration, performance optimization, system resources, auto-updater. Compilation commands: npx electron-builder with 60s timeout protection."
       },
       "backend": {
-        "title": "Backend Platform Planning",
+        "title": "Backend Platform Planning (AI-Generated)",
         "content": "{{BACKEND_PLATFORM_PLANNING}}",
-        "instruction": "Plan backend-specific features: API design, database design, monitoring strategy, security, performance, scalability."
+        "instruction": "AI-generated backend-specific considerations: Express/FastAPI framework detection, TypeScript/Python language support, scalability, security, monitoring, API design, database optimization. Compilation commands: npm run build, npm run test with 60s timeout protection."
       },
       "ai": {
-        "title": "AI Platform Planning",
+        "title": "AI Platform Planning (AI-Generated)",
         "content": "{{AI_PLATFORM_PLANNING}}",
-        "instruction": "Plan AI-specific features: data quality, model performance, reproducibility, ethics compliance, deployment strategy."
+        "instruction": "AI-generated AI-specific considerations: TensorFlow/PyTorch framework detection, Python/TypeScript language support, model training, inference optimization, API rate limiting, content moderation. Compilation commands: python -m pytest, python -m mypy with 60s timeout protection."
       }
     },
     "sddVersion": {
-      "version": "SDD-Cursor-2.0-Atomic-Condensed",
-      "generated": "2025-10-11",
-      "description": "Ultra-condensed implementation plan template focused on HOW to implement. Plan-specific content only - no duplication with specification data."
-    }
+    "version": "SDD-Cursor-4.0-AI-Driven Task Structure",
+    "generated": "2025-01-27",
+    "description": "AI-driven implementation plan template with platform detection, compilation safety, and task validation. Plan-specific content with AI-generated platform-specific considerations. Atomic 72-task structure with enhanced compilation safety and validation."
   },
   "is_active": true
 }

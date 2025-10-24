@@ -367,7 +367,7 @@
       "libraryFirstPrinciple": "Start as a standalone library (desktop/backend) or modular component (web/mobile/embedded)",
       "testFirstImperative": "No implementation before tests; sequence is Contract → Integration → E2E → Unit → Implementation",
       "integrationFirstTesting": "Prefer real dependencies (DBs/services). Mocks require written justification",
-      "simplicityConstraints": "≤ 5 projects at start; use framework features directly; document any complexity",
+      "simplicityConstraints": "≤ 10 projects at start; use framework features directly; document any complexity",
       "antiAbstraction": "One domain model (avoid DTO/Repository/Unit-of-Work unless truly necessary)",
       "traceability": "Every line of code must trace back to a numbered requirement (FR-XXX) in the spec"
     }

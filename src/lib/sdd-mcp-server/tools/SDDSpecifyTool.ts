@@ -26,7 +26,7 @@ export class SDDSpecifyTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'STEP 1: Call with input to generate specification template. STEP 2: Fill the template and call again with finalize=true, featureId, and specificationData to save. DO NOT call with finalize=true on first call!',
+      description: 'STEP 1: Generate specification template from feature description. STEP 2: After creating spec.md file, call with finalize=true to save to database. Creates spec.md file with comprehensive specification.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -50,7 +50,7 @@ export class SDDSpecifyTool {
           },
           finalize: {
             type: 'boolean',
-            description: 'Internal parameter - set to true when finalizing specification to save to database'
+            description: 'Set to true when finalizing specification to save to database (used after creating spec.md file)'
           },
           specificationData: {
             type: 'object',
