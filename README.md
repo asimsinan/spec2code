@@ -1,6 +1,6 @@
 # AI-SDD-MCP: Turn Ideas Into Code Automatically 🚀
 
-[![npm version](https://badge.fury.io/js/ai-sdd-mcp.svg)](https://badge.fury.io/js/ai-sdd-mcp)
+[![npm version](https://img.shields.io/npm/v/ai-sdd-mcp.svg)](https://www.npmjs.com/package/ai-sdd-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
