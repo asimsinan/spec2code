@@ -1,7 +1,6 @@
 {
   "id": "sdd-tasks-atomic-v9",
   "name": "SDD Atomic Tasks Template (Framework-Agnostic RED-GREEN-REFACTOR-SMOKE)",
-  undefined,
   "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system",
   "template_data": {
     "metadata": {
@@ -48,12 +47,35 @@
         "DEFINE",
         "WRITE"
       ],
-      "description": "Atomic 72-task structure with mandatory verification across four phases: Phase 1 (18 tasks), Phase 2 (18 tasks), Phase 3 (16 tasks), Phase 4 (18 tasks)"
+      "description": "Atomic 72-task structure with mandatory verification across four phases: Phase 1 (18 tasks), Phase 2 (18 tasks), Phase 3 (16 tasks), Phase 4 (18 tasks)",
+      "continuousExecutionPolicy": {
+        "enabled": true,
+        "mandatory": true,
+        "rules": [
+          "Complete ALL tasks in the current phase without stopping",
+          "Never ask for permission to continue between tasks",
+          "Never pause to show progress or summarize mid-phase",
+          "Move automatically from task to task without interruption",
+          "Only stop when ALL tasks in the phase are complete and verified",
+          "Do not ask user to say 'proceed' or 'continue'",
+          "Execute tasks in continuous, uninterrupted session"
+        ],
+        "prohibitedActions": [
+          "Asking for permission to continue",
+          "Pausing between tasks",
+          "Stopping to show progress",
+          "Summarizing mid-phase",
+          "Requesting user input",
+          "Saying 'proceed' or 'continue'"
+        ],
+        "enforcementLevel": "critical",
+        "violationConsequences": "Task execution must restart from beginning of phase"
+      }
     },
     "taskPhases": {
       "phase1": {
         "title": "Phase 1: Project Setup & Foundations (18 tasks)",
-        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review.",
+        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
         "taskCount": 18,
         "tasks": [
           {
@@ -710,7 +732,7 @@
       },
       "phase2": {
         "title": "Phase 2: Core Implementation (18 tasks)",
-        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification.",
+        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
         "taskCount": 18,
         "tasks": [
           {
@@ -1372,7 +1394,7 @@
       },
       "phase3": {
         "title": "Phase 3: UI Development (18 tasks)",
-        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification.",
+        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
         "taskCount": 18,
         "tasks": [
           {
@@ -2033,7 +2055,7 @@
       },
       "phase4": {
         "title": "Phase 4: Testing, Documentation & Deployment (18 tasks)",
-        "description": "Execute comprehensive testing, create documentation, and prepare for production deployment with atomic verification.",
+        "description": "Execute comprehensive testing, create documentation, and prepare for production deployment with atomic verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
         "taskCount": 18,
         "tasks": [
           {
