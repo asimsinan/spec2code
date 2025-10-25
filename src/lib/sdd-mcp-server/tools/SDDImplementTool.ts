@@ -374,6 +374,14 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
   - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
 
+**🚨 CRITICAL TEST FAILURE HANDLING**:
+- **NO TEST SKIPPING**: Never skip tests because they are "failing", "problematic", or "have issues"
+- **NO WORKING AROUND TEST FAILURES**: Never work around failing tests - fix them completely
+- **NO PARTIAL TEST ACCEPTANCE**: Never accept "some tests working" or "mostly working" - ALL tests must pass
+- **NO TIME EXCUSES FOR TESTS**: Never skip tests due to "limited time" or "time constraints"
+- **MANDATORY TEST FIXING**: When tests fail, you MUST fix the underlying issues, not skip the tests
+- **TEST FAILURE ANALYSIS**: Analyze test failures and fix the root cause, not the symptoms
+
 **TEST EXECUTION EXAMPLES**:
 \`\`\`bash
 # Correct - Actually execute tests and show results
@@ -383,6 +391,12 @@ npx jest --verbose
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
+
+# WRONG - Skipping tests due to failures
+# "I can see that the CampaignList tests have several issues... Since we have limited time..."
+
+# CORRECT - Fixing test failures
+# "The CampaignList tests are failing because... Let me fix these issues..."
 \`\`\`
 
 **🚨 CRITICAL PERMISSION REQUIREMENTS**:
@@ -418,6 +432,15 @@ sudo systemctl restart service
 - **COMPLETE ALL**: Only stop when ALL 72 tasks are complete and verified
 - **AUTOMATIC PROGRESSION**: Move from task to task without interruption
 - **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 ANTI-EVASION CONSTITUTIONAL GATES 🚨**:
+- **GATE 1**: NO TIME LIMIT EXCUSES - Never mention "limited time", "time constraints", or "running out of time"
+- **GATE 2**: NO DIFFICULTY ESCAPES - Never skip tasks because they are "complex", "challenging", or "difficult"
+- **GATE 3**: NO PARTIAL COMPLETION ACCEPTANCE - Never accept "good enough" or "mostly working" solutions
+- **GATE 4**: NO TEST SKIPPING - Never skip tests because they are "failing" or "problematic"
+- **GATE 5**: NO WORKING AROUND ISSUES - Never work around problems, always fix them completely
+- **GATE 6**: NO SUMMARY SUBSTITUTION - Never provide summaries instead of actual implementation
+- **GATE 7**: NO STATUS UPDATES AS COMPLETION - Never treat status updates as task completion
 
 **🚨 CRITICAL: DO NOT STOP UNTIL ALL 72 TASKS ARE COMPLETE!**
 
@@ -537,6 +560,14 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
   - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
 
+**🚨 CRITICAL TEST FAILURE HANDLING**:
+- **NO TEST SKIPPING**: Never skip tests because they are "failing", "problematic", or "have issues"
+- **NO WORKING AROUND TEST FAILURES**: Never work around failing tests - fix them completely
+- **NO PARTIAL TEST ACCEPTANCE**: Never accept "some tests working" or "mostly working" - ALL tests must pass
+- **NO TIME EXCUSES FOR TESTS**: Never skip tests due to "limited time" or "time constraints"
+- **MANDATORY TEST FIXING**: When tests fail, you MUST fix the underlying issues, not skip the tests
+- **TEST FAILURE ANALYSIS**: Analyze test failures and fix the root cause, not the symptoms
+
 **TEST EXECUTION EXAMPLES**:
 \`\`\`bash
 # Correct - Actually execute tests and show results
@@ -546,6 +577,12 @@ npx jest --verbose
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
+
+# WRONG - Skipping tests due to failures
+# "I can see that the CampaignList tests have several issues... Since we have limited time..."
+
+# CORRECT - Fixing test failures
+# "The CampaignList tests are failing because... Let me fix these issues..."
 \`\`\`
 
 **🚨 CRITICAL PERMISSION REQUIREMENTS**:
@@ -599,6 +636,15 @@ sudo systemctl restart service
 - **RULE 5**: Do NOT ask "proceed" or "continue" - just keep working
 - **RULE 6**: Complete the entire phase/all tasks in one uninterrupted session
 - **RULE 7**: Only stop when you have completed ALL tasks in the phase/all 72 tasks
+
+**🚨 ANTI-EVASION CONSTITUTIONAL GATES 🚨**:
+- **GATE 1**: NO TIME LIMIT EXCUSES - Never mention "limited time", "time constraints", or "running out of time"
+- **GATE 2**: NO DIFFICULTY ESCAPES - Never skip tasks because they are "complex", "challenging", or "difficult"
+- **GATE 3**: NO PARTIAL COMPLETION ACCEPTANCE - Never accept "good enough" or "mostly working" solutions
+- **GATE 4**: NO TEST SKIPPING - Never skip tests because they are "failing" or "problematic"
+- **GATE 5**: NO WORKING AROUND ISSUES - Never work around problems, always fix them completely
+- **GATE 6**: NO SUMMARY SUBSTITUTION - Never provide summaries instead of actual implementation
+- **GATE 7**: NO STATUS UPDATES AS COMPLETION - Never treat status updates as task completion
 
 **🚨 VERIFICATION-BASED CONTINUOUS EXECUTION**:
 After completing each task's verification, follow these instructions:
@@ -780,6 +826,14 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
   - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
 
+**🚨 CRITICAL TEST FAILURE HANDLING**:
+- **NO TEST SKIPPING**: Never skip tests because they are "failing", "problematic", or "have issues"
+- **NO WORKING AROUND TEST FAILURES**: Never work around failing tests - fix them completely
+- **NO PARTIAL TEST ACCEPTANCE**: Never accept "some tests working" or "mostly working" - ALL tests must pass
+- **NO TIME EXCUSES FOR TESTS**: Never skip tests due to "limited time" or "time constraints"
+- **MANDATORY TEST FIXING**: When tests fail, you MUST fix the underlying issues, not skip the tests
+- **TEST FAILURE ANALYSIS**: Analyze test failures and fix the root cause, not the symptoms
+
 **TEST EXECUTION EXAMPLES**:
 \`\`\`bash
 # Correct - Actually execute tests and show results
@@ -789,6 +843,12 @@ npx jest --verbose
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
+
+# WRONG - Skipping tests due to failures
+# "I can see that the CampaignList tests have several issues... Since we have limited time..."
+
+# CORRECT - Fixing test failures
+# "The CampaignList tests are failing because... Let me fix these issues..."
 \`\`\`
 
 **🚨 CRITICAL PERMISSION REQUIREMENTS**:
@@ -885,6 +945,14 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
   - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
 
+**🚨 CRITICAL TEST FAILURE HANDLING**:
+- **NO TEST SKIPPING**: Never skip tests because they are "failing", "problematic", or "have issues"
+- **NO WORKING AROUND TEST FAILURES**: Never work around failing tests - fix them completely
+- **NO PARTIAL TEST ACCEPTANCE**: Never accept "some tests working" or "mostly working" - ALL tests must pass
+- **NO TIME EXCUSES FOR TESTS**: Never skip tests due to "limited time" or "time constraints"
+- **MANDATORY TEST FIXING**: When tests fail, you MUST fix the underlying issues, not skip the tests
+- **TEST FAILURE ANALYSIS**: Analyze test failures and fix the root cause, not the symptoms
+
 **TEST EXECUTION EXAMPLES**:
 \`\`\`bash
 # Correct - Actually execute tests and show results
@@ -894,6 +962,12 @@ npx jest --verbose
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
+
+# WRONG - Skipping tests due to failures
+# "I can see that the CampaignList tests have several issues... Since we have limited time..."
+
+# CORRECT - Fixing test failures
+# "The CampaignList tests are failing because... Let me fix these issues..."
 \`\`\`
 
 **🚨 CRITICAL PERMISSION REQUIREMENTS**:
@@ -929,6 +1003,15 @@ sudo systemctl restart service
 - **COMPLETE ALL**: Only stop when ALL 72 tasks are complete and verified
 - **AUTOMATIC PROGRESSION**: Move from task to task without interruption
 - **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 ANTI-EVASION CONSTITUTIONAL GATES 🚨**:
+- **GATE 1**: NO TIME LIMIT EXCUSES - Never mention "limited time", "time constraints", or "running out of time"
+- **GATE 2**: NO DIFFICULTY ESCAPES - Never skip tasks because they are "complex", "challenging", or "difficult"
+- **GATE 3**: NO PARTIAL COMPLETION ACCEPTANCE - Never accept "good enough" or "mostly working" solutions
+- **GATE 4**: NO TEST SKIPPING - Never skip tests because they are "failing" or "problematic"
+- **GATE 5**: NO WORKING AROUND ISSUES - Never work around problems, always fix them completely
+- **GATE 6**: NO SUMMARY SUBSTITUTION - Never provide summaries instead of actual implementation
+- **GATE 7**: NO STATUS UPDATES AS COMPLETION - Never treat status updates as task completion
 
 **🚨 CRITICAL: DO NOT STOP UNTIL ALL 72 TASKS ARE COMPLETE!**
 

@@ -70,7 +70,16 @@
           "Saying 'proceed' or 'continue'"
         ],
         "enforcementLevel": "critical",
-        "violationConsequences": "Task execution must restart from beginning of phase"
+        "violationConsequences": "Task execution must restart from beginning of phase",
+        "antiEvasionRules": [
+          "Never mention 'limited time' or 'time constraints'",
+          "Never skip tasks due to complexity or difficulty",
+          "Never accept partial completion or 'good enough' solutions",
+          "Never skip tests because they are failing or problematic",
+          "Never work around issues - always fix them completely",
+          "Never provide summaries instead of actual implementation",
+          "Never treat status updates as task completion"
+        ]
       }
     },
     "taskPhases": {
