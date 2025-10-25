@@ -1,6 +1,6 @@
 {
   "name": "ai-sdd-mcp",
-  "version": "3.0.19",
+  "version": "3.0.20",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",
