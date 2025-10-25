@@ -13,6 +13,12 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **No "fake" implementations or placeholders** - Everything works out of the box
 - **Continuous verification at each step** - Validates each component before proceeding
 
+### 🚨 Anti-Evasion Constitutional Gates
+- **7 Constitutional Gates prevent AI from skipping difficult tasks** - No "limited time" excuses
+- **Mandatory test execution and fixing** - AI cannot skip failing tests or work around issues
+- **Complete task completion enforcement** - No partial solutions or "good enough" acceptance
+- **Verification-based continuous execution** - AI proceeds automatically after each verification checkpoint
+
 ### 🏗️ Production-Ready Code
 - **Real databases** Production-grade data persistence
 - **Complete test suites** - Comprehensive testing coverage
@@ -22,7 +28,14 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 ### ⚡ Continuous Execution
 - **AI completes entire phases without stopping** - No manual intervention needed
 - **Builds complete features, not just snippets** - End-to-end functionality
+- **Verification-based task progression** - Natural checkpoints ensure quality and flow
 - **No manual intervention needed** - Fully automated development process
+
+### 🎨 Modern UI Requirements
+- **Anti-simple design enforcement** - Prohibits basic, plain, or minimal designs
+- **Mandatory modern UI patterns** - Cards, gradients, shadows, animations, micro-interactions
+- **Comprehensive design system** - Professional typography, color schemes, responsive design
+- **Accessibility compliance** - WCAG standards and inclusive design
 
 ### 🎯 Works With Any LLM
 - **Claude, GPT-4, Gemini, etc.** - No special AI model required
@@ -51,6 +64,9 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **72-Task Atomic Breakdown** - Automatically create detailed task lists following TDD methodology
 - **Platform-Aware Implementation** - Detect and adapt to web, mobile, desktop, backend, and AI platforms
 - **Template-Based Architecture** - Consistent, maintainable development patterns
+- **Anti-Evasion Constitutional Gates** - 7 gates prevent AI from skipping difficult tasks or using time excuses
+- **Verification-Based Continuous Execution** - AI proceeds automatically after each verification checkpoint
+- **Modern UI Enforcement** - Mandatory sophisticated design patterns, no basic/plain designs allowed
 
 ### 🛠️ **Development Tools**
 - **`/sdd_specify`** - Generate project specifications from requirements
@@ -64,6 +80,9 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **TDD Enforcement** - RED-GREEN-REFACTOR-SMOKE methodology
 - **Database Integration** - SQLite-based data persistence with robust error handling
 - **Template System** - Reusable templates for consistent project structure
+- **Anti-Evasion System** - Prevents AI from skipping tests, using time excuses, or accepting partial solutions
+- **Test Failure Handling** - Mandatory fixing of failing tests, no workarounds allowed
+- **Continuous Execution Policy** - AI completes entire phases without stopping or asking for permission
 
 ## 🚀 Quick Start
 
