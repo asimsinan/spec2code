@@ -172,30 +172,30 @@ export class SDDImplementTool {
       }
       
       // Get project context
-      const currentFeatureId = await this.resolveFeatureId(null);
-      const rawSpecification = await this.db.get_specification_robust(currentFeatureId);
+        const currentFeatureId = await this.resolveFeatureId(null);
+        const rawSpecification = await this.db.get_specification_robust(currentFeatureId);
       const specification = JsonRepairUtility.validateAndRepairDbContent(rawSpecification, 'SDDImplementTool');
-      const rawPlan = await this.db.get_plan_robust(currentFeatureId);
+        const rawPlan = await this.db.get_plan_robust(currentFeatureId);
       const plan = JsonRepairUtility.validateAndRepairDbContent(rawPlan, 'SDDImplementTool');
 
       // Read tasks.md file
-      const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
-      if (!fs.existsSync(tasksMarkdownPath)) {
+        const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
+        if (!fs.existsSync(tasksMarkdownPath)) {
         return this.error('No tasks.md file found. Please run sdd_tasks first to generate tasks.');
-      }
-      const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
-
+        }
+        const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
+        
       // Detect platform
       const platformDetection = await this.platformDetector.detectPlatform(specification, plan);
-
+      
       // Execute based on mode
       if (!phase) {
         return this.executeFullAuto(tasksMarkdown, platformDetection, specification, plan);
       } else {
-        const phaseNum = parseInt(phase);
-        if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
-          throw new Error('Phase must be a number between 1 and 4.');
-        }
+      const phaseNum = parseInt(phase);
+      if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
+        throw new Error('Phase must be a number between 1 and 4.');
+      }
         return this.executePhase(phaseNum, tasksMarkdown, platformDetection, specification, plan);
       }
     } catch (error) {
@@ -452,19 +452,19 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
     const rawPlan = await this.db.get_plan_robust(currentFeatureId);
     const plan = JsonRepairUtility.validateAndRepairDbContent(rawPlan, 'SDDImplementTool');
 
-    const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
-    if (!fs.existsSync(tasksMarkdownPath)) {
+      const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
+      if (!fs.existsSync(tasksMarkdownPath)) {
       return this.error('No tasks.md file found. Please run sdd_tasks first to generate tasks.');
-    }
+      }
     const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
-
+      
     const platformDetection = await this.platformDetector.detectPlatform(specification, plan);
-
-    if (phase) {
-      const phaseNum = parseInt(phase);
+      
+      if (phase) {
+        const phaseNum = parseInt(phase);
       const phaseTasks = this.parsePhaseTasks(tasksMarkdown, phaseNum);
       return this.generateDryRunPreview(phaseNum, phaseTasks, platformDetection, specification, plan);
-    } else {
+      } else {
       return this.generateDryRunPreviewAll(tasksMarkdown, platformDetection, specification, plan);
     }
   }
@@ -475,17 +475,17 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   private generateDryRunPreview(phaseNum: number, phaseTasks: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): any {
     const phaseNames = {
       1: 'Project Setup & Foundations',
-      2: 'Core Implementation',
+      2: 'Core Implementation', 
       3: 'UI Development', 
       4: 'Testing, Documentation & Deployment'
     };
 
     const previewContent = this.generateDetailedPreviewContent(phaseNum, phaseTasks, phaseNames[phaseNum as keyof typeof phaseNames], platformDetection, specification, plan);
     
-    // Create preview file
-    const previewPath = path.join(this.basePath, `implementation-preview-phase-${phaseNum}.md`);
+    // Create preview file in specs folder
+    const previewPath = path.join(this.basePath, 'specs', `implementation-preview-phase-${phaseNum}.md`);
     fs.writeFileSync(previewPath, previewContent);
-
+    
     return {
       success: true,
       mode: 'dryrun',
@@ -506,10 +506,10 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
   private generateDryRunPreviewAll(tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): any {
     const previewContent = this.generateDetailedPreviewContentAll(tasksMarkdown, platformDetection, specification, plan);
     
-    // Create preview file
-    const previewPath = path.join(this.basePath, 'implementation-preview-full-auto.md');
+    // Create preview file in specs folder
+    const previewPath = path.join(this.basePath, 'specs', 'implementation-preview-full-auto.md');
     fs.writeFileSync(previewPath, previewContent);
-
+    
     return {
       success: true,
       mode: 'dryrun',
