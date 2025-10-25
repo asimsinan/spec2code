@@ -105,6 +105,13 @@
                   "docs",
                   "config"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-002!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-002"
               }
             },
             "constitutionalCompliance": "✅ Project Structure Gate",
@@ -140,6 +147,13 @@
                   "environment",
                   "ready"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-003!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-003"
               }
             },
             "constitutionalCompliance": "✅ Development Environment Gate",
@@ -175,6 +189,13 @@
                   "configuration",
                   "settings"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-004!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-004"
               }
             },
             "constitutionalCompliance": "✅ Environment Configuration Gate",
@@ -210,6 +231,13 @@
                   "openapi",
                   "specification"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-005!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-005"
               }
             },
             "constitutionalCompliance": "✅ API-First Gate",
@@ -248,6 +276,13 @@
                   "migration",
                   "tables"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-006!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-006"
               }
             },
             "constitutionalCompliance": "✅ Database Schema Gate",
@@ -284,6 +319,13 @@
                   "classes",
                   "relationships"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-007!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-007"
               }
             },
             "constitutionalCompliance": "✅ Data Model Gate",
@@ -320,6 +362,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed immediately to TASK-008 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-008!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-008"
               }
             },
             "constitutionalCompliance": "✅ Contract Testing Gate",
@@ -356,6 +405,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed immediately to TASK-009 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-009!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-009"
               }
             },
             "constitutionalCompliance": "✅ Model Testing Gate",
@@ -392,6 +448,13 @@
                   "test scenarios",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-009 verification complete! Proceed immediately to TASK-010 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-009 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-010!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-010"
               }
             },
             "constitutionalCompliance": "✅ Integration Testing Gate",
@@ -428,6 +491,13 @@
                   "models",
                   "validation"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-010 verification complete! Proceed immediately to TASK-011 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-010 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-011!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-011"
               }
             },
             "constitutionalCompliance": "✅ Model Implementation Gate",
@@ -464,6 +534,13 @@
                   "database",
                   "operations"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-011 verification complete! Proceed immediately to TASK-012 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-011 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-012!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-012"
               }
             },
             "constitutionalCompliance": "✅ Database Implementation Gate",
@@ -500,6 +577,13 @@
                   "API",
                   "endpoints"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-012 verification complete! Proceed immediately to TASK-013 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-012 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-013!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-013"
               }
             },
             "constitutionalCompliance": "✅ API Implementation Gate",
@@ -536,6 +620,13 @@
                   "no new features",
                   "improved structure"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-013 verification complete! Proceed immediately to TASK-014 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-013 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-014!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-014"
               }
             },
             "constitutionalCompliance": "✅ Architecture Refactoring Gate",
@@ -574,6 +665,13 @@
                   "removed duplication",
                   "consistent style"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-014 verification complete! Proceed immediately to TASK-015 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-014 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-015!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-015"
               }
             },
             "constitutionalCompliance": "✅ Code Quality Refactoring Gate",
@@ -612,6 +710,13 @@
                   "standardized responses",
                   "consistent logging"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-015 verification complete! Proceed immediately to TASK-016 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-015 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-016!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-016"
               }
             },
             "constitutionalCompliance": "✅ Error Handling Refactoring Gate",
@@ -648,6 +753,13 @@
                   "0 errors",
                   "dependencies"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-016 verification complete! Proceed immediately to TASK-017 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-016 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-017!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-017"
               }
             },
             "constitutionalCompliance": "✅ Compilation Gate",
@@ -686,6 +798,13 @@
                   "test results",
                   "terminal output"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-017 verification complete! Proceed immediately to TASK-018 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-017 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-018!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-018"
               }
             },
             "constitutionalCompliance": "✅ Comprehensive Testing Gate",
@@ -723,6 +842,13 @@
                   "database",
                   "system"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-018 verification complete! Proceed immediately to TASK-019 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-018 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-019!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-019"
               }
             },
             "constitutionalCompliance": "✅ Phase 1 Completion Gate",
@@ -766,6 +892,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-019 verification complete! Proceed immediately to TASK-020 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-019 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-020!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-020"
               }
             },
             "constitutionalCompliance": "✅ Business Logic Testing Gate",
@@ -802,6 +935,13 @@
                   "business logic",
                   "tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-020 verification complete! Proceed immediately to TASK-021 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-020 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-021!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-021"
               }
             },
             "constitutionalCompliance": "✅ RED Phase Gate",
@@ -838,6 +978,13 @@
                   "business logic",
                   "validation"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-021 verification complete! Proceed immediately to TASK-022 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-021 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-022!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-022"
               }
             },
             "constitutionalCompliance": "✅ Business Logic Implementation Gate",
@@ -876,6 +1023,13 @@
                   "simplified conditionals",
                   "clean separation"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-022 verification complete! Proceed immediately to TASK-023 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-022 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-023!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-023"
               }
             },
             "constitutionalCompliance": "✅ Business Logic Refactoring Gate",
@@ -912,6 +1066,13 @@
                   "business logic",
                   "refactoring"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-023 verification complete! Proceed immediately to TASK-024 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-023 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-024!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-024"
               }
             },
             "constitutionalCompliance": "✅ Business Logic Verification Gate",
@@ -948,6 +1109,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-024 verification complete! Proceed immediately to TASK-025 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-024 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-025!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-025"
               }
             },
             "constitutionalCompliance": "✅ Service Layer Testing Gate",
@@ -984,6 +1152,13 @@
                   "service layer",
                   "tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-025 verification complete! Proceed immediately to TASK-026 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-025 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-026!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-026"
               }
             },
             "constitutionalCompliance": "✅ RED Phase Gate",
@@ -1020,6 +1195,13 @@
                   "service layer",
                   "operations"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-026 verification complete! Proceed immediately to TASK-027 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-026 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-027!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-027"
               }
             },
             "constitutionalCompliance": "✅ Service Layer Implementation Gate",
@@ -1058,6 +1240,13 @@
                   "simplified methods",
                   "separation of concerns"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-027 verification complete! Proceed immediately to TASK-028 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-027 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-028!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-028"
               }
             },
             "constitutionalCompliance": "✅ Service Layer Refactoring Gate",
@@ -1094,6 +1283,13 @@
                   "service layer",
                   "refactoring"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-028 verification complete! Proceed immediately to TASK-029 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-028 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-029!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-029"
               }
             },
             "constitutionalCompliance": "✅ Service Layer Verification Gate",
@@ -1130,6 +1326,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-029 verification complete! Proceed immediately to TASK-030 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-029 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-030!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-030"
               }
             },
             "constitutionalCompliance": "✅ Controller Testing Gate",
@@ -1166,6 +1369,13 @@
                   "controller",
                   "tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-030 verification complete! Proceed immediately to TASK-031 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-030 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-031!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-031"
               }
             },
             "constitutionalCompliance": "✅ RED Phase Gate",
@@ -1202,6 +1412,13 @@
                   "controller",
                   "request handling"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-031 verification complete! Proceed immediately to TASK-032 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-031 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-032!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-032"
               }
             },
             "constitutionalCompliance": "✅ Controller Implementation Gate",
@@ -1240,6 +1457,13 @@
                   "simplified error handling",
                   "service integration"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-032 verification complete! Proceed immediately to TASK-033 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-032 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-033!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-033"
               }
             },
             "constitutionalCompliance": "✅ Controller Refactoring Gate",
@@ -1276,6 +1500,13 @@
                   "controller",
                   "refactoring"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-033 verification complete! Proceed immediately to TASK-034 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-033 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-034!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-034"
               }
             },
             "constitutionalCompliance": "✅ Controller Verification Gate",
@@ -1312,6 +1543,13 @@
                   "integration",
                   "scenarios"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-034 verification complete! Proceed immediately to TASK-035 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-034 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-035!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-035"
               }
             },
             "constitutionalCompliance": "✅ Integration Testing Gate",
@@ -1348,6 +1586,13 @@
                   "0 errors",
                   "dependencies"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-035 verification complete! Proceed immediately to TASK-036 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-035 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-036!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-036"
               }
             },
             "constitutionalCompliance": "✅ Compilation Gate",
@@ -1385,6 +1630,13 @@
                   "service layer",
                   "system"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-036 verification complete! Proceed immediately to TASK-037 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-036 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-037!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-037"
               }
             },
             "constitutionalCompliance": "✅ Phase 2 Completion Gate",
@@ -1428,6 +1680,13 @@
                   "development server",
                   "platform"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-037 verification complete! Proceed immediately to TASK-038 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-037 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-038!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-038"
               }
             },
             "constitutionalCompliance": "✅ Frontend Platform Gate",
@@ -1464,6 +1723,13 @@
                   "development build",
                   "production build"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-038 verification complete! Proceed immediately to TASK-039 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-038 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-039!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-039"
               }
             },
             "constitutionalCompliance": "✅ Build Configuration Gate",
@@ -1500,6 +1766,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-039 verification complete! Proceed immediately to TASK-040 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-039 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-040!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-040"
               }
             },
             "constitutionalCompliance": "✅ Design System Testing Gate",
@@ -1536,6 +1809,13 @@
                   "design system",
                   "tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-040 verification complete! Proceed immediately to TASK-041 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-040 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-041!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-041"
               }
             },
             "constitutionalCompliance": "✅ RED Phase Gate",
@@ -1572,6 +1852,13 @@
                   "design system",
                   "components"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-041 verification complete! Proceed immediately to TASK-042 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-041 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-042!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-042"
               }
             },
             "constitutionalCompliance": "✅ Design System Implementation Gate",
@@ -1610,6 +1897,13 @@
                   "simplified components",
                   "design patterns"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-042 verification complete! Proceed immediately to TASK-043 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-042 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-043!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-043"
               }
             },
             "constitutionalCompliance": "✅ Design System Refactoring Gate",
@@ -1646,6 +1940,13 @@
                   "design system",
                   "refactoring"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-043 verification complete! Proceed immediately to TASK-044 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-043 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-044!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-044"
               }
             },
             "constitutionalCompliance": "✅ Design System Verification Gate",
@@ -1682,6 +1983,13 @@
                   "primary interface",
                   "successful launch"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-044 verification complete! Proceed immediately to TASK-045 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-044 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-045!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-045"
               }
             },
             "constitutionalCompliance": "✅ Application Structure Gate",
@@ -1718,6 +2026,13 @@
                   "test cases",
                   "failing tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-045 verification complete! Proceed immediately to TASK-046 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-045 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-046!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-046"
               }
             },
             "constitutionalCompliance": "✅ UI Component Testing Gate",
@@ -1754,6 +2069,13 @@
                   "UI components",
                   "tests"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-046 verification complete! Proceed immediately to TASK-047 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-046 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-047!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-047"
               }
             },
             "constitutionalCompliance": "✅ RED Phase Gate",
@@ -1790,6 +2112,13 @@
                   "UI components",
                   "interactions"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-047 verification complete! Proceed immediately to TASK-048 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-047 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-048!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-048"
               }
             },
             "constitutionalCompliance": "✅ UI Component Implementation Gate",
@@ -1828,6 +2157,13 @@
                   "simplified components",
                   "component architecture"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-048 verification complete! Proceed immediately to TASK-049 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-048 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-049!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-049"
               }
             },
             "constitutionalCompliance": "✅ UI Component Refactoring Gate",
@@ -1864,6 +2200,13 @@
                   "UI components",
                   "refactoring"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-049 verification complete! Proceed immediately to TASK-050 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-049 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-050!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-050"
               }
             },
             "constitutionalCompliance": "✅ UI Component Verification Gate",
@@ -1900,6 +2243,13 @@
                   "HTTP scenarios",
                   "error handling"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-050 verification complete! Proceed immediately to TASK-051 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-050 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-051!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-051"
               }
             },
             "constitutionalCompliance": "✅ API Service Testing Gate",
@@ -1936,6 +2286,13 @@
                   "API service",
                   "HTTP client"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-051 verification complete! Proceed immediately to TASK-052 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-051 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-052!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-052"
               }
             },
             "constitutionalCompliance": "✅ API Service Implementation Gate",
@@ -1972,6 +2329,13 @@
                   "UI components",
                   "data flow"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-052 verification complete! Proceed immediately to TASK-053 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-052 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-053!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-053"
               }
             },
             "constitutionalCompliance": "✅ UI-API Integration Gate",
@@ -2008,6 +2372,13 @@
                   "design system",
                   "API integration"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-053 verification complete! Proceed immediately to TASK-054 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-053 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-054!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-054"
               }
             },
             "constitutionalCompliance": "✅ Phase 3 Completion Gate",
@@ -2046,6 +2417,13 @@
                   "components",
                   "rendering"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-054 verification complete! Proceed immediately to TASK-055 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-054 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-055!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-055"
               }
             },
             "constitutionalCompliance": "✅ UI Compilation Gate",
@@ -2087,6 +2465,13 @@
                   "GREEN",
                   "0 failed"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-055 verification complete! Proceed immediately to TASK-056 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-055 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-056!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-056"
               }
             },
             "constitutionalCompliance": "✅ Comprehensive Testing Gate",
@@ -2122,6 +2507,13 @@
                   "documentation",
                   "results"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-056 verification complete! Proceed immediately to TASK-057 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-056 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-057!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-057"
               }
             },
             "constitutionalCompliance": "✅ User Journey Testing Gate",
@@ -2158,6 +2550,13 @@
                   "HTTP requests",
                   "persisted data"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-057 verification complete! Proceed immediately to TASK-058 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-057 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-058!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-058"
               }
             },
             "constitutionalCompliance": "✅ System Integration Gate",
@@ -2193,6 +2592,13 @@
                   "evidence",
                   "compliance"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-058 verification complete! Proceed immediately to TASK-059 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-058 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-059!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-059"
               }
             },
             "constitutionalCompliance": "✅ Specification Compliance Gate",
@@ -2229,6 +2635,13 @@
                   "styling",
                   "accessibility"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-059 verification complete! Proceed immediately to TASK-060 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-059 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-060!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-060"
               }
             },
             "constitutionalCompliance": "✅ Design System Quality Gate",
@@ -2265,6 +2678,13 @@
                   "load times",
                   "response times"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-060 verification complete! Proceed immediately to TASK-061 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-060 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-061!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-061"
               }
             },
             "constitutionalCompliance": "✅ Performance Testing Gate",
@@ -2301,6 +2721,13 @@
                   "authentication",
                   "data protection"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-061 verification complete! Proceed immediately to TASK-062 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-061 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-062!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-062"
               }
             },
             "constitutionalCompliance": "✅ Security Testing Gate",
@@ -2337,6 +2764,13 @@
                   "standards",
                   "usability"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-062 verification complete! Proceed immediately to TASK-063 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-062 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-063!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-063"
               }
             },
             "constitutionalCompliance": "✅ Accessibility Testing Gate",
@@ -2373,6 +2807,13 @@
                   "examples",
                   "usage instructions"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-063 verification complete! Proceed immediately to TASK-064 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-063 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-064!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-064"
               }
             },
             "constitutionalCompliance": "✅ API Documentation Gate",
@@ -2409,6 +2850,13 @@
                   "feature explanations",
                   "documentation"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-064 verification complete! Proceed immediately to TASK-065 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-064 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-065!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-065"
               }
             },
             "constitutionalCompliance": "✅ User Documentation Gate",
@@ -2445,6 +2893,13 @@
                   "configuration",
                   "instructions"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-065 verification complete! Proceed immediately to TASK-066 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-065 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-066!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-066"
               }
             },
             "constitutionalCompliance": "✅ Deployment Documentation Gate",
@@ -2483,6 +2938,13 @@
                   "reduced memory usage",
                   "performance improvements"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-066 verification complete! Proceed immediately to TASK-067 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-066 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-067!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-067"
               }
             },
             "constitutionalCompliance": "✅ Performance Refactoring Gate",
@@ -2521,6 +2983,13 @@
                   "enhanced encryption",
                   "security hardening"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-067 verification complete! Proceed immediately to TASK-068 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-067 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-068!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-068"
               }
             },
             "constitutionalCompliance": "✅ Security Refactoring Gate",
@@ -2559,6 +3028,13 @@
                   "removed technical debt",
                   "maintainability"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-068 verification complete! Proceed immediately to TASK-069 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-068 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-069!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-069"
               }
             },
             "constitutionalCompliance": "✅ Code Quality Refactoring Gate",
@@ -2597,6 +3073,13 @@
                   "standardized format",
                   "documentation quality"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-069 verification complete! Proceed immediately to TASK-070 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-069 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-070!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-070"
               }
             },
             "constitutionalCompliance": "✅ Documentation Refactoring Gate",
@@ -2633,6 +3116,13 @@
                   "configuration",
                   "production ready"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-070 verification complete! Proceed immediately to TASK-071 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-070 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-071!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-071"
               }
             },
             "constitutionalCompliance": "✅ Production Build Gate",
@@ -2669,6 +3159,13 @@
                   "application running",
                   "operational services"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-071 verification complete! Proceed immediately to TASK-072 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-071 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-072!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-072"
               }
             },
             "constitutionalCompliance": "✅ Deployment Testing Gate",
@@ -2707,6 +3204,13 @@
                   "security",
                   "production ready"
                 ]
+              },
+              "postVerificationInstructions": {
+                "onSuccess": "🚨 CRITICAL: TASK-072 verification complete! Proceed immediately to TASK-073 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-072 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-073!",
+                "enforcement": "mandatory",
+                "noPause": true,
+                "nextTask": "TASK-073"
               }
             },
             "constitutionalCompliance": "✅ Final Verification Gate",
