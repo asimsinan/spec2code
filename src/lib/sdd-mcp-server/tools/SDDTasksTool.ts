@@ -1357,8 +1357,8 @@ ${JSON.stringify(planData, null, 2)}
 - Overall structure and format
 
 **REGENERATE BASED ON PLATFORM & PROJECT:**
-1. **TASK TITLES**: Keep "TASK-XXX" prefix, regenerate the rest based on platform and project
-   - Example: "TASK-001: CONFIGURE NextJS E-commerce Platform Project Structure"
+1. **TASK TITLES**: Keep "[TASK-XXX]" prefix with square brackets, regenerate the rest based on platform and project
+   - Example: "[TASK-001] CONFIGURE NextJS E-commerce Platform Project Structure"
 
 2. **DESCRIPTIONS**: Generate project-specific, detailed descriptions
    - Include platform-specific technologies, frameworks, and project domain details
@@ -1380,11 +1380,13 @@ ${JSON.stringify(planData, null, 2)}
 
 7. **ACTIONS**: Generate appropriate actions
    - "SHOW", "COMPILE", "TEST", "VERIFY", "EXECUTE"
+   - **NEVER**: "SUDO", "CHOWN", "CHMOD" with elevated permissions
 
 8. **COMMANDS**: Generate platform-specific commands
    - NextJS: "npm run build", "npm run dev", "npm test"
    - React Native: "npx react-native run-android", "npx react-native run-ios"
    - Backend: "npm start", "npm test", "node server.js"
+   - **PERMISSION-SAFE**: Only user-level commands, NO sudo/root commands
 
 9. **EXPECTED STATES**: Generate platform-specific success criteria
    - Include platform name and project domain in success messages

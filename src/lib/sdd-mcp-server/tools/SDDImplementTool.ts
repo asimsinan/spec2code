@@ -310,6 +310,54 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **REFACTOR**: Improve code while keeping tests green
 - **SMOKE**: Run comprehensive test suite
 
+**🚨 CRITICAL TEST EXECUTION REQUIREMENTS**:
+- **MANDATORY TEST EXECUTION**: When a task says "EXECUTE tests" or "RUN tests", you MUST actually run the test commands
+- **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
+- **SHOW TEST RESULTS**: Always show the actual output of test execution commands
+- **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
+- **COMMON TEST COMMANDS**:
+  - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
+  - Backend: \`npm test\`, \`npm run test\`, \`python -m pytest\`, \`go test\`
+  - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
+  - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
+
+**TEST EXECUTION EXAMPLES**:
+\`\`\`bash
+# Correct - Actually execute tests and show results
+timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
+npm run test:coverage
+npx jest --verbose
+
+# Incorrect - Just creating test files without execution
+# Creating test files is NOT sufficient - you must run them!
+\`\`\`
+
+**🚨 CRITICAL PERMISSION REQUIREMENTS**:
+- **NEVER USE SUDO**: Do NOT use sudo, chown, or any root-level commands
+- **USER-LEVEL OPERATIONS ONLY**: All commands must run with regular user permissions
+- **NO SYSTEM FILE MODIFICATION**: Do not modify system files or directories
+- **PROJECT-SCOPE ONLY**: Only work within the project directory and user-owned files
+- **PERMISSION-SAFE COMMANDS**: Use commands that work with standard user permissions
+- **AVOID THESE COMMANDS**: sudo, chown, chmod with elevated permissions, systemctl, etc.
+
+**PERMISSION-SAFE EXAMPLES**:
+\`\`\`bash
+# Correct - User-level commands
+npm install
+npm run build
+npm test
+python -m pytest
+git add .
+git commit -m "message"
+
+# Incorrect - Commands that require elevated permissions
+sudo npm install
+sudo chown -R user:group .
+sudo chmod 755 /some/path
+sudo systemctl restart service
+\`\`\`
+
 **CONTINUOUS EXECUTION POLICY**:
 - Complete ALL 72 tasks in one continuous session
 - Never stop between tasks - proceed automatically
@@ -377,6 +425,54 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **REFACTOR**: Improve code while keeping tests green
 - **SMOKE**: Run comprehensive test suite
 
+**🚨 CRITICAL TEST EXECUTION REQUIREMENTS**:
+- **MANDATORY TEST EXECUTION**: When a task says "EXECUTE tests" or "RUN tests", you MUST actually run the test commands
+- **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
+- **SHOW TEST RESULTS**: Always show the actual output of test execution commands
+- **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
+- **COMMON TEST COMMANDS**:
+  - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
+  - Backend: \`npm test\`, \`npm run test\`, \`python -m pytest\`, \`go test\`
+  - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
+  - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
+
+**TEST EXECUTION EXAMPLES**:
+\`\`\`bash
+# Correct - Actually execute tests and show results
+timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
+npm run test:coverage
+npx jest --verbose
+
+# Incorrect - Just creating test files without execution
+# Creating test files is NOT sufficient - you must run them!
+\`\`\`
+
+**🚨 CRITICAL PERMISSION REQUIREMENTS**:
+- **NEVER USE SUDO**: Do NOT use sudo, chown, or any root-level commands
+- **USER-LEVEL OPERATIONS ONLY**: All commands must run with regular user permissions
+- **NO SYSTEM FILE MODIFICATION**: Do not modify system files or directories
+- **PROJECT-SCOPE ONLY**: Only work within the project directory and user-owned files
+- **PERMISSION-SAFE COMMANDS**: Use commands that work with standard user permissions
+- **AVOID THESE COMMANDS**: sudo, chown, chmod with elevated permissions, systemctl, etc.
+
+**PERMISSION-SAFE EXAMPLES**:
+\`\`\`bash
+# Correct - User-level commands
+npm install
+npm run build
+npm test
+python -m pytest
+git add .
+git commit -m "message"
+
+# Incorrect - Commands that require elevated permissions
+sudo npm install
+sudo chown -R user:group .
+sudo chmod 755 /some/path
+sudo systemctl restart service
+\`\`\`
+
 **PHASE EXECUTION POLICY**:
 - Complete ALL tasks in Phase ${phaseNum} in one continuous session
 - Never stop between tasks - proceed automatically
@@ -403,42 +499,48 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - Use web-specific technologies: HTML, CSS, JavaScript/TypeScript
 - Include responsive design considerations
 - Focus on browser compatibility and performance
-- Use web-specific testing frameworks and tools`;
+- Use web-specific testing frameworks and tools
+- **PERMISSION-SAFE**: Use npm/yarn commands, avoid system-level operations`;
 
       case 'mobile':
         return `- **Mobile (${framework})**: Focus on screens, navigation, native features, mobile UX
 - Use mobile-specific technologies: React Native, Flutter, native APIs
 - Include mobile UX considerations: touch interactions, gestures, navigation
 - Focus on mobile performance and battery optimization
-- Use mobile-specific testing frameworks and device testing`;
+- Use mobile-specific testing frameworks and device testing
+- **PERMISSION-SAFE**: Use development tools, avoid device-level permissions`;
 
       case 'desktop':
         return `- **Desktop (${framework})**: Focus on desktop-specific features, window management, system integration
 - Use desktop-specific technologies: Electron, native desktop frameworks
 - Include desktop UX considerations: keyboard shortcuts, window management, system integration
 - Focus on desktop performance and system resource usage
-- Use desktop-specific testing frameworks and cross-platform compatibility`;
+- Use desktop-specific testing frameworks and cross-platform compatibility
+- **PERMISSION-SAFE**: Use application-level APIs, avoid system-level access`;
 
       case 'backend':
         return `- **Backend**: Focus on APIs, services, database operations, authentication
 - Use backend-specific technologies: Node.js, Python, Java, Go, etc.
 - Include server-side considerations: scalability, security, performance
 - Focus on API design, database optimization, and microservices architecture
-- Use backend-specific testing frameworks and load testing tools`;
+- Use backend-specific testing frameworks and load testing tools
+- **PERMISSION-SAFE**: Use application-level database connections, avoid system-level access`;
 
       case 'ai':
         return `- **AI (${framework})**: Focus on AI/ML models, data processing, model training
 - Use AI-specific technologies: TensorFlow, PyTorch, OpenAI APIs, etc.
 - Include AI considerations: model accuracy, data quality, inference performance
 - Focus on AI model optimization and deployment
-- Use AI-specific testing frameworks and model validation tools`;
+- Use AI-specific testing frameworks and model validation tools
+- **PERMISSION-SAFE**: Use Python package managers, avoid system-level ML libraries`;
 
       default:
         return `- **${platform} (${framework})**: Focus on platform-specific features and technologies
 - Use appropriate technologies for the detected platform
 - Include platform-specific considerations and best practices
 - Focus on platform-specific performance and optimization
-- Use platform-specific testing frameworks and tools`;
+- Use platform-specific testing frameworks and tools
+- **PERMISSION-SAFE**: Use standard development tools, avoid elevated permissions`;
     }
   }
 
@@ -547,6 +649,54 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **REFACTOR**: Improve code while keeping tests green
 - **SMOKE**: Run comprehensive test suite
 
+**🚨 CRITICAL TEST EXECUTION REQUIREMENTS**:
+- **MANDATORY TEST EXECUTION**: When a task says "EXECUTE tests" or "RUN tests", you MUST actually run the test commands
+- **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
+- **SHOW TEST RESULTS**: Always show the actual output of test execution commands
+- **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
+- **COMMON TEST COMMANDS**:
+  - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
+  - Backend: \`npm test\`, \`npm run test\`, \`python -m pytest\`, \`go test\`
+  - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
+  - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
+
+**TEST EXECUTION EXAMPLES**:
+\`\`\`bash
+# Correct - Actually execute tests and show results
+timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
+npm run test:coverage
+npx jest --verbose
+
+# Incorrect - Just creating test files without execution
+# Creating test files is NOT sufficient - you must run them!
+\`\`\`
+
+**🚨 CRITICAL PERMISSION REQUIREMENTS**:
+- **NEVER USE SUDO**: Do NOT use sudo, chown, or any root-level commands
+- **USER-LEVEL OPERATIONS ONLY**: All commands must run with regular user permissions
+- **NO SYSTEM FILE MODIFICATION**: Do not modify system files or directories
+- **PROJECT-SCOPE ONLY**: Only work within the project directory and user-owned files
+- **PERMISSION-SAFE COMMANDS**: Use commands that work with standard user permissions
+- **AVOID THESE COMMANDS**: sudo, chown, chmod with elevated permissions, systemctl, etc.
+
+**PERMISSION-SAFE EXAMPLES**:
+\`\`\`bash
+# Correct - User-level commands
+npm install
+npm run build
+npm test
+python -m pytest
+git add .
+git commit -m "message"
+
+# Incorrect - Commands that require elevated permissions
+sudo npm install
+sudo chown -R user:group .
+sudo chmod 755 /some/path
+sudo systemctl restart service
+\`\`\`
+
 **PHASE EXECUTION POLICY**:
 - Complete ALL tasks in Phase ${phaseNum} in one continuous session
 - Never stop between tasks - proceed automatically
@@ -598,6 +748,54 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **GREEN**: Make tests pass with minimal code
 - **REFACTOR**: Improve code while keeping tests green
 - **SMOKE**: Run comprehensive test suite
+
+**🚨 CRITICAL TEST EXECUTION REQUIREMENTS**:
+- **MANDATORY TEST EXECUTION**: When a task says "EXECUTE tests" or "RUN tests", you MUST actually run the test commands
+- **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
+- **SHOW TEST RESULTS**: Always show the actual output of test execution commands
+- **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
+- **COMMON TEST COMMANDS**:
+  - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
+  - Backend: \`npm test\`, \`npm run test\`, \`python -m pytest\`, \`go test\`
+  - Mobile: \`npm test\`, \`npx react-native test\`, \`flutter test\`
+  - Desktop: \`npm test\`, \`npm run test\`, \`npx electron-mocha\`
+
+**TEST EXECUTION EXAMPLES**:
+\`\`\`bash
+# Correct - Actually execute tests and show results
+timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
+npm run test:coverage
+npx jest --verbose
+
+# Incorrect - Just creating test files without execution
+# Creating test files is NOT sufficient - you must run them!
+\`\`\`
+
+**🚨 CRITICAL PERMISSION REQUIREMENTS**:
+- **NEVER USE SUDO**: Do NOT use sudo, chown, or any root-level commands
+- **USER-LEVEL OPERATIONS ONLY**: All commands must run with regular user permissions
+- **NO SYSTEM FILE MODIFICATION**: Do not modify system files or directories
+- **PROJECT-SCOPE ONLY**: Only work within the project directory and user-owned files
+- **PERMISSION-SAFE COMMANDS**: Use commands that work with standard user permissions
+- **AVOID THESE COMMANDS**: sudo, chown, chmod with elevated permissions, systemctl, etc.
+
+**PERMISSION-SAFE EXAMPLES**:
+\`\`\`bash
+# Correct - User-level commands
+npm install
+npm run build
+npm test
+python -m pytest
+git add .
+git commit -m "message"
+
+# Incorrect - Commands that require elevated permissions
+sudo npm install
+sudo chown -R user:group .
+sudo chmod 755 /some/path
+sudo systemctl restart service
+\`\`\`
 
 **CONTINUOUS EXECUTION POLICY**:
 - Complete ALL 72 tasks in one continuous session

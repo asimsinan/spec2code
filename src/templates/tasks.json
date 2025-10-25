@@ -639,7 +639,7 @@
             "dependencies": [
               "TASK-016"
             ],
-            "description": "EXECUTE complete test suite including contract, model, and integration tests. SHOW all tests pass with GREEN status and adequate coverage.",
+            "description": "EXECUTE complete test suite including contract, model, and integration tests. SHOW all tests pass with GREEN status and adequate coverage. MANDATORY: You must actually run the test commands (npm test, npm run test, etc.) and show the terminal output - creating test files is NOT sufficient.",
             "acceptanceCriteria": "All tests executed, all tests pass, GREEN status confirmed, coverage adequate",
             "estimatedLOC": "0-10",
             "estimatedDuration": "15min",
@@ -648,10 +648,10 @@
               "mandatory": true,
               "action": "EXECUTE",
               "commands": [
-                "run all test suites",
-                "show test results",
-                "confirm GREEN status",
-                "show test coverage"
+                "run all test suites with actual commands",
+                "show test results with terminal output",
+                "confirm GREEN status with actual test output",
+                "show test coverage with real coverage report"
               ],
               "expectedState": "All test suites pass with GREEN status",
               "proofRequired": {
@@ -660,7 +660,9 @@
                   "passing",
                   "GREEN",
                   "0 failed",
-                  "coverage"
+                  "coverage",
+                  "test results",
+                  "terminal output"
                 ]
               }
             },
