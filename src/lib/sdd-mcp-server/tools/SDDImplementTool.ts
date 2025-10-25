@@ -185,18 +185,21 @@ export class SDDImplementTool {
         }
         const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
         
+      // Parse verification instructions from tasks.md
+        const verificationInstructions = this.parseVerificationInstructions(tasksMarkdown);
+        
       // Detect platform
       const platformDetection = await this.platformDetector.detectPlatform(specification, plan);
       
       // Execute based on mode
       if (!phase) {
-        return this.executeFullAuto(tasksMarkdown, platformDetection, specification, plan);
+        return this.executeFullAuto(tasksMarkdown, platformDetection, specification, plan, verificationInstructions);
       } else {
       const phaseNum = parseInt(phase);
       if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
         throw new Error('Phase must be a number between 1 and 4.');
       }
-        return this.executePhase(phaseNum, tasksMarkdown, platformDetection, specification, plan);
+        return this.executePhase(phaseNum, tasksMarkdown, platformDetection, specification, plan, verificationInstructions);
       }
     } catch (error) {
       console.error('[SDDImplementTool] ERROR:', error);
@@ -205,10 +208,53 @@ export class SDDImplementTool {
   }
 
   /**
+   * Parse verification instructions from tasks.md
+   */
+  private parseVerificationInstructions(tasksMarkdown: string): Map<string, any> {
+    const verificationMap = new Map<string, any>();
+    
+    // Split tasks.md into individual tasks
+    const taskSections = tasksMarkdown.split(/### TASK-\d+/);
+    
+    for (let i = 1; i < taskSections.length; i++) {
+      const taskSection = taskSections[i];
+      const taskIdMatch = taskSections[i - 1]?.match(/TASK-(\d+)/);
+      if (!taskIdMatch) continue;
+      
+      const taskId = `TASK-${taskIdMatch[1].padStart(3, '0')}`;
+      
+      // Extract Post-Verification Instructions section
+      const postVerificationMatch = taskSection.match(/Post-Verification Instructions[\s\S]*?---/);
+      if (postVerificationMatch) {
+        const instructionsText = postVerificationMatch[0];
+        
+        // Parse individual instruction fields
+        const onSuccessMatch = instructionsText.match(/On Success[:\s]*([^\n]+)/);
+        const onFailureMatch = instructionsText.match(/On Failure[:\s]*([^\n]+)/);
+        const enforcementMatch = instructionsText.match(/Enforcement[:\s]*([^\n]+)/);
+        const noPauseMatch = instructionsText.match(/No Pause[:\s]*([^\n]+)/);
+        const nextTaskMatch = instructionsText.match(/Next Task[:\s]*([^\n]+)/);
+        
+        const instructions = {
+          onSuccess: onSuccessMatch ? onSuccessMatch[1].trim() : '',
+          onFailure: onFailureMatch ? onFailureMatch[1].trim() : '',
+          enforcement: enforcementMatch ? enforcementMatch[1].trim() : 'mandatory',
+          noPause: noPauseMatch ? noPauseMatch[1].trim() === 'true' : true,
+          nextTask: nextTaskMatch ? nextTaskMatch[1].trim() : ''
+        };
+        
+        verificationMap.set(taskId, instructions);
+      }
+    }
+    
+    return verificationMap;
+  }
+
+  /**
    * Execute all phases in full auto mode
    */
-  private async executeFullAuto(tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): Promise<any> {
-    const successMessage = this.generateFullAutoSuccessMessage(tasksMarkdown, platformDetection, specification, plan);
+  private async executeFullAuto(tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any, verificationInstructions: Map<string, any>): Promise<any> {
+    const successMessage = this.generateFullAutoSuccessMessage(tasksMarkdown, platformDetection, specification, plan, verificationInstructions);
     
     return {
       success: true,
@@ -225,9 +271,9 @@ export class SDDImplementTool {
   /**
    * Execute specific phase
    */
-  private async executePhase(phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): Promise<any> {
+  private async executePhase(phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any, verificationInstructions: Map<string, any>): Promise<any> {
     const phaseTasks = this.parsePhaseTasks(tasksMarkdown, phaseNum);
-    const successMessage = this.generatePhaseSuccessMessage(phaseNum, phaseTasks, platformDetection, specification, plan);
+    const successMessage = this.generatePhaseSuccessMessage(phaseNum, phaseTasks, platformDetection, specification, plan, verificationInstructions);
     
     return {
       success: true,
@@ -264,7 +310,7 @@ export class SDDImplementTool {
   /**
    * Generate success message for full auto mode
    */
-  private generateFullAutoSuccessMessage(tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): string {
+  private generateFullAutoSuccessMessage(tasksMarkdown: string, platformDetection: PlatformDetectionResult, specification: any, plan: any, verificationInstructions: Map<string, any>): string {
     return `
 🚀 FULL AUTO IMPLEMENTATION MODE
 
@@ -382,13 +428,50 @@ sudo systemctl restart service
 - Make all tests pass with real responses
 - Ensure constitutional compliance gates are met
 
+**🚨 VERIFICATION-BASED CONTINUOUS EXECUTION**:
+After completing each task's verification, follow these instructions:
+
+${this.generateVerificationInstructionsText(verificationInstructions)}
+
 🚨 CRITICAL: START WITH COMPLETE TODO LIST - Then begin Phase 1 implementation!`;
+  }
+
+  /**
+   * Generate verification instructions text for AI prompts
+   */
+  private generateVerificationInstructionsText(verificationInstructions: Map<string, any>): string {
+    if (verificationInstructions.size === 0) {
+      return 'No specific verification instructions found in tasks.md';
+    }
+    
+    let instructionsText = '';
+    let count = 0;
+    
+    for (const [taskId, instructions] of verificationInstructions) {
+      if (count < 5) { // Show first 5 as examples
+        instructionsText += `\n**${taskId} Verification Instructions**:\n`;
+        instructionsText += `- **On Success**: ${instructions.onSuccess}\n`;
+        instructionsText += `- **On Failure**: ${instructions.onFailure}\n`;
+        instructionsText += `- **Next Task**: ${instructions.nextTask}\n`;
+        instructionsText += `- **Enforcement**: ${instructions.enforcement}\n`;
+        instructionsText += `- **No Pause**: ${instructions.noPause}\n`;
+        count++;
+      }
+    }
+    
+    if (verificationInstructions.size > 5) {
+      instructionsText += `\n... and ${verificationInstructions.size - 5} more tasks with similar verification instructions.\n`;
+    }
+    
+    instructionsText += `\n**CRITICAL**: After each task verification, follow the specific instructions above to proceed immediately to the next task!`;
+    
+    return instructionsText;
   }
 
   /**
    * Generate success message for phase-by-phase mode
    */
-  private generatePhaseSuccessMessage(phaseNum: number, phaseTasks: string, platformDetection: PlatformDetectionResult, specification: any, plan: any): string {
+  private generatePhaseSuccessMessage(phaseNum: number, phaseTasks: string, platformDetection: PlatformDetectionResult, specification: any, plan: any, verificationInstructions: Map<string, any>): string {
     const phaseNames = {
       1: 'Project Setup & Foundations',
       2: 'Core Implementation', 
@@ -516,6 +599,11 @@ sudo systemctl restart service
 - **RULE 5**: Do NOT ask "proceed" or "continue" - just keep working
 - **RULE 6**: Complete the entire phase/all tasks in one uninterrupted session
 - **RULE 7**: Only stop when you have completed ALL tasks in the phase/all 72 tasks
+
+**🚨 VERIFICATION-BASED CONTINUOUS EXECUTION**:
+After completing each task's verification, follow these instructions:
+
+${this.generateVerificationInstructionsText(verificationInstructions)}
 
 🚨 CRITICAL: START WITH PHASE ${phaseNum} TODO LIST - Then begin implementation!`;
   }
