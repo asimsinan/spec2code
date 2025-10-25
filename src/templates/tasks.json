@@ -1,7 +1,7 @@
 {
   "id": "sdd-tasks-atomic-v9",
   "name": "SDD Atomic Tasks Template (Framework-Agnostic RED-GREEN-REFACTOR-SMOKE)",
-  undefined,
+  "version": "3.0.17",
   "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system",
   "template_data": {
     "metadata": {
