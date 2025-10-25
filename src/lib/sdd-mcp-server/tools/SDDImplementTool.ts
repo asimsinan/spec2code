@@ -284,6 +284,12 @@ ${JSON.stringify(plan, null, 2)}
 
 🎯 IMPLEMENTATION INSTRUCTIONS:
 
+**🚨🚨🚨 FIRST AND MOST IMPORTANT RULE 🚨🚨🚨**
+**DO NOT STOP UNTIL ALL 72 TASKS ARE COMPLETE!**
+**DO NOT ASK FOR PERMISSION TO CONTINUE!**
+**DO NOT PAUSE BETWEEN TASKS!**
+**JUST KEEP GOING UNTIL ALL TASKS ARE DONE!**
+
 **STEP 1: CREATE COMPLETE TODO LIST**
 First, create a comprehensive TODO list with ALL 72 tasks from the tasks breakdown above. Use this exact format:
 
@@ -358,11 +364,16 @@ sudo chmod 755 /some/path
 sudo systemctl restart service
 \`\`\`
 
-**CONTINUOUS EXECUTION POLICY**:
-- Complete ALL 72 tasks in one continuous session
-- Never stop between tasks - proceed automatically
-- Never ask for permission to continue
-- Only stop when ALL tasks are complete and verified
+**🚨 CRITICAL CONTINUOUS EXECUTION POLICY**:
+- **MANDATORY**: Complete ALL 72 tasks in one continuous session
+- **NEVER STOP**: Never stop between tasks - proceed automatically
+- **NEVER ASK**: Never ask for permission to continue - just keep going
+- **NO PAUSES**: Do not pause, summarize, or wait for user input
+- **COMPLETE ALL**: Only stop when ALL 72 tasks are complete and verified
+- **AUTOMATIC PROGRESSION**: Move from task to task without interruption
+- **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 CRITICAL: DO NOT STOP UNTIL ALL 72 TASKS ARE COMPLETE!**
 
 **IMPLEMENTATION REQUIREMENTS**:
 - Follow the exact task structure from tasks.md
@@ -403,6 +414,12 @@ ${JSON.stringify(specification, null, 2)}
 ${JSON.stringify(plan, null, 2)}
 
 🎯 IMPLEMENTATION INSTRUCTIONS:
+
+**🚨🚨🚨 FIRST AND MOST IMPORTANT RULE 🚨🚨🚨**
+**DO NOT STOP UNTIL THE ENTIRE PHASE IS COMPLETE!**
+**DO NOT ASK FOR PERMISSION TO CONTINUE!**
+**DO NOT PAUSE BETWEEN TASKS!**
+**JUST KEEP GOING UNTIL ALL TASKS ARE DONE!**
 
 **STEP 1: CREATE PHASE TODO LIST**
 First, create a TODO list with ALL tasks from Phase ${phaseNum} above. Use this exact format:
@@ -473,11 +490,16 @@ sudo chmod 755 /some/path
 sudo systemctl restart service
 \`\`\`
 
-**PHASE EXECUTION POLICY**:
-- Complete ALL tasks in Phase ${phaseNum} in one continuous session
-- Never stop between tasks - proceed automatically
-- Never ask for permission to continue
-- Only stop when ALL Phase ${phaseNum} tasks are complete and verified
+**🚨 CRITICAL CONTINUOUS EXECUTION POLICY**:
+- **MANDATORY**: Complete ALL tasks in Phase ${phaseNum} in one continuous session
+- **NEVER STOP**: Never stop between tasks - proceed automatically
+- **NEVER ASK**: Never ask for permission to continue - just keep going
+- **NO PAUSES**: Do not pause, summarize, or wait for user input
+- **COMPLETE PHASE**: Only stop when ALL Phase ${phaseNum} tasks are complete and verified
+- **AUTOMATIC PROGRESSION**: Move from task to task without interruption
+- **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 CRITICAL: DO NOT STOP UNTIL PHASE ${phaseNum} IS COMPLETE!**
 
 **IMPLEMENTATION REQUIREMENTS**:
 - Follow the exact task structure from tasks.md
@@ -485,6 +507,15 @@ sudo systemctl restart service
 - Connect all components with actual data flow
 - Make all tests pass with real responses
 - Ensure constitutional compliance gates are met
+
+**🚨🚨🚨 CRITICAL EXECUTION RULES - NO EXCEPTIONS 🚨🚨🚨**:
+- **RULE 1**: Start with the first task and keep going until the phase/all tasks are done
+- **RULE 2**: Do NOT stop to show progress, summarize, or ask for permission
+- **RULE 3**: Do NOT say "I've completed X tasks, should I continue?" - just continue
+- **RULE 4**: Do NOT pause between tasks - move immediately to the next task
+- **RULE 5**: Do NOT ask "proceed" or "continue" - just keep working
+- **RULE 6**: Complete the entire phase/all tasks in one uninterrupted session
+- **RULE 7**: Only stop when you have completed ALL tasks in the phase/all 72 tasks
 
 🚨 CRITICAL: START WITH PHASE ${phaseNum} TODO LIST - Then begin implementation!`;
   }
@@ -697,11 +728,16 @@ sudo chmod 755 /some/path
 sudo systemctl restart service
 \`\`\`
 
-**PHASE EXECUTION POLICY**:
-- Complete ALL tasks in Phase ${phaseNum} in one continuous session
-- Never stop between tasks - proceed automatically
-- Never ask for permission to continue
-- Only stop when ALL Phase ${phaseNum} tasks are complete and verified
+**🚨 CRITICAL CONTINUOUS EXECUTION POLICY**:
+- **MANDATORY**: Complete ALL tasks in Phase ${phaseNum} in one continuous session
+- **NEVER STOP**: Never stop between tasks - proceed automatically
+- **NEVER ASK**: Never ask for permission to continue - just keep going
+- **NO PAUSES**: Do not pause, summarize, or wait for user input
+- **COMPLETE PHASE**: Only stop when ALL Phase ${phaseNum} tasks are complete and verified
+- **AUTOMATIC PROGRESSION**: Move from task to task without interruption
+- **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 CRITICAL: DO NOT STOP UNTIL PHASE ${phaseNum} IS COMPLETE!**
 
 **IMPLEMENTATION REQUIREMENTS**:
 - Follow the exact task structure from tasks.md
@@ -797,11 +833,16 @@ sudo chmod 755 /some/path
 sudo systemctl restart service
 \`\`\`
 
-**CONTINUOUS EXECUTION POLICY**:
-- Complete ALL 72 tasks in one continuous session
-- Never stop between tasks - proceed automatically
-- Never ask for permission to continue
-- Only stop when ALL tasks are complete and verified
+**🚨 CRITICAL CONTINUOUS EXECUTION POLICY**:
+- **MANDATORY**: Complete ALL 72 tasks in one continuous session
+- **NEVER STOP**: Never stop between tasks - proceed automatically
+- **NEVER ASK**: Never ask for permission to continue - just keep going
+- **NO PAUSES**: Do not pause, summarize, or wait for user input
+- **COMPLETE ALL**: Only stop when ALL 72 tasks are complete and verified
+- **AUTOMATIC PROGRESSION**: Move from task to task without interruption
+- **NO "PROCEED" REQUESTS**: Do not ask user to say "proceed" or "continue"
+
+**🚨 CRITICAL: DO NOT STOP UNTIL ALL 72 TASKS ARE COMPLETE!**
 
 **IMPLEMENTATION REQUIREMENTS**:
 - Follow the exact task structure from tasks.md
