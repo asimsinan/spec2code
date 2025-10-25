@@ -1,7 +1,7 @@
 {
   "id": "sdd-plan-perfect-v2",
   "name": "SDD Plan Template (AI-Driven Task Structure)",
-  "version": "2.0.0",
+  undefined,
   "description": "Implementation plan template focused on HOW to implement (not WHAT to implement)",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
