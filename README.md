@@ -1,10 +1,12 @@
-# AI-SDD-MCP: Turn Ideas Into Code Automatically 🚀
+# AI-SDD-MCP-BETA: Turn Ideas Into Code Automatically 🚀
 
 [![npm version](https://img.shields.io/npm/v/ai-sdd-mcp.svg)](https://www.npmjs.com/package/ai-sdd-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Transform any idea into a complete, working application using AI in Cursor - works with ANY LLM (Claude, GPT-4, Gemini, etc.)
+Transform any idea into a complete, working application using AI in Cursor - works with ANY LLM (Claude, GPT-4, Gemini, etc.). 
+
+**Note: The tool will be open-sourced in the future. Github link is private for now.**
 
 ## 🌟 What Makes This Special
 
@@ -19,9 +21,23 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **Complete task completion enforcement** - No partial solutions or "good enough" acceptance
 - **Verification-based continuous execution** - AI proceeds automatically after each verification checkpoint
 
+### 🧪 Intelligent Testing Framework Selection
+- **Platform-aware testing strategies** - Automatically selects optimal testing approach for each project
+- **Real environment testing preference** - Prioritizes TestContainers and real databases over complex mocking
+- **85% coverage enforcement** - Mandates comprehensive test coverage with actual verification
+- **Anti-evasion testing rules** - Prevents AI from claiming "infrastructure issues" or skipping tests
+- **Contract testing integration** - Uses Pact and consumer-driven contracts to avoid mocking complexity
+
+### 🎯 Testing Intelligence Features
+- **Framework-specific testing commands** - NextJS (Jest + Playwright), React Native (Detox), Backend (TestContainers)
+- **Project complexity-aware strategies** - High complexity, database-heavy, API-heavy, or standard approaches
+- **Quality gates for testing** - Test execution, coverage, performance, integration, contract, and E2E gates
+- **Performance benchmarking** - Mandatory performance validation with time limits and metrics
+- **Real environment proof requirements** - Must show actual database/service connections and test results
+
 ### 🏗️ Production-Ready Code
 - **Real databases** Production-grade data persistence
-- **Complete test suites** - Comprehensive testing coverage
+- **Complete test suites** - Comprehensive testing coverage with 85% minimum
 - **Proper error handling** - Robust error management and recovery
 - **Documentation and deployment** - Ready-to-deploy applications
 
@@ -36,6 +52,14 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **Mandatory modern UI patterns** - Cards, gradients, shadows, animations, micro-interactions
 - **Comprehensive design system** - Professional typography, color schemes, responsive design
 - **Accessibility compliance** - WCAG standards and inclusive design
+
+### 🌐 Multi-Platform Comprehensive Guidelines
+- **Platform-specific structure completion** - Web (all routes), Mobile (all screens), Desktop (all windows), Backend (all APIs), AI (all models)
+- **Platform-specific functionality requirements** - Event handlers, touch interactions, mouse/keyboard, API logic, ML logic
+- **Platform-specific quality standards** - Modern UI, mobile UX, desktop integration, production backend, accurate AI
+- **Universal task enforcement** - Same high standards across all platforms with platform-appropriate implementations
+- **Complete application structure** - No partial implementations, all navigation destinations must exist
+- **Interactive functionality mandate** - All buttons, forms, and interactive elements must be functional, not cosmetic
 
 ### 🎯 Works With Any LLM
 - **Claude, GPT-4, Gemini, etc.** - No special AI model required
@@ -67,6 +91,12 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **Anti-Evasion Constitutional Gates** - 7 gates prevent AI from skipping difficult tasks or using time excuses
 - **Verification-Based Continuous Execution** - AI proceeds automatically after each verification checkpoint
 - **Modern UI Enforcement** - Mandatory sophisticated design patterns, no basic/plain designs allowed
+- **Multi-Platform Comprehensive Guidelines** - Platform-specific structure, functionality, and quality requirements
+- **Complete Application Structure Enforcement** - All routes/screens/windows/APIs/models must exist and be functional
+- **Interactive Functionality Mandate** - All buttons, forms, and interactive elements must work, not just look good
+- **Intelligent Testing Framework Selection** - Automatically selects optimal testing strategies based on platform and project complexity
+- **Real Environment Testing Preference** - Prioritizes TestContainers and real databases over complex mocking
+- **85% Coverage Enforcement** - Mandates comprehensive test coverage with actual verification
 
 ### 🛠️ **Development Tools**
 - **`/sdd_specify`** - Generate project specifications from requirements
@@ -78,11 +108,20 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **Platform Detection Engine** - Automatically detect web (Next.js, React), mobile (React Native), desktop (Electron), backend (Node.js, Python), and AI platforms
 - **Constitutional Compliance Gates** - Ensure code quality and architectural compliance
 - **TDD Enforcement** - RED-GREEN-REFACTOR-SMOKE methodology
-- **Database Integration** - SQLite-based data persistence with robust error handling
 - **Template System** - Reusable templates for consistent project structure
 - **Anti-Evasion System** - Prevents AI from skipping tests, using time excuses, or accepting partial solutions
 - **Test Failure Handling** - Mandatory fixing of failing tests, no workarounds allowed
 - **Continuous Execution Policy** - AI completes entire phases without stopping or asking for permission
+- **Multi-Platform Structure Requirements** - Web (all routes), Mobile (all screens), Desktop (all windows), Backend (all APIs), AI (all models)
+- **Multi-Platform Functionality Requirements** - Event handlers, touch interactions, mouse/keyboard, API logic, ML logic
+- **Multi-Platform Quality Standards** - Modern UI, mobile UX, desktop integration, production backend, accurate AI
+- **Complete Structure Enforcement** - No partial implementations, all navigation destinations must exist
+- **Interactive Functionality Mandate** - All interactive elements must be functional, not cosmetic
+- **Testing Framework Intelligence** - Platform-specific testing strategies (Jest + Playwright for NextJS, Detox for React Native, TestContainers for Backend)
+- **Contract Testing Integration** - Pact and consumer-driven contracts to avoid mocking complexity
+- **Quality Gates for Testing** - Test execution, coverage, performance, integration, contract, and E2E gates
+- **Performance Benchmarking** - Mandatory performance validation with time limits and metrics
+- **Real Environment Testing** - TestContainers, real databases, and actual service testing
 
 ## 🚀 Quick Start
 
@@ -163,14 +202,17 @@ Generate detailed implementation plans based on specifications:
 ```
 
 **Features:**
-- **Platform Detection** - Automatically detects technology stack and platform
+- **High-Level Planning** - Architecture and implementation approach (no platform detection)
 - **Technical Context** - Detailed implementation decisions and architecture
 - **Database Strategy** - Data modeling and persistence approach
 - **API Design** - RESTful API specifications and endpoints
 - **Project Structure** - Directory organization and file structure
-- **Implementation Phases** - 4-phase development approach
+- **Implementation Phases** - 4-phase development approach with TDD methodology
+- **Constitutional Gates Review** - Validates SDD methodology compliance (7 gates)
 
 **Output:** Creates `specs/plan.md` with comprehensive implementation guidance.
+
+**Note:** Plan tool focuses on architecture and doesn't include time estimation. Time estimates are handled by the tasks tool.
 
 ### Task Breakdown (`/sdd_tasks`)
 
@@ -193,7 +235,14 @@ Generate 72-task atomic breakdown following TDD methodology:
 - Dependencies and constitutional compliance gates
 - Platform-specific verification requirements
 
-**Output:** Creates `specs/tasks.md` with complete task breakdown.
+**Features:**
+- **Platform Detection** - Automatically detects technology stack from spec and plan
+- **Project Estimation** - Realistic time estimates using PERT methodology
+- **Scope Analysis** - Features, pages, and integrations count
+- **AI Time Savings** - Shows AI-assisted development time reduction
+- **Team Recommendations** - Suggests team size based on complexity
+
+**Output:** Creates `specs/tasks.md` with complete task breakdown and time estimates.
 
 ### Implementation Execution (`/sdd_implement`)
 
@@ -227,32 +276,33 @@ Execute implementation with intelligent AI-driven code generation:
 
 ## 🏗️ Architecture
 
-### Platform Detection Engine
+### Architecture Overview
 
-Automatically detects and adapts to different platforms:
+**File-Based System:**
+- **Spec Tool** (`/sdd_specify`) - Creates `specs/spec.md`
+- **Plan Tool** (`/sdd_plan`) - Creates `specs/plan.md` (architecture-focused, no estimation)
+- **Tasks Tool** (`/sdd_tasks`) - Creates `specs/tasks.md` (includes platform detection & estimation)
+- **Implement Tool** (`/sdd_implement`) - Reads all markdown files and executes
 
+**Platform Detection (Tasks Tool only):**
 - **Web Platforms**: Next.js, React, Vue.js, Angular
 - **Mobile Platforms**: React Native, Flutter
 - **Desktop Platforms**: Electron, Tauri
 - **Backend Platforms**: Node.js, Python, Java, Go
 - **AI Platforms**: TensorFlow, PyTorch, OpenAI APIs
 
+**Realistic Time Estimation:**
+- **Human Estimates**: Based on PERT methodology (optimistic, most likely, pessimistic)
+- **AI Estimates**: Shows 40-50% time savings with AI-assisted development
+- **Scope Analysis**: Features, pages, and integrations counting
+- **Complexity Levels**: Low, Medium, High based on specification analysis
+
 ### Template System
 
-Consistent, reusable templates for:
-- Project specifications
-- Implementation plans
-- Task breakdowns
-- Code generation patterns
-
-### Database Schema
-
-SQLite-based persistence with:
-- Feature management
-- Specification storage
-- Plan tracking
-- Task progress monitoring
-- Implementation history
+Consistent, reusable JSON templates loaded from `src/templates/`:
+- `spec.json` - Specification template
+- `plan.json` - Implementation plan template
+- `tasks.json` - Task breakdown template (72 tasks)
 
 ## 🏆 Real-World Examples
 
@@ -262,7 +312,7 @@ See SDD MCP Server in action with **15 complete applications** built using this 
 
 **[🔗 View VibeCoding Repository](https://github.com/asimsinan/VibeCoding)**
 
-### Challenge Showcase
+**NOTE:SOME APPS MAY NOT BE WORKING DUE TO CLOUD DB (SUPABASE) ISSUES. IF THE DB IS NOT USED FOR A LONG TIME, IT IS AUTOMATICALLY DELETED. I WILL TRY TO FIND A ROBUST SOLUTION TO FIX THIS ISSUE. UNTIL THEN TRY THEM LOCALLY.**
 
 **Challenge 1: Recipe Finder** (Built in 3 hours)
 - Prompt: "Build a recipe finder app where users input ingredients and get matching recipes, using HTML, CSS, and vanilla JavaScript"
@@ -353,13 +403,13 @@ SDD MCP Server supports custom templates for:
 
 ## 📈 Supported Platforms
 
-| Platform | Frameworks | Languages | Status |
-|----------|------------|-----------|--------|
-| **Web** | Next.js, React, Vue.js, Angular | TypeScript, JavaScript | ✅ Full Support |
-| **Mobile** | React Native, Flutter | TypeScript, Dart | ✅ Full Support |
-| **Desktop** | Electron, Tauri | TypeScript, JavaScript, Rust | ✅ Full Support |
-| **Backend** | Node.js, Express, FastAPI, Spring | TypeScript, Python, Java | ✅ Full Support |
-| **AI** | TensorFlow, PyTorch, OpenAI | Python, TypeScript | ✅ Full Support |
+| Platform | Frameworks | Languages | Structure Requirements | Functionality Requirements | Quality Standards |
+|----------|------------|-----------|----------------------|---------------------------|------------------|
+| **Web** | Next.js, React, Vue.js, Angular | TypeScript, JavaScript | ✅ All routes/pages must exist | ✅ Event handlers, navigation logic | ✅ Modern UI, custom branding |
+| **Mobile** | React Native, Flutter | TypeScript, Dart | ✅ All screens must exist | ✅ Touch interactions, gestures | ✅ Modern mobile UI, mobile UX |
+| **Desktop** | Electron, Tauri | TypeScript, JavaScript, Rust | ✅ All windows must exist | ✅ Mouse/keyboard interactions | ✅ Modern desktop UI, system integration |
+| **Backend** | Node.js, Express, FastAPI, Spring | TypeScript, Python, Java | ✅ All APIs/services must exist | ✅ Business logic, database operations | ✅ Production ready, security, performance |
+| **AI** | TensorFlow, PyTorch, OpenAI | Python, TypeScript | ✅ All models/pipelines must exist | ✅ ML logic, data processing | ✅ Production ready, accuracy, scalability |
 
 ---
 

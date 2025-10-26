@@ -1,15 +1,14 @@
 {
   "id": "sdd-plan-perfect-v2",
   "name": "SDD Plan Template (AI-Driven Task Structure)",
-  undefined,
+  "version": "2.0.0",
   "description": "Implementation plan template focused on HOW to implement (not WHAT to implement)",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
     "metadata": {
       "created": "{{CURRENT_DATE}}",
       "status": "Draft",
-      "platform": "{{PLATFORM}}",
-      "specPath": "specs/spec.md"
+      "platform": "{{PLATFORM}}"
     },
     "summary": {
       "title": "Summary",
@@ -57,7 +56,7 @@
         "title": "Phase 2: Core Implementation (18 tasks: TASK-019 to TASK-036)",
         "pattern": "Business Logic (RED→GREEN→REFACTOR) → Service Layer (RED→GREEN→REFACTOR) → Controllers (RED→GREEN→REFACTOR) → Integration → SMOKE",
         "content": "{{PHASE_2_CORE_IMPLEMENTATION}}",
-        "instruction": "Core business logic, service layer, controllers, and authentication with RED-GREEN-REFACTOR-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥80% coverage) → REFACTOR (architectural review, service boundaries, code quality) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, architectural validation, compilation success. Final SMOKE test demonstrates all systems operational."
+        "instruction": "Core business logic, service layer, controllers, and authentication with RED-GREEN-REFACTOR-SMOKE pattern per component. Each component follows strict RED (tests fail) → GREEN (tests pass with ≥85% coverage) → REFACTOR (architectural review, service boundaries, code quality) cycle. NO MOCK IMPLEMENTATIONS. Proof required: terminal output showing test execution, coverage reports, architectural validation, compilation success. Final SMOKE test demonstrates all systems operational."
       },
       "phase3": {
         "title": "Phase 3: UI Development (18 tasks: TASK-037 to TASK-054)",
@@ -191,7 +190,7 @@
     },
     "sddVersion": {
     "version": "SDD-Cursor-4.0-AI-Driven Task Structure",
-    "generated": "2025-01-27",
+    "generated": "{{CURRENT_DATE}}",
     "description": "AI-driven implementation plan template with platform detection, compilation safety, and task validation. Plan-specific content with AI-generated platform-specific considerations. Atomic 72-task structure with enhanced compilation safety and validation."
   },
   "is_active": true

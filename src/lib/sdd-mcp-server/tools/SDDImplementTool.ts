@@ -12,132 +12,20 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import * as path from 'path';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
-import { JsonRepairUtility } from '../utils/JsonRepairUtility.js';
+import { PlatformDetectionEngine, PlatformDetectionResult } from '../utils/PlatformDetectionEngine.js';
 
-// Platform Detection Engine (imported from SDDTasksTool)
-interface PlatformDetectionResult {
-  platform: 'web' | 'mobile' | 'desktop' | 'backend' | 'ai';
-  framework: string;
-  language: string;
-  confidence: number;
-  detectedFrom: string[];
-}
-
-class PlatformDetectionEngine {
-  async detectPlatform(specData: any, planData: any): Promise<PlatformDetectionResult> {
-    // Only use plan data for platform detection
-    return this.detectFromPlan(planData);
-  }
-
-
-  private async detectFromPlan(planData: any): Promise<PlatformDetectionResult> {
-    if (!planData) {
-      return { platform: 'web', framework: 'unknown', language: 'typescript', confidence: 0.1, detectedFrom: [] };
-    }
-
-    // Check metadata first for explicit platform
-    if (planData.metadata?.platform) {
-      // Extract framework and language from technical context
-      const techContext = planData.technicalContext;
-      let framework = 'unknown';
-      let language = 'typescript';
-      
-      if (techContext?.languageVersion) {
-        const langText = techContext.languageVersion.toLowerCase();
-        if (langText.includes('nextjs') || langText.includes('next.js')) framework = 'nextjs';
-        else if (langText.includes('react')) framework = 'react';
-        else if (langText.includes('vue')) framework = 'vue';
-        else if (langText.includes('angular')) framework = 'angular';
-        
-        if (langText.includes('typescript')) language = 'typescript';
-        else if (langText.includes('javascript')) language = 'javascript';
-        else if (langText.includes('python')) language = 'python';
-      }
-      
-      return {
-        platform: planData.metadata.platform as any,
-        framework,
-        language,
-        confidence: 0.9,
-        detectedFrom: ['plan_metadata']
-      };
-    }
-
-    // Fallback to text analysis if no metadata
-    const combinedText = [
-      planData.technicalContext?.languageVersion || '',
-      planData.technicalContext?.framework || '',
-      planData.technicalContext?.platform || '',
-      planData.projectStructure?.content || '',
-      planData.databaseStrategy?.content || ''
-    ].join(' ').toLowerCase();
-
-    return this.scorePlatforms(combinedText, 'plan');
-  }
-
-  private scorePlatforms(text: string, source: string): PlatformDetectionResult {
-    const platforms = {
-      web: { keywords: ['web', 'frontend', 'react', 'vue', 'angular', 'nextjs', 'next.js', 'html', 'css', 'browser'], score: 0 },
-      mobile: { keywords: ['mobile', 'ios', 'android', 'react native', 'flutter', 'native'], score: 0 },
-      desktop: { keywords: ['desktop', 'electron', 'tauri', 'windows', 'macos', 'linux'], score: 0 },
-      backend: { keywords: ['backend', 'api', 'server', 'express', 'fastapi', 'nodejs', 'spring', 'django'], score: 0 },
-      ai: { keywords: ['machine learning', 'tensorflow', 'pytorch', 'llm', 'artificial intelligence', 'neural network'], score: 0 }
-    };
-
-    // Score each platform
-    Object.entries(platforms).forEach(([platform, config]) => {
-      config.score = config.keywords.reduce((score, keyword) => {
-        return score + (text.includes(keyword) ? 1 : 0);
-      }, 0);
-    });
-
-    // Find best match
-    const bestMatch = Object.entries(platforms).reduce((best, [platform, config]) => {
-      return config.score > best.score ? { platform, ...config } : best;
-    }, { platform: 'web', score: 0 });
-
-    // Determine framework and language
-    let framework = 'unknown';
-    let language = 'typescript';
-
-    if (bestMatch.platform === 'web') {
-      if (text.includes('nextjs') || text.includes('next.js')) framework = 'nextjs';
-      else if (text.includes('react')) framework = 'react';
-      else if (text.includes('vue')) framework = 'vue';
-      else if (text.includes('angular')) framework = 'angular';
-      language = text.includes('typescript') ? 'typescript' : 'javascript';
-    } else if (bestMatch.platform === 'mobile') {
-      if (text.includes('react native')) framework = 'react-native';
-      else if (text.includes('flutter')) framework = 'flutter';
-      language = 'typescript';
-    } else if (bestMatch.platform === 'backend') {
-      if (text.includes('express')) framework = 'express';
-      else if (text.includes('fastapi')) framework = 'fastapi';
-      else if (text.includes('spring')) framework = 'spring';
-      language = text.includes('python') ? 'python' : 'typescript';
-    }
-
-    return {
-      platform: bestMatch.platform as any,
-      framework,
-      language,
-      confidence: Math.min(bestMatch.score * 0.3, 1.0),
-      detectedFrom: [source]
-    };
-  }
-
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export class SDDImplementTool {
   private basePath: string;
-  private db: RobustDatabaseService;
   private platformDetector: PlatformDetectionEngine;
 
-  constructor(basePath: string = process.cwd(), db?: RobustDatabaseService) {
+  constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
-    this.db = db || new RobustDatabaseService(path.join(this.basePath, 'sdd.db'));
     this.platformDetector = new PlatformDetectionEngine();
   }
 
@@ -171,34 +59,47 @@ export class SDDImplementTool {
         return this.executeDryRun(phase);
       }
       
-      // Get project context
-        const currentFeatureId = await this.resolveFeatureId(null);
-        const rawSpecification = await this.db.get_specification_robust(currentFeatureId);
-      const specification = JsonRepairUtility.validateAndRepairDbContent(rawSpecification, 'SDDImplementTool');
-        const rawPlan = await this.db.get_plan_robust(currentFeatureId);
-      const plan = JsonRepairUtility.validateAndRepairDbContent(rawPlan, 'SDDImplementTool');
+      // Read spec.md file
+      const specPath = path.join(this.basePath, 'specs', 'spec.md');
+      if (!fs.existsSync(specPath)) {
+        return this.error('spec.md not found. Please create a specification first using sdd_specify tool.');
+      }
+      const specContent = fs.readFileSync(specPath, 'utf-8');
+      
+      // Parse spec markdown to extract structured data
+      const specification = this.parseSpecMarkdown(specContent);
+      
+      // Read plan.md file
+      const planPath = path.join(this.basePath, 'specs', 'plan.md');
+      if (!fs.existsSync(planPath)) {
+        return this.error('plan.md not found. Please create a plan first using sdd_plan tool.');
+      }
+      const planContent = fs.readFileSync(planPath, 'utf-8');
+      
+      // Parse plan markdown to extract structured data
+      const plan = this.parsePlanMarkdown(planContent);
 
       // Read tasks.md file
-        const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
-        if (!fs.existsSync(tasksMarkdownPath)) {
+      const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
+      if (!fs.existsSync(tasksMarkdownPath)) {
         return this.error('No tasks.md file found. Please run sdd_tasks first to generate tasks.');
-        }
-        const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
-        
+      }
+      const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
+     
       // Parse verification instructions from tasks.md
-        const verificationInstructions = this.parseVerificationInstructions(tasksMarkdown);
-        
+      const verificationInstructions = this.parseVerificationInstructions(tasksMarkdown);
+
       // Detect platform
       const platformDetection = await this.platformDetector.detectPlatform(specification, plan);
-      
+   
       // Execute based on mode
       if (!phase) {
         return this.executeFullAuto(tasksMarkdown, platformDetection, specification, plan, verificationInstructions);
       } else {
-      const phaseNum = parseInt(phase);
-      if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
-        throw new Error('Phase must be a number between 1 and 4.');
-      }
+        const phaseNum = parseInt(phase);
+        if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
+          throw new Error('Phase must be a number between 1 and 4.');
+        }
         return this.executePhase(phaseNum, tasksMarkdown, platformDetection, specification, plan, verificationInstructions);
       }
     } catch (error) {
@@ -258,13 +159,7 @@ export class SDDImplementTool {
     
     return {
       success: true,
-      nextStep: successMessage,
-      mode: 'full_auto',
-      platform: platformDetection.platform,
-      framework: platformDetection.framework,
-      language: platformDetection.language,
-      confidence: platformDetection.confidence,
-      detectedFrom: platformDetection.detectedFrom
+      nextStep: successMessage
     };
   }
 
@@ -277,14 +172,7 @@ export class SDDImplementTool {
     
     return {
       success: true,
-      nextStep: successMessage,
-      mode: 'phase_by_phase',
-      phase: phaseNum,
-      platform: platformDetection.platform,
-      framework: platformDetection.framework,
-      language: platformDetection.language,
-      confidence: platformDetection.confidence,
-      detectedFrom: platformDetection.detectedFrom
+      nextStep: successMessage
     };
   }
 
@@ -367,6 +255,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
 - **SHOW TEST RESULTS**: Always show the actual output of test execution commands
 - **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **ENSURE 85% COVERAGE**: Verify that test coverage meets or exceeds 85% threshold
 - **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
 - **COMMON TEST COMMANDS**:
   - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
@@ -383,11 +272,11 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **TEST FAILURE ANALYSIS**: Analyze test failures and fix the root cause, not the symptoms
 
 **TEST EXECUTION EXAMPLES**:
-\`\`\`bash
+  \`\`\`bash
 # Correct - Actually execute tests and show results
 timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
 npm run test:coverage
-npx jest --verbose
+npx jest --verbose --coverage --coverageThreshold='{"global":{"branches":85,"functions":85,"lines":85,"statements":85}}'
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
@@ -397,7 +286,7 @@ npx jest --verbose
 
 # CORRECT - Fixing test failures
 # "The CampaignList tests are failing because... Let me fix these issues..."
-\`\`\`
+  \`\`\`
 
 **🚨 CRITICAL PERMISSION REQUIREMENTS**:
 - **NEVER USE SUDO**: Do NOT use sudo, chown, or any root-level commands
@@ -408,7 +297,7 @@ npx jest --verbose
 - **AVOID THESE COMMANDS**: sudo, chown, chmod with elevated permissions, systemctl, etc.
 
 **PERMISSION-SAFE EXAMPLES**:
-\`\`\`bash
+  \`\`\`bash
 # Correct - User-level commands
 npm install
 npm run build
@@ -422,7 +311,7 @@ sudo npm install
 sudo chown -R user:group .
 sudo chmod 755 /some/path
 sudo systemctl restart service
-\`\`\`
+  \`\`\`
 
 **🚨 CRITICAL CONTINUOUS EXECUTION POLICY**:
 - **MANDATORY**: Complete ALL 72 tasks in one continuous session
@@ -553,6 +442,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
 - **SHOW TEST RESULTS**: Always show the actual output of test execution commands
 - **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **ENSURE 85% COVERAGE**: Verify that test coverage meets or exceeds 85% threshold
 - **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
 - **COMMON TEST COMMANDS**:
   - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
@@ -573,7 +463,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 # Correct - Actually execute tests and show results
 timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
 npm run test:coverage
-npx jest --verbose
+npx jest --verbose --coverage --coverageThreshold='{"global":{"branches":85,"functions":85,"lines":85,"statements":85}}'
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
@@ -713,11 +603,25 @@ ${this.generateVerificationInstructionsText(verificationInstructions)}
    * Execute dry run mode
    */
   private async executeDryRun(phase?: string): Promise<any> {
-    const currentFeatureId = await this.resolveFeatureId(null);
-    const rawSpecification = await this.db.get_specification_robust(currentFeatureId);
-    const specification = JsonRepairUtility.validateAndRepairDbContent(rawSpecification, 'SDDImplementTool');
-    const rawPlan = await this.db.get_plan_robust(currentFeatureId);
-    const plan = JsonRepairUtility.validateAndRepairDbContent(rawPlan, 'SDDImplementTool');
+    // Read spec.md file
+    const specPath = path.join(this.basePath, 'specs', 'spec.md');
+    if (!fs.existsSync(specPath)) {
+      return this.error('spec.md not found. Please create a specification first using sdd_specify tool.');
+    }
+    const specContent = fs.readFileSync(specPath, 'utf-8');
+    
+    // Parse spec markdown to extract structured data
+    const specification = this.parseSpecMarkdown(specContent);
+    
+    // Read plan.md file
+    const planPath = path.join(this.basePath, 'specs', 'plan.md');
+    if (!fs.existsSync(planPath)) {
+      return this.error('plan.md not found. Please create a plan first using sdd_plan tool.');
+    }
+    const planContent = fs.readFileSync(planPath, 'utf-8');
+    
+    // Parse plan markdown to extract structured data
+    const plan = this.parsePlanMarkdown(planContent);
 
       const tasksMarkdownPath = path.join(this.basePath, 'specs', 'tasks.md');
       if (!fs.existsSync(tasksMarkdownPath)) {
@@ -819,6 +723,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
 - **SHOW TEST RESULTS**: Always show the actual output of test execution commands
 - **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **ENSURE 85% COVERAGE**: Verify that test coverage meets or exceeds 85% threshold
 - **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
 - **COMMON TEST COMMANDS**:
   - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
@@ -839,7 +744,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 # Correct - Actually execute tests and show results
 timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
 npm run test:coverage
-npx jest --verbose
+npx jest --verbose --coverage --coverageThreshold='{"global":{"branches":85,"functions":85,"lines":85,"statements":85}}'
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
@@ -938,6 +843,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 - **NO TEST CREATION WITHOUT EXECUTION**: Creating tests is NOT enough - you must execute them
 - **SHOW TEST RESULTS**: Always show the actual output of test execution commands
 - **VERIFY TEST STATUS**: Confirm whether tests pass (GREEN) or fail (RED) with actual terminal output
+- **ENSURE 85% COVERAGE**: Verify that test coverage meets or exceeds 85% threshold
 - **USE TIMEOUT PROTECTION**: Use timeout commands to prevent hanging: \`timeout 60s bash -c 'npm test'\`
 - **COMMON TEST COMMANDS**:
   - Web: \`npm test\`, \`npm run test\`, \`npx jest\`, \`npx vitest\`
@@ -958,7 +864,7 @@ ${this.getPlatformSpecificGuidelines(platformDetection.platform, platformDetecti
 # Correct - Actually execute tests and show results
 timeout 60s bash -c 'npm test' || echo "Test timeout exceeded"
 npm run test:coverage
-npx jest --verbose
+npx jest --verbose --coverage --coverageThreshold='{"global":{"branches":85,"functions":85,"lines":85,"statements":85}}'
 
 # Incorrect - Just creating test files without execution
 # Creating test files is NOT sufficient - you must run them!
@@ -1029,21 +935,70 @@ sudo systemctl restart service
   }
 
   /**
-   * Resolve feature ID
+   * Parse spec markdown to extract structured data
    */
-  private async resolveFeatureId(inputFeatureId?: string): Promise<string> {
-    if (inputFeatureId) {
-      return inputFeatureId;
+  private parseSpecMarkdown(content: string): any {
+    const lines = content.split('\n');
+    const specData: any = {};
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Extract title
+      if (line.startsWith('# ')) {
+        specData.title = line.substring(2);
+      }
+      
+      // Extract metadata
+      if (line.startsWith('## Metadata')) {
+        specData.metadata = this.parseMetadataSection(lines, i);
+      }
     }
+    
+    return specData;
+  }
 
-    // Get the most recent feature
-    const features = await this.db.get_all_features_robust();
-    if (!features || features.length === 0) {
-      throw new Error('No features found. Please run sdd_specify first to create a feature.');
+  /**
+   * Parse metadata section from markdown
+   */
+  private parseMetadataSection(lines: string[], startIndex: number): any {
+    const metadata: any = {};
+    
+    for (let i = startIndex + 1; i < lines.length && !lines[i].startsWith('##'); i++) {
+      const line = lines[i];
+      if (line.startsWith('-')) {
+        const match = line.match(/- \*\*(\w+)\*\*: (.+)/);
+        if (match) {
+          metadata[match[1].toLowerCase()] = match[2];
+        }
+      }
     }
+    
+    return metadata;
+  }
 
-    // Return the most recent feature ID
-    return features[features.length - 1].id;
+  /**
+   * Parse plan markdown to extract structured data
+   */
+  private parsePlanMarkdown(content: string): any {
+    const lines = content.split('\n');
+    const planData: any = {};
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Extract title
+      if (line.startsWith('# ')) {
+        planData.title = line.substring(2);
+      }
+      
+      // Extract metadata
+      if (line.startsWith('## Metadata')) {
+        planData.metadata = this.parseMetadataSection(lines, i);
+      }
+    }
+    
+    return planData;
   }
 
   /**

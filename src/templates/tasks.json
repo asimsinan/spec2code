@@ -1,7 +1,7 @@
 {
   "id": "sdd-tasks-atomic-v9",
   "name": "SDD Atomic Tasks Template (Framework-Agnostic RED-GREEN-REFACTOR-SMOKE)",
-  undefined,
+  "version": "9.4.0",
   "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system",
   "template_data": {
     "metadata": {
@@ -129,7 +129,7 @@
           },
           {
             "id": "TASK-002",
-            "title": "[TASK-002] SETUP Development Environment & SHOW Dependencies Installed",
+            "title": "[TASK-002] SETUP Development Environment/Framw & SHOW Dependencies Installed",
             "tddPhase": "Setup",
             "subPhase": "Environment_Configuration",
             "dependencies": [
@@ -783,8 +783,8 @@
             "dependencies": [
               "TASK-016"
             ],
-            "description": "EXECUTE complete test suite including contract, model, and integration tests. SHOW all tests pass with GREEN status and adequate coverage. MANDATORY: You must actually run the test commands (npm test, npm run test, etc.) and show the terminal output - creating test files is NOT sufficient.",
-            "acceptanceCriteria": "All tests executed, all tests pass, GREEN status confirmed, coverage adequate",
+            "description": "EXECUTE complete test suite including contract, model, and integration tests. SHOW all tests pass with GREEN status and ≥85% coverage. MANDATORY: You must actually run the test commands (npm test, npm run test, etc.) and show the terminal output - creating test files is NOT sufficient.",
+            "acceptanceCriteria": "All tests executed, all tests pass, GREEN status confirmed, ≥85% coverage achieved",
             "estimatedLOC": "0-10",
             "estimatedDuration": "15min",
             "verification": {
@@ -804,7 +804,8 @@
                   "passing",
                   "GREEN",
                   "0 failed",
-                  "coverage",
+                  "85% coverage",
+                  "≥85%",
                   "test results",
                   "terminal output"
                 ]
@@ -1833,14 +1834,14 @@
           },
           {
             "id": "TASK-041",
-            "title": "[TASK-041] IMPLEMENT Design System & CONFIRM GREEN",
+            "title": "[TASK-041] IMPLEMENT Modern Design System with Custom Branding & Visual Appeal & CONFIRM GREEN",
             "tddPhase": "GREEN",
             "subPhase": "Implementation",
             "dependencies": [
               "TASK-040"
             ],
-            "description": "IMPLEMENT design system with components, styling, and accessibility features to make design system tests pass. CONFIRM all tests are GREEN.",
-            "acceptanceCriteria": "Design system implemented, components working, styling functional, accessibility features included, all tests pass",
+            "description": "IMPLEMENT modern design system with custom branding, visual appeal, and sophisticated UI patterns to make design system tests pass. CREATE custom color palette (no default blue/white), modern gradients, shadows, animations, and micro-interactions. IMPLEMENT brand identity with visual personality and professional styling. ENFORCE anti-simple design - prohibit basic, plain, or minimal designs. ENSURE modern UI patterns with cards, gradients, shadows, animations, and micro-interactions. CONFIRM all tests are GREEN and visual appeal is modern and sophisticated.",
+            "acceptanceCriteria": "Modern design system implemented, custom color palette created, brand identity established, visual appeal sophisticated, modern UI patterns implemented, gradients/shadows/animations working, anti-simple design enforced, components working, styling functional, accessibility features included, all tests pass",
             "estimatedLOC": "500-800",
             "estimatedDuration": "90min",
             "verification": {
@@ -1851,16 +1852,29 @@
                 "run design system tests",
                 "show GREEN status",
                 "verify component rendering",
-                "confirm styling and accessibility"
+                "confirm styling and accessibility",
+                "verify custom color palette",
+                "confirm brand identity",
+                "test visual appeal",
+                "verify modern UI patterns",
+                "confirm gradients/shadows/animations",
+                "test anti-simple design enforcement"
               ],
-              "expectedState": "All design system tests pass with GREEN status",
+              "expectedState": "All design system tests pass with GREEN status and visual appeal is modern and sophisticated",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "design system",
-                  "components"
+                  "components",
+                  "custom color palette",
+                  "brand identity",
+                  "visual appeal",
+                  "modern UI patterns",
+                  "gradients",
+                  "shadows",
+                  "animations"
                 ]
               },
               "postVerificationInstructions": {
@@ -1964,34 +1978,38 @@
           },
           {
             "id": "TASK-044",
-            "title": "[TASK-044] SETUP Application Entry Point & SHOW Structure",
+            "title": "[TASK-044] SETUP Complete Application Structure & ALL Routes & SHOW Structure",
             "tddPhase": "Setup",
             "subPhase": "Application_Structure",
             "dependencies": [
               "TASK-043"
             ],
-            "description": "SETUP complete application entry point and main structure. Create the primary application file and ensure the application launches successfully. For web: create main page/route. For mobile: create main screen/activity. For desktop: create main window/view. SHOW application structure and confirm successful launch.",
-            "acceptanceCriteria": "Application entry point created, main structure defined, application launches successfully, primary interface accessible",
-            "estimatedLOC": "200-400",
-            "estimatedDuration": "45min",
+            "description": "SETUP complete application structure including entry point, main layout, routing structure, and ALL individual route pages/components. Create the primary application file and ensure ALL navigation destinations exist. For web: create main page/route AND all individual route pages. For mobile: create main screen/activity AND all individual screens. For desktop: create main window/view AND all individual views. SHOW complete application structure and confirm successful launch with all routes accessible.",
+            "acceptanceCriteria": "Complete application structure created, ALL route pages/components created, routing structure functional, all navigation destinations exist, application launches successfully, all routes accessible",
+            "estimatedLOC": "300-500",
+            "estimatedDuration": "60min",
             "verification": {
-              "type": "application_structure_setup",
+              "type": "complete_application_structure_setup",
               "mandatory": true,
               "action": "SHOW",
               "commands": [
-                "show application structure and entry point files",
-                "test application launches successfully",
-                "verify primary interface is accessible",
-                "show main application structure"
+                "show complete application structure",
+                "show all route pages/components",
+                "verify routing structure",
+                "test all navigation destinations",
+                "confirm application launch",
+                "verify all routes accessible"
               ],
-              "expectedState": "Application structure complete with working entry point",
+              "expectedState": "Complete application structure operational with all routes and navigation destinations",
               "proofRequired": {
                 "format": "terminal_output_and_file_structure",
                 "mustInclude": [
-                  "application structure",
-                  "entry point files",
-                  "primary interface",
-                  "successful launch"
+                  "complete application structure",
+                  "all route pages/components",
+                  "routing structure",
+                  "navigation destinations",
+                  "successful launch",
+                  "all routes accessible"
                 ]
               },
               "postVerificationInstructions": {
@@ -2093,14 +2111,14 @@
           },
           {
             "id": "TASK-047",
-            "title": "[TASK-047] IMPLEMENT UI Components & CONFIRM GREEN",
+            "title": "[TASK-047] IMPLEMENT Interactive UI Components with Event Handlers & Navigation & CONFIRM GREEN",
             "tddPhase": "GREEN",
             "subPhase": "Implementation",
             "dependencies": [
               "TASK-046"
             ],
-            "description": "IMPLEMENT UI components with user interactions, state management, and component behavior to make UI component tests pass. CONFIRM all tests are GREEN.",
-            "acceptanceCriteria": "UI components implemented, user interactions working, state management functional, all tests pass",
+            "description": "IMPLEMENT interactive UI components with user interactions, state management, event handlers, navigation logic, and component behavior to make UI component tests pass. INTEGRATE components with their respective pages/routes created in TASK-044. IMPLEMENT proper event handlers for all buttons and interactive elements. ADD client-side configuration ('use client' directives) where needed for interactivity. IMPLEMENT navigation logic between pages. ENSURE all components are properly served through navigation and all routes are functional. CONFIRM all tests are GREEN, all navigation destinations work, and all interactive elements are functional.",
+            "acceptanceCriteria": "Interactive UI components implemented, event handlers working, navigation logic functional, client-side configuration added, user interactions working, state management functional, components integrated with pages/routes, all navigation destinations functional, all interactive elements functional, all tests pass",
             "estimatedLOC": "600-1000",
             "estimatedDuration": "120min",
             "verification": {
@@ -2111,16 +2129,30 @@
                 "run UI component tests",
                 "show GREEN status",
                 "verify user interactions",
-                "confirm state management"
+                "confirm state management",
+                "test component integration with pages",
+                "verify all navigation destinations work",
+                "confirm all routes are functional",
+                "test all button event handlers",
+                "verify all interactive elements work",
+                "confirm navigation logic functions",
+                "test client-side configuration"
               ],
-              "expectedState": "All UI component tests pass with GREEN status",
+              "expectedState": "All UI component tests pass with GREEN status, all navigation destinations functional, and all interactive elements working",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "UI components",
-                  "interactions"
+                  "interactions",
+                  "component integration",
+                  "navigation destinations",
+                  "routes functional",
+                  "event handlers",
+                  "interactive elements",
+                  "navigation logic",
+                  "client-side configuration"
                 ]
               },
               "postVerificationInstructions": {
@@ -2455,7 +2487,7 @@
               "TASK-054"
             ],
             "description": "EXECUTE complete test suite including contract, unit, integration, and UI tests. SHOW all tests pass with GREEN status.",
-            "acceptanceCriteria": "All test suites executed, all tests pass, GREEN status confirmed, coverage adequate",
+            "acceptanceCriteria": "All test suites executed, all tests pass, GREEN status confirmed, ≥85% coverage achieved",
             "estimatedLOC": "0-10",
             "estimatedDuration": "20min",
             "verification": {
@@ -2874,34 +2906,41 @@
           },
           {
             "id": "TASK-065",
-            "title": "[TASK-065] DOCUMENT Deployment Process & SHOW Instructions",
+            "title": "[TASK-065] GENERATE Deployment Files & DOCUMENT Process",
             "tddPhase": "Documentation",
-            "subPhase": "Deployment_Documentation",
+            "subPhase": "Deployment_Generation",
             "dependencies": [
               "TASK-064"
             ],
-            "description": "DOCUMENT complete deployment process including environment setup, configuration, and deployment steps. SHOW deployment instructions.",
-            "acceptanceCriteria": "Deployment documentation complete, environment setup documented, configuration steps clear, deployment instructions provided",
-            "estimatedLOC": "150-300",
-            "estimatedDuration": "45min",
+            "description": "GENERATE complete deployment files including Docker configurations, CI/CD pipelines, environment files, and deployment scripts. DOCUMENT the complete deployment process with step-by-step instructions.",
+            "acceptanceCriteria": "Deployment files generated (Dockerfile, docker-compose.yml, CI/CD configs, .env templates, deployment scripts), deployment documentation complete, environment setup documented, configuration steps clear",
+            "estimatedLOC": "300-500",
+            "estimatedDuration": "60min",
             "verification": {
-              "type": "deployment_documentation_creation",
+              "type": "deployment_files_generation",
               "mandatory": true,
-              "action": "SHOW",
+              "action": "GENERATE",
               "commands": [
-                "show deployment documentation",
-                "show environment setup",
-                "show configuration steps",
-                "show deployment instructions"
+                "generate Dockerfile",
+                "generate docker-compose.yml",
+                "generate CI/CD configuration",
+                "generate environment templates",
+                "generate deployment scripts",
+                "show deployment files",
+                "show deployment documentation"
               ],
-              "expectedState": "Deployment documentation complete and clear",
+              "expectedState": "All deployment files generated and deployment process documented",
               "proofRequired": {
-                "format": "documentation_and_terminal_output",
+                "format": "files_and_documentation",
                 "mustInclude": [
-                  "deployment",
+                  "Dockerfile",
+                  "docker-compose.yml",
+                  "CI/CD configuration",
+                  "environment templates",
+                  "deployment scripts",
+                  "deployment documentation",
                   "environment setup",
-                  "configuration",
-                  "instructions"
+                  "configuration steps"
                 ]
               },
               "postVerificationInstructions": {
@@ -2912,7 +2951,7 @@
                 "nextTask": "TASK-066"
               }
             },
-            "constitutionalCompliance": "✅ Deployment Documentation Gate",
+            "constitutionalCompliance": "✅ Deployment Generation Gate",
             "parallelizable": false
           },
           {

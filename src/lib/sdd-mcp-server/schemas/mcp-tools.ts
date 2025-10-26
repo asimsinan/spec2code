@@ -1,6 +1,6 @@
 /**
  * MCP Tool Schemas
- * JSON schemas for all 7 SDD MCP tools
+ * JSON schemas for all 4 SDD MCP tools
  */
 
 import { z } from 'zod';
@@ -89,22 +89,6 @@ export const StatusInputSchema = z.object({
   includeDiagrams: z.boolean().optional()
 });
 
-export const StatusOutputSchema = z.object({
-  success: z.literal(true),
-  featureId: z.string(),
-  featureName: z.string(),
-  platform: z.string(),
-  completionPercentage: z.number(),
-  includeDiagrams: z.boolean(),
-  statusPath: z.string(),
-  nextStep: z.string(),
-  templateData: z.any()
-});
-
-export const StatusErrorSchema = ErrorSchema.extend({
-  error: z.literal('STATUS_CHECK_FAILED')
-});
-
 
 export const ConflictItemSchema = z.object({
   type: z.enum(['overlap', 'dependency', 'naming', 'functional', 'entity']),
@@ -153,5 +137,3 @@ export const ImplementErrorSchema = ErrorSchema.extend({
     canImplement: z.boolean().describe('Whether this task is ready for implementation')
   })).optional().describe('Available tasks if task selection failed')
 });
-
-// NOTE: Cleanup tool schemas removed - cleanup is now automatic in template generation

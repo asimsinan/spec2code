@@ -1,7 +1,7 @@
 {
   "id": "sdd-spec-perfect-v1",
   "name": "SDD Specification Template (Balanced 4-Phase Structure)",
-  undefined,
+  "version": "1.0.0",
   "description": "Comprehensive specification template based on SDD methodology with balanced 4-phase structure optimal workload distribution",
   "template_data": {
     "title": "Feature Specification: {{FEATURE_NAME}}",

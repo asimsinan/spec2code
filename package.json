@@ -1,6 +1,6 @@
 {
   "name": "ai-sdd-mcp",
-  "version": "3.0.22",
+  "version": "3.1.0",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",
@@ -8,12 +8,9 @@
     "sdd-mcp": "dist/bin/sdd-mcp-server.js"
   },
   "scripts": {
-    "build:lib": "tsc -p tsconfig.lib.json && cp src/lib/sdd-mcp-server/database/schema*.sql dist/lib/sdd-mcp-server/database/ && mkdir -p dist/bin && chmod +x dist/bin/sdd-mcp-server.js && npm run copy-template-to-dist",
-    "install:template": "node scripts/install-template.js",
-    "build:with-template": "npm run build:lib && npm run install:template",
+    "build:lib": "tsc -p tsconfig.lib.json && mkdir -p dist/bin && chmod +x dist/bin/sdd-mcp-server.js && npm run copy-template-to-dist",
     "copy-template-to-dist": "node scripts/copy-template-to-dist.js",
-    "create-prefilled-db": "node scripts/create-prefilled-db.js",
-    "build:complete": "npm run build:lib && npm run copy-template-to-dist && npm run create-prefilled-db",
+    "build:complete": "npm run build:lib",
     "dev:lib": "tsc --watch",
     "start:lib": "node dist/index.js",
     "install:global": "npm run build:complete && npm pack && npm install -g ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz && rm ai-sdd-mcp-$(node -p \"require('./package.json').version\").tgz",
@@ -68,8 +65,6 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.2.0",
     "jsonrepair": "^3.13.1",
     "zod": "^3.23.8"
   },

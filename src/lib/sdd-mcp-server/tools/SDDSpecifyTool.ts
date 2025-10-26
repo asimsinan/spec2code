@@ -7,26 +7,25 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { SpecifyInputSchema, SpecifyErrorSchema } from '../schemas/mcp-tools.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { RobustDatabaseService } from '../database/RobustDatabaseService.js';
-import { SpecificationTemplate } from '../templates/SpecificationTemplate.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 export class SDDSpecifyTool {
   private basePath: string;
-  private db: RobustDatabaseService;
-  private specTemplate: SpecificationTemplate;
 
-  constructor(basePath: string = process.cwd(), db?: RobustDatabaseService) {
-    this.basePath = basePath;
-    this.db = db || new RobustDatabaseService(path.join(basePath, 'sdd.db'));
-    this.specTemplate = new SpecificationTemplate(this.db);
+  constructor(basePath: string = process.cwd()) {
+    this.basePath = path.resolve(basePath);
   }
 
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'STEP 1: Generate specification template from feature description. STEP 2: After creating spec.md file, call with finalize=true to save to database. Creates spec.md file with comprehensive specification.',
+      description: 'Analyze feature description and generate comprehensive specification template. Returns AI instructions to create spec.md file following SDD methodology.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -36,32 +35,14 @@ export class SDDSpecifyTool {
             minLength: 10,
             maxLength: 5000
           },
-          featureName: {
-            type: 'string',
-            description: 'Optional feature name (will be generated from input if not provided)',
-            minLength: 3,
-            maxLength: 100
-          },
           platform: {
             type: 'string',
             description: 'Target platform for the feature (mobile, web, desktop, backend, ai)',
             enum: ['mobile', 'web', 'desktop', 'backend', 'ai'],
             default: 'web'
-          },
-          finalize: {
-            type: 'boolean',
-            description: 'Set to true when finalizing specification to save to database (used after creating spec.md file)'
-          },
-          specificationData: {
-            type: 'object',
-            description: 'The filled specification data to save to database (used with finalize=true)'
-          },
-          featureId: {
-            type: 'string',
-            description: 'Feature ID for finalize mode (used with finalize=true)'
           }
         },
-        required: []
+        required: ['input']
       },
       outputSchema: {
         type: 'object',
@@ -70,35 +51,13 @@ export class SDDSpecifyTool {
             type: 'boolean',
             description: 'Whether the operation was successful'
           },
-          featureName: {
-            type: 'string',
-            description: 'Feature name'
-          },
-          specPath: {
-            type: 'string',
-            description: 'Path to generated spec.md file'
-          },
-          constitutionalCompliant: {
-            type: 'boolean',
-            description: 'Whether specification is constitutional compliant'
-          },
-          violations: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'List of constitutional violations'
-          },
-          warnings: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'List of warnings'
-          },
           nextStep: {
             type: 'string',
-            description: 'Next step instructions or result content'
+            description: 'Detailed instructions for creating spec.md file with all requirements, user stories, acceptance scenarios, technical context, and SDD methodology'
           },
           templateData: {
             type: 'object',
-            description: 'The template data with AI directions for Cursor to fill'
+            description: 'The filled specification template data with AI instructions and cursor_ai_instructions for completing the specification'
           },
           error: {
             type: 'string',
@@ -114,80 +73,46 @@ export class SDDSpecifyTool {
     try {
 
       
-      // Check if this is a finalize call
-      const { finalize, ...otherInput } = input;
- 
-      if (finalize) {
-   
-        return await this.handleFinalize(otherInput);
-      }
-
-      // For non-finalize mode, validate that input is provided
-      if (!input.input) {
-        return this.error('Missing required parameter: input is required when not in finalize mode');
-      }
-
-      
       // Validate input
-      const validatedInput = SpecifyInputSchema.parse(input);
-     
-   
-      let featureName: string;
-      let featureId: string;
-      
-      if (validatedInput.featureName) {
-        // Use provided featureName
-        featureName = validatedInput.featureName;
-        featureId = this.createFeatureId(featureName);
-  
-
-      } else {
-        // Get most recent feature from database
-        const recentFeature = await this.getMostRecentFeature();
-        if (recentFeature) {
-          featureName = recentFeature.name;
-          featureId = recentFeature.id;
-        } else {
-          // No features exist, extract from input
-          featureName = this.extractFeatureName(validatedInput.input);
-          featureId = this.createFeatureId(featureName);
-        }
+      if (!input.input) {
+        return this.error('Missing required parameter: input is required');
       }
+
+      const validatedInput = SpecifyInputSchema.parse(input);
       
       const platform = validatedInput.platform || 'web';
       const specsDir = path.join(this.basePath, 'specs');
+      
 
       // Ensure specs directory exists
       if (!fs.existsSync(specsDir)) {
         fs.mkdirSync(specsDir, { recursive: true });
       }
 
-      await this.createFeatureInDatabase(featureId, featureName, validatedInput.input);
-
-      const fillResult = await this.specTemplate.fillSpecificationTemplate({
+      // Load template from file
+      const template = this.loadSpecTemplate();
+   
+      // Fill template with user input
+      const filledTemplate = this.fillTemplateWithUserInput(template, {
         userInput: validatedInput.input,
-        featureName: featureName,
         platform: platform
-        });
- 
-      if (!fillResult.success) {
-        return this.error(`Failed to prepare specification template: ${fillResult.error}`);
-      }
+      });
   
       // Validate constitutional gates compliance
-      const gatesValidation = this.validateConstitutionalGates(platform, validatedInput.input, fillResult.data);
+      const gatesValidation = this.validateConstitutionalGates(platform, validatedInput.input, filledTemplate);
       if (!gatesValidation.valid) {
         return this.error(`Constitutional Gates Violation: ${gatesValidation.violations.join(', ')}. Please simplify your feature or document violations in Complexity Tracking.`);
       }
-   
-      // Note: Specification will be saved via finalize call after AI creates spec.md file
 
       // Extract template information for dynamic instructions
-      const templateData = fillResult.data;
+      const templateData = filledTemplate;
       const constitutionalGates = templateData.constitutionalGates || {};
       const platformGates = templateData.platformGates || {};
       const qualityGates = templateData.qualityGates || {};
       const sddPrinciples = templateData.sddPrinciples || {};
+      
+      // Extract feature name from template data
+      const featureName = templateData.title?.replace('{{FEATURE_NAME}}', '').trim() || 'Generated Specification';
  
       // Get platform-specific gates
       const platformSpecificGates = platformGates[platform]?.gates || [];
@@ -213,7 +138,11 @@ export class SDDSpecifyTool {
   
 
       const successMessage = `
-🚨🚨🚨 CRITICAL: YOU MUST CREATE THE spec.md FILE NOW! 🚨🚨🚨
+🚫 CRITICAL: DO NOT READ OR SEARCH FOR ANY EXISTING FILES
+- DO NOT read spec.md or any .md files from filesystem
+- DO NOT search for existing specifications
+- The template data below contains ALL information you need
+- Simply CREATE the spec.md file with the content from the template below
 
 🎯 SPECIFICATION TOOL OBJECTIVE:
 Create a comprehensive, production-ready specification document that serves as the single source of truth for your project. This specification will guide all subsequent planning, task creation, and implementation phases.
@@ -223,8 +152,6 @@ Create a comprehensive, production-ready specification document that serves as t
 - Applies SDD methodology with constitutional gates and quality standards
 - Generates a structured specification following industry best practices
 - Creates a foundation for all future development phases
-
-⚠️  MANDATORY ACTION: You must create the spec.md file in specs/spec.md directory. Do not just acknowledge - ACTUALLY CREATE THE FILE!
 
 1. FEATURE DETAILS:
    1.1. Feature Name: ${featureName}
@@ -290,25 +217,26 @@ ${qualityGatesList}
    4.10. Follow SDD principles:
 ${sddPrinciplesList}
    4.11. Use the detailed Cursor AI instructions provided in the template data
-   4.12. 🚨 CRITICAL ACTION REQUIRED: YOU MUST CREATE THE spec.md FILE NOW
-      4.12.1. Create file: specs/spec.md
-      4.12.2. Fill the template data below with actual content
-      4.12.3. Convert JSON template to proper markdown format
-      4.12.4. DO NOT just acknowledge - ACTUALLY CREATE THE FILE
-      4.12.5. After creating spec.md, call sdd_specify with finalize=true to save to database
+   4.12. Create spec.md file at specs/spec.md with all content filled from the template below
 
 5. TEMPLATE DATA FOR AI PROCESSING:
-${JSON.stringify(fillResult.data, null, 2)}
+${JSON.stringify(templateData, null, 2)}
 
 6. MARKDOWN CONVERSION GUIDE:
-   To create the spec.md file from the JSON template data above, follow this structure:
+   ⚠️ CRITICAL: The spec.md file MUST contain ALL fields from the JSON template above
+   ⚠️ You MUST fill ALL placeholders ({{...}}) in the template with actual content
+   ⚠️ DO NOT add sections that don't exist in the template
+   ⚠️ Follow the EXACT structure shown below:
    
    # [template_data.title]
+   [Convert ALL fields from template_data to markdown format, following this structure]
    
    ## Metadata
    - Created: [template_data.metadata.created]
    - Status: [template_data.metadata.status]
    - Input: [template_data.metadata.input]
+   - Platform: [template_data.metadata.platform]
+   [Include ALL metadata fields from template_data.metadata]
    
    ## User Scenarios & Testing
    ### Primary User Story
@@ -318,7 +246,14 @@ ${JSON.stringify(fillResult.data, null, 2)}
    [template_data.userScenarios.comprehensiveUserStories.content]
    
    ### Acceptance Scenarios
-   [template_data.userScenarios.acceptanceScenarios.content]
+   #### Happy Path Scenarios
+   [Extract happy path scenarios from template_data.userScenarios.acceptanceScenarios.content]
+   
+   #### Negative Scenarios
+   [Extract negative scenarios from template_data.userScenarios.acceptanceScenarios.content]
+   
+   #### Edge Cases
+   [Extract edge case scenarios from template_data.userScenarios.acceptanceScenarios.content]
    
    ### Edge Cases
    [template_data.userScenarios.edgeCases.content]
@@ -329,9 +264,15 @@ ${JSON.stringify(fillResult.data, null, 2)}
    
    ### Key Entities
    [template_data.requirements.keyEntities.content]
+   [Only include if template_data.requirements.keyEntities.content exists and is not empty]
    
    ### Database Requirements
    [template_data.requirements.databaseRequirements.content]
+   [Only include if template_data.requirements.databaseRequirements.content exists and is not empty]
+   
+   ### UI/Design System Requirements
+   [template_data.requirements.uiDesignRequirements.content]
+   [Include if template_data.requirements.uiDesignRequirements.content exists]
    
    ### Technology Stack Requirements
    [template_data.requirements.technologyStack.content]
@@ -353,67 +294,78 @@ ${JSON.stringify(fillResult.data, null, 2)}
    [template_data.apiSpecification.testing.content]
    
    ## Constitutional Gates
-   [Convert template_data.constitutionalGates to markdown sections with proper formatting]
+   [Convert ALL gates from template_data.constitutionalGates to markdown]
+   [For EACH gate, use this format:]
+   ### [Gate Title]
+   **Description:** [Gate description]
+   
+   **Status:** ✅ PASSED - [Brief justification]
+   [Include ALL constitutional gates that apply to this platform]
    
    ## Platform Gates
    [Convert template_data.platformGates to markdown sections with proper formatting]
+   ### [Platform] Platform Gates
+   [List all gates from template_data.platformGates.[platform].gates]
+   - **Simplicity**: [Gate description]
+   - **...**: [Other gates]
+   [List all quality gates from template_data.platformGates.[platform].qualityGates]
    
-   ## Quality Gates (Enforcement Rules)
-   [Convert template_data.qualityGates to markdown sections with proper formatting]
+   ### Quality Gates
+   [Convert ALL quality gates from template_data.qualityGates]
+   [For EACH quality gate section, use:]
+   ### [Quality Gate Title]
+   [List all items from template_data.qualityGates.[section].items]
    
    ## Review Checklist
-   [Convert template_data.reviewChecklist to markdown sections with proper formatting]
+   [Convert ALL checklists from template_data.reviewChecklist to markdown]
+   [For EACH checklist, use:]
+   ### [Checklist Title]
+   - ✅ [Item 1 from template_data.reviewChecklist.[section].items]
+   - ✅ [Item 2 from template_data.reviewChecklist.[section].items]
    
    ## Execution Status
-   [Convert template_data.executionStatus to markdown sections with proper formatting]
+   [List ALL items from template_data.executionStatus.items]
+   - ✅ [Item 1 from template_data.executionStatus.items]
+   - ✅ [Item 2 from template_data.executionStatus.items]
    
    ## Complexity Tracking
    [template_data.complexityTracking.description]
-   [template_data.complexityTracking.table.rows]
+   [If table has rows, include:]
+   | Violation | Justification | Simpler Alternative Rejected |
+   |-----------|---------------|-----------------------------|
+   [Fill table with rows from template_data.complexityTracking.table.rows]
+   
+   ## SDD Principles
+   [List ALL SDD principles from template_data.sddPrinciples]
+   - **[intentBeforeMechanism]**: [principle description]
+   - **[multiStepRefinement]**: [principle description]
+   [Include ALL principles from template_data.sddPrinciples object]
    
    ### CRITICAL FORMATTING RULES:
    - Always use blank lines between sections
-   - For Constitutional Gates and Quality Gates, format each gate as:
+   - For Constitutional Gates, format each gate EXACTLY as:
      ### [Gate Title]
      **Description:** [Gate description]
      
-     **Status:** [Gate status with checkmark]
-   - Ensure "Status:" always appears on a new line after "Description:"
-   - Use proper markdown formatting with **bold** for labels
+     **Status:** ✅ PASSED - [Brief justification]
+   - For Constitutional Gates, ALWAYS show "Status:" on a new line after "Description:" with checkmark
+   - Use ✅ PASSED when gate is satisfied, ❌ FAILED when violated
    - Add blank lines between different gates for readability
    - **Happy Path Scenarios**: Use numbered list format (1., 2., 3.) for proper Markdown rendering
-   - **Acceptance Scenarios**: Format as ordered lists with consistent indentation
+   - **Acceptance Scenarios**: Must have subsections: "#### Happy Path Scenarios", "#### Negative Scenarios", "#### Edge Cases"
    - **Nested Lists**: Use 4 spaces or tab for sub-scenarios within numbered lists
+   - **Platform Gates**: Format as "- **[Gate Title]**: [Gate description]"
+   - **SDD Principles**: Format as "- **[Principle Name]**: [Principle description]"
+   - DO NOT create sections: Executive Summary, Project Overview, Data Model, User Interface Mockups, Implementation Phases, Non-Functional Requirements, Success Criteria, Risk & Mitigation
 
-7. MANDATORY LAST STEP After creating the spec.md file: You MUST make a TOOL CALL to sdd_specify with finalize=true to save the filled specification to database:
-      7.1. 🚨 CRITICAL: Make a TOOL CALL to sdd_specify with these EXACT parameters:
-        {
-          "finalize": true,
-          "featureId": "${featureId}",
-          "specificationData": [THE_FILLED_SPECIFICATION_DATA_AS_JSON]
-        }
-      7.2. This is NOT just text - you must actually CALL the sdd_specify tool with finalize=true
-      7.3. The specificationData should be the complete JSON object you created from the template
-      7.4. 🚨 CRITICAL: You MUST replace ALL {{...}} placeholders with actual content
-      7.5. 🚨 CRITICAL: You MUST fill ALL empty fields with real data
-      7.6. 🚨 CRITICAL: The specificationData must contain: title, metadata, userScenarios, requirements, apiSpecification
-      7.7. 🚨 CRITICAL: Do NOT pass empty or incomplete data - the tool will reject it
-
-🚨🚨🚨 IMMEDIATE ACTION REQUIRED 🚨🚨🚨
-DO NOT JUST ACKNOWLEDGE THESE INSTRUCTIONS!
-YOU MUST:
-1. CREATE the spec.md file in specs/spec.md
-2. FILL the template with actual content
-3. MAKE A TOOL CALL to sdd_specify with finalize=true to save to database
-4. THEN respond with a BRIEF confirmation (one sentence only)
-
-🚨 CRITICAL: Step 3 requires an actual TOOL CALL, not just text!
 🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
 `;
 
+      // Return template data in a structured format
       const outputData = {
         success: true,
-        nextStep: successMessage
+        nextStep: successMessage,
+        templateData: templateData // Return template data for potential use
       };
       return outputData;
     } catch (error) {
@@ -423,8 +375,7 @@ YOU MUST:
         error: 'SPECIFICATION_CREATION_FAILED',
         message: error instanceof Error ? error.message : 'Unknown error occurred',
         details: {
-          input: input?.input || 'Unknown input',
-          featureName: input?.featureName || 'Unknown feature name'
+          input: input?.input || 'Unknown input'
         }
       });
 
@@ -433,44 +384,119 @@ YOU MUST:
   }
 
   /**
-   * Handle finalize mode - save specification to database
+   * Load template from file
    */
-  private async handleFinalize(input: any): Promise<any> {
-    try {
-  
-      
-      const { featureId, specificationData } = input;
-      
-      if (!featureId || !specificationData) {
-        return this.error('Missing required parameters: featureId and specificationData are required for finalize mode');
-      }
-
-
-      // Get feature to verify it exists and get the name
-      const feature = await this.db.get_feature_robust(featureId);
-      if (!feature) {
-        return this.error(`Feature '${featureId}' not found in database.`);
-      }
-
-      // Save specification to database
-      await this.db.save_specification_robust(
-        featureId,
-        specificationData,
-        'sdd-spec-perfect-v1'
-      );
-
-      return this.success(
-        `Specification saved successfully`,
-        {
-          featureId,
-          featureName: feature.name,
-          templateId: 'sdd-spec-perfect-v1',
-          aiGenerated: true
-        }
-      );
-    } catch (error) {
-      return this.error(`Finalize failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  private loadSpecTemplate(): any {
+    // Get the MCP server's templates directory (not the user's project)
+    // In dist: __dirname is dist/lib/sdd-mcp-server/tools/
+    // Templates are at dist/lib/sdd-mcp-server/templates/
+    const templatesPath = path.join(__dirname, '..', 'templates', 'spec.json');
+    if (!fs.existsSync(templatesPath)) {
+      throw new Error('Spec template not found at: ' + templatesPath);
     }
+    const templateContent = fs.readFileSync(templatesPath, 'utf-8');
+    const template = JSON.parse(templateContent);
+    return template.template_data; // Extract template_data from the JSON structure
+  }
+
+  /**
+   * Fill template with user input
+   */
+  private fillTemplateWithUserInput(template: any, options: {
+    userInput: string;
+    platform: string;
+  }): any {
+    const filledTemplate = JSON.parse(JSON.stringify(template)); // Deep copy
+    
+    // Extract feature name from user input
+    const featureName = this.extractFeatureNameFromInput(options.userInput);
+    
+    // Fill basic placeholders
+    if (filledTemplate.title) {
+      filledTemplate.title = filledTemplate.title.replace('{{FEATURE_NAME}}', featureName);
+    }
+    
+    if (filledTemplate.metadata) {
+      filledTemplate.metadata.input = options.userInput;
+    const currentDate = new Date().toISOString().split('T')[0];
+    filledTemplate.metadata.created = currentDate;
+      filledTemplate.metadata.platform = options.platform || 'web';
+    }
+    
+    // Detect CLI and Library requirements
+    const cliDetection = this.detectCLIRequirements(options.userInput);
+    const libraryDetection = this.detectLibraryRequirements(options.userInput);
+    
+    if (filledTemplate.metadata) {
+      filledTemplate.metadata.cliDetection = cliDetection;
+      filledTemplate.metadata.libraryDetection = libraryDetection;
+    }
+    
+    // Add Cursor AI instructions
+    filledTemplate._cursor_ai_instructions = {
+      userInput: options.userInput,
+      featureName: featureName,
+      platform: options.platform,
+      cliDetection: cliDetection,
+      libraryDetection: libraryDetection,
+      instructions: this.getPlatformSpecificInstructions(options.userInput, featureName, options.platform, cliDetection, libraryDetection).instructions,
+      placeholders: this.getPlatformSpecificInstructions(options.userInput, featureName, options.platform, cliDetection, libraryDetection).placeholders
+    };
+    
+    return filledTemplate;
+  }
+
+  /**
+   * Get platform-specific Cursor AI instructions (extracted from SpecificationTemplate)
+   */
+  private getPlatformSpecificInstructions(userInput: string, featureName: string, platform: string, cliDetection?: any, libraryDetection?: any): any {
+    const baseInstructions = {
+      primaryUserStory: `Generate a primary user story for: ${userInput}. Focus on the main value proposition and user benefit.`,
+      comprehensiveUserStories: `Generate 8-10 comprehensive user stories for: ${userInput}. Use format: **As a [user type], I want [goal] so that [benefit]**.`,
+      acceptanceScenarios: `Generate comprehensive acceptance criteria for: ${userInput}. Use Given-When-Then format.`,
+      edgeCases: `Generate edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
+      functionalRequirements: `Generate comprehensive functional requirements for: ${userInput}. Use FR-001, FR-002 format.`,
+      keyEntities: `Identify key data entities for: ${userInput}. Include their attributes and relationships.`,
+      databaseRequirements: `Define database requirements for: ${userInput}. Include PostgreSQL for ACID compliance.`,
+      apiEndpoints: `Define RESTful/GraphQL API endpoints for: ${userInput}.`,
+      apiContracts: `Define API contracts for: ${userInput}.`,
+      openApiSpec: `Generate OpenAPI 3.0 specification for: ${userInput}.`,
+      apiVersioning: `Define API versioning strategy for: ${userInput}.`,
+      apiTesting: `Define API testing strategy for: ${userInput}.`,
+      simplicityGate: `Validate that ${userInput} can be implemented with ≤10 projects.`,
+      testFirstGate: `Plan test-first approach for ${userInput}.`,
+      integrationFirstTestingGate: `Plan integration-first testing for ${userInput} using real dependencies.`,
+      antiAbstractionGate: `Plan single domain model approach for ${userInput}.`,
+      traceabilityGate: `Ensure every line of code for ${userInput} can trace back to numbered requirements (FR-XXX).`
+    };
+
+    // Platform-specific instructions
+    const platformSpecificInstructions: any = {
+      mobile: {},
+      web: {},
+      desktop: {},
+      backend: {},
+      ai: {}
+    };
+
+    const instructions = { ...baseInstructions, ...(platformSpecificInstructions[platform] || {}) };
+    const placeholders = this.generatePlatformPlaceholders(platform);
+
+    return { instructions, placeholders };
+  }
+
+  /**
+   * Generate platform-specific placeholders
+   */
+  private generatePlatformPlaceholders(platform: string): any {
+    return {
+      "{{SUMMARY}}": "Replace with generated summary",
+      "{{LANGUAGE_VERSION}}": "Replace with generated language/version",
+      "{{PRIMARY_DEPENDENCIES}}": "Replace with generated primary dependencies",
+      "{{TECHNOLOGY_STACK}}": "Replace with extracted complete technology stack",
+      "{{FRONTEND_STACK}}": "Replace with extracted frontend technologies",
+      "{{BACKEND_STACK}}": "Replace with extracted backend technologies"
+    };
   }
 
   private createFeatureId(featureName: string): string {
@@ -485,33 +511,6 @@ YOU MUST:
     return `${sanitizedName}-${timestamp}`;
   }
 
-  private async createFeatureInDatabase(featureId: string, featureName: string, input: string): Promise<void> {
-    // 🚀 INTELLIGENT CLI DETECTION: Detect CLI requirements
-    const cliDetection = this.detectCLIRequirements(input);
-
-    // 🚀 INTELLIGENT LIBRARY DETECTION: Detect library requirements
-    const libraryDetection = this.detectLibraryRequirements(input);
-
-    const featureData = {
-      name: featureName,
-      status: 'not_started',
-      completionPercentage: 0,
-      currentPhase: 'Specification',
-      constitutionalCompliant: false,
-      cliRequired: cliDetection.requiresCLI,
-      cliDetected: cliDetection.hasCLI,
-      cliConfidence: cliDetection.confidence,
-      cliComplexity: cliDetection.cliComplexity,
-      libraryRequired: libraryDetection.requiresLibrary,
-      libraryDetected: libraryDetection.hasLibrary,
-      libraryConfidence: libraryDetection.confidence,
-      libraryComplexity: libraryDetection.libraryComplexity,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    await this.db.create_feature_robust(featureId, featureData);
-  }
 
   /**
    * Validate constitutional gates compliance
@@ -1380,26 +1379,8 @@ YOU MUST:
 
 
 
-  private async getMostRecentFeature(): Promise<{ id: string; name: string } | null> {
-    try {
-      const features = await this.db.get_all_features_robust();
-      if (features.length === 0) {
-        return null;
-      }
-      
-     
-      
-      return {
-        id: features[0].id,
-        name: features[0].name
-      };
-    } catch (error) {
-      console.error('[SDDSpecifyTool] Error getting most recent feature:', error);
-      return null;
-    }
-  }
 
-  private extractFeatureName(input: string): string {
+  private extractFeatureNameFromInput(input: string): string {
     // Simple feature name extraction - take first few words and make them kebab-case
     const words = input.toLowerCase()
       .replace(/[^\w\s]/g, '')
