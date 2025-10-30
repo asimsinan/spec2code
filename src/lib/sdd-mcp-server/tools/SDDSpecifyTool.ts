@@ -25,7 +25,7 @@ export class SDDSpecifyTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'Analyze feature description and generate comprehensive specification template. Returns AI instructions to create spec.md file following SDD methodology.',
+      description: 'Analyze feature description and generate comprehensive specification template. Returns AI instructions to create specs/spec.md file following SDD methodology.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -53,7 +53,7 @@ export class SDDSpecifyTool {
           },
           nextStep: {
             type: 'string',
-            description: 'Detailed instructions for creating spec.md file with all requirements, user stories, acceptance scenarios, technical context, and SDD methodology'
+            description: 'Detailed instructions for creating specs/spec.md file with all requirements, user stories, acceptance scenarios, technical context, and SDD methodology'
           },
           templateData: {
             type: 'object',
@@ -139,10 +139,10 @@ export class SDDSpecifyTool {
 
       const successMessage = `
 🚫 CRITICAL: DO NOT READ OR SEARCH FOR ANY EXISTING FILES
-- DO NOT read spec.md or any .md files from filesystem
+- DO NOT read specs/spec.md or any .md files from filesystem
 - DO NOT search for existing specifications
 - The template data below contains ALL information you need
-- Simply CREATE the spec.md file with the content from the template below
+- Simply CREATE the specs/spec.md file with the content from the template below
 
 🎯 SPECIFICATION TOOL OBJECTIVE:
 Create a comprehensive, production-ready specification document that serves as the single source of truth for your project. This specification will guide all subsequent planning, task creation, and implementation phases.
@@ -217,13 +217,13 @@ ${qualityGatesList}
    4.10. Follow SDD principles:
 ${sddPrinciplesList}
    4.11. Use the detailed Cursor AI instructions provided in the template data
-   4.12. Create spec.md file at specs/spec.md with all content filled from the template below
+   4.12. Create specs/spec.md file with all content filled from the template below
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(templateData, null, 2)}
 
 6. MARKDOWN CONVERSION GUIDE:
-   ⚠️ CRITICAL: The spec.md file MUST contain ALL fields from the JSON template above
+   ⚠️ CRITICAL: The specs/spec.md file MUST contain ALL fields from the JSON template above
    ⚠️ You MUST fill ALL placeholders ({{...}}) in the template with actual content
    ⚠️ DO NOT add sections that don't exist in the template
    ⚠️ Follow the EXACT structure shown below:

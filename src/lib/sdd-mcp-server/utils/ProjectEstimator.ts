@@ -226,26 +226,20 @@ export class ProjectEstimator {
       // Calculate base estimates
       const baseEstimates = this.calculateBaseEstimates(complexity, scope, technicalFactors);
       
-      // Apply team multipliers
-      const teamMultipliers = this.calculateTeamMultipliers(complexity, scope);
-      
-      // Apply risk buffers
-      const riskBuffers = this.calculateRiskBuffers(complexity, technicalFactors);
-      
-      // Calculate final estimates
-      const finalEstimates = this.calculateFinalEstimates(baseEstimates, teamMultipliers, riskBuffers);
-
       // Calculate PERT-style estimates (SOTA: Three-Point Estimation)
       const pertEstimates = this.calculatePERTEstimates(baseEstimates, complexity, scope);
 
+      // Format durations using PERT weighted average
+      const formattedDuration = this.formatDuration(pertEstimates.weightedAverage);
+
       return {
-        totalDuration: finalEstimates.totalDuration,
-        developmentTime: finalEstimates.developmentTime,
-        testingTime: finalEstimates.testingTime,
+        totalDuration: formattedDuration,
+        developmentTime: formattedDuration,
+        testingTime: formattedDuration,
         complexityLevel: complexity.level,
-        confidenceLevel: finalEstimates.confidenceLevel,
-        riskFactors: riskBuffers.factors,
-        assumptions: finalEstimates.assumptions,
+        confidenceLevel: pertEstimates.weightedAverage < pertEstimates.mostLikely ? 'High' : 'Medium',
+        riskFactors: complexity.factors,
+        assumptions: [`${complexity.level} complexity`, `${scope.size} scope`],
         optimistic: pertEstimates.optimistic,
         pessimistic: pertEstimates.pessimistic,
         mostLikely: pertEstimates.mostLikely,
@@ -256,8 +250,8 @@ export class ProjectEstimator {
       console.error('Error generating time estimate:', error);
       return {
         totalDuration: '2-3 weeks',
-        developmentTime: '8-12 days',
-        testingTime: '3-5 days',
+        developmentTime: '2-3 weeks',
+        testingTime: '2-3 weeks',
         complexityLevel: 'medium',
         confidenceLevel: 'Medium',
         riskFactors: ['Limited specification analysis'],
@@ -279,57 +273,48 @@ export class ProjectEstimator {
       const complexity = this.analyzeProjectComplexity(specContent);
       const scope = this.analyzeProjectScope(specContent);
 
-      // Get human estimates first
+      // Get human estimates (for multiplier calculation)
       const humanEstimates = this.calculateBaseEstimates(complexity, scope, { factors: [], score: 0 });
-
-      // Apply AI multipliers
-      const aiMultipliers = this.calculateAIMultipliers(specContent);
-
-      // Calculate AI estimates
-      const aiDevelopmentDays = Math.max(0.125, humanEstimates.developmentDays * aiMultipliers.development);
-      const aiTestingDays = Math.max(0.125, humanEstimates.testingDays * aiMultipliers.testing);
-      const aiGuidanceDays = Math.max(0.125, humanEstimates.developmentDays * aiMultipliers.guidance);
-      const aiReviewDays = Math.max(0.125, humanEstimates.developmentDays * aiMultipliers.review);
-
-      const aiTotalDays = aiDevelopmentDays + aiTestingDays + aiGuidanceDays + aiReviewDays;
-
-      // Format durations (cap AI estimates for rapid development - hours to days, not weeks)
-      // AI should complete in hours (max 4 hours dev, max 2 hours testing)
-      const maxDevHours = 4; // AI dev max 4 hours
-      const maxTotalHours = 8; // AI total max 8 hours (1 day)
       
-      const totalDuration = this.formatDurationWithCap(aiTotalDays, maxTotalHours);
-      const developmentTime = this.formatDurationWithCap(aiDevelopmentDays, maxDevHours);
-      const testingTime = this.formatDurationWithCap(aiTestingDays, 2); // Max 2 hours testing
-      const guidanceTime = this.formatDuration(aiGuidanceDays);
-      const reviewTime = this.formatDuration(aiReviewDays);
+      // Apply AI multipliers (AI is much faster)
+      const aiMultipliers = this.calculateAIMultipliers(specContent);
+      
+      // Calculate AI total days using PERT
+      const aiTotalDays = Math.max(0.125, humanEstimates.totalDays * (aiMultipliers.development + aiMultipliers.testing + aiMultipliers.guidance + aiMultipliers.review));
+      
+      // Apply PERT to AI estimates
+      const aiPERTEstimates = this.calculatePERTEstimates(
+        { totalDays: aiTotalDays },
+        complexity,
+        scope
+      );
 
+      // Format durations (cap AI estimates for rapid development)
+      const maxTotalHours = 8; // AI total max 8 hours (1 day)
+      const totalDuration = this.formatDurationWithCap(aiPERTEstimates.weightedAverage / 8, maxTotalHours);
+      
       // Calculate savings
-      const humanTotalDays = humanEstimates.totalDays;
-      const savingsPercentage = Math.round(((humanTotalDays - aiTotalDays) / humanTotalDays) * 100);
-
-      // Calculate confidence ranges
-      const confidenceRanges = this.calculateConfidenceRanges(aiTotalDays, humanTotalDays);
+      const savingsPercentage = Math.round(((humanEstimates.totalDays - aiPERTEstimates.weightedAverage) / humanEstimates.totalDays) * 100);
 
       return {
         totalDuration,
-        developmentTime,
-        testingTime,
-        guidanceTime,
-        reviewTime,
+        developmentTime: totalDuration,
+        testingTime: totalDuration,
+        guidanceTime: totalDuration,
+        reviewTime: totalDuration,
         savingsPercentage,
-        confidenceRanges
+        confidenceRanges: aiPERTEstimates.confidenceIntervals
       };
     } catch (error) {
       console.error('Error generating AI time estimate:', error);
       return {
         totalDuration: '2-4 hours',
-        developmentTime: '1-2 hours',
-        testingTime: '0.5-1 hour',
-        guidanceTime: '0.5-1 hour',
-        reviewTime: '0.25-0.5 hours',
+        developmentTime: '2-4 hours',
+        testingTime: '2-4 hours',
+        guidanceTime: '2-4 hours',
+        reviewTime: '2-4 hours',
         savingsPercentage: 80,
-        confidenceRanges: { low: 90, medium: 50, high: 25 }
+        confidenceRanges: { p50: 2, p75: 3, p90: 4 }
       };
     }
   }
@@ -413,43 +398,6 @@ export class ProjectEstimator {
     };
   }
 
-  private calculateTeamMultipliers(complexity: ComplexityAnalysis, scope: ScopeAnalysis): any {
-    let multiplier = 1.0;
-    if (complexity.level === 'high') multiplier = 0.9; // More people can work in parallel
-    return multiplier;
-  }
-
-  private calculateRiskBuffers(complexity: ComplexityAnalysis, technicalFactors: TechnicalFactors): any {
-    const factors: string[] = [];
-    let bufferPercent = 0.15;
-
-    if (complexity.level === 'high') {
-      bufferPercent = 0.25;
-      factors.push('High complexity');
-    }
-    if (technicalFactors.score > 5) {
-      bufferPercent += 0.1;
-      factors.push('Technical complexity');
-    }
-
-    return { factors, score: bufferPercent };
-  }
-
-  private calculateFinalEstimates(baseEstimates: any, teamMultipliers: any, riskBuffers: any): any {
-    // Calculate days (not hours)
-    const developmentDays = baseEstimates.developmentDays;
-    const testingDays = baseEstimates.testingDays;
-    const bufferDays = baseEstimates.bufferDays;
-    const totalDays = developmentDays + testingDays + bufferDays;
-
-    return {
-      totalDuration: this.formatDuration(totalDays),
-      developmentTime: this.formatDuration(developmentDays),
-      testingTime: this.formatDuration(testingDays),
-      confidenceLevel: riskBuffers.factors.length > 2 ? 'Low' : 'Medium',
-      assumptions: ['Standard development approach', 'Experienced team']
-    };
-  }
 
   private calculateAIMultipliers(specContent: string): any {
     // Aggressive AI acceleration for rapid development (2024-2025)
@@ -466,12 +414,6 @@ export class ProjectEstimator {
     };
   }
 
-  private calculateConfidenceRanges(aiTotalDays: number, humanTotalDays: number): any {
-    const lowConfidence = Math.ceil(aiTotalDays * 1.2);
-    const mediumConfidence = Math.ceil(aiTotalDays * 1.1);
-    const highConfidence = Math.ceil(aiTotalDays);
-    return { low: lowConfidence, medium: mediumConfidence, high: highConfidence };
-  }
 
   private formatDuration(days: number): string {
     if (days < 1) return `${Math.ceil(days * 8)} hours`;
@@ -498,7 +440,7 @@ export class ProjectEstimator {
   }
 
   /**
-   * Calculate phase-specific duration from total project duration
+   * Calculate phase-specific duration using PERT from total project duration
    */
   calculatePhaseDuration(totalDuration: string, phaseNumber: number): string {
     // Extract number from duration string (e.g., "10 months" -> 10)
@@ -507,21 +449,124 @@ export class ProjectEstimator {
     
     const totalValue = parseInt(match[1]);
     
-    // Each phase gets 1/4 of total time
-    const phaseValue = Math.ceil(totalValue / 4);
+    // Phase-specific weights (tasks in different phases have different complexity)
+    const phaseWeights: Record<number, number> = {
+      1: 1.0,   // Phase 1: Setup (average tasks 10-45min, avg 30min) - baseline
+      2: 1.5,   // Phase 2: Core implementation (complex tasks 45-75min, avg 55min) - 50% heavier
+      3: 1.3,   // Phase 3: UI development (component tasks 30-60min, avg 45min) - 30% heavier
+      4: 0.8    // Phase 4: Testing (quick tasks 10-30min, avg 25min) - 20% lighter
+    };
+    const phaseWeight = phaseWeights[phaseNumber] || 1.0;
     
-    // Determine unit and convert
-    if (totalDuration.includes('month')) {
-      if (phaseValue < 1) return '1-2 weeks';
-      return `${phaseValue} week${phaseValue > 1 ? 's' : ''}`;
-    } else if (totalDuration.includes('week')) {
-      if (phaseValue < 1) return '2-3 days';
-      return `${phaseValue} week${phaseValue > 1 ? 's' : ''}`;
-    } else if (totalDuration.includes('day')) {
-      return `${phaseValue} day${phaseValue > 1 ? 's' : ''}`;
+    // Task complexity within each phase (minutes per task)
+    const taskComplexityMinutes: Record<number, number> = {
+      1: 30,  // Phase 1: Mix of quick setup and medium complexity
+      2: 55,  // Phase 2: Mostly complex implementation tasks
+      3: 45,  // Phase 3: Mix of component development
+      4: 25   // Phase 4: Mostly quick testing/documentation
+    };
+    
+    // Calculate base phase days accounting for task complexity
+    const avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
+    const totalProjectMinutes = 72 * 30; // Total project estimated at 30min avg per task
+    const phaseMinutes = 18 * avgMinutesPerTask;
+    const basePhaseDays = (phaseMinutes / totalProjectMinutes) * totalValue * phaseWeight;
+    
+    // Apply PERT multipliers for phase-specific estimates
+    const optimisticMultiplier = 0.6;   // Best case: 60% of estimate
+    const pessimisticMultiplier = 1.8;  // Worst case: 180% of estimate
+    
+    const optimistic = Math.ceil(basePhaseDays * optimisticMultiplier);
+    const mostLikely = Math.ceil(basePhaseDays);
+    const pessimistic = Math.ceil(basePhaseDays * pessimisticMultiplier);
+    
+    // PERT weighted average: (O + 4M + P) / 6
+    const weightedAverage = Math.ceil((optimistic + 4 * mostLikely + pessimistic) / 6);
+    
+    // Convert days to appropriate format
+    if (weightedAverage < 5) {
+      // Less than 5 days, show as weeks
+      if (weightedAverage < 1) return '2-3 days';
+      return '1-2 weeks';
+    } else if (weightedAverage < 20) {
+      // 5-20 days, show as weeks
+      const weeks = Math.ceil(weightedAverage / 5);
+      return `${weeks} week${weeks > 1 ? 's' : ''}`;
+    } else {
+      // More than 20 days, show as months
+      const months = Math.ceil(weightedAverage / 20);
+      return `${months} month${months > 1 ? 's' : ''}`;
+    }
+  }
+
+  /**
+   * Calculate phase-specific PERT estimates (for 18 tasks per phase)
+   * Returns days for human, hours for AI
+   */
+  calculatePhasePERTEstimates(totalDuration: string, phaseNumber: number, isAI: boolean = false): any {
+    const match = totalDuration.match(/(\d+)/);
+    if (!match) {
+      return {
+        optimistic: isAI ? 2 : 10,
+        mostLikely: isAI ? 3 : 15,
+        pessimistic: isAI ? 4 : 20,
+        weightedAverage: isAI ? 3 : 15,
+        confidenceIntervals: isAI ? { p50: 2, p75: 3, p90: 4 } : { p50: 15, p75: 17, p90: 19 }
+      };
     }
     
-    return '2-3 weeks'; // Default fallback
+    const totalValue = parseInt(match[1]);
+    
+    // Phase-specific weights (accounts for different phase complexities)
+    const phaseWeights: Record<number, number> = {
+      1: 1.0,   // Phase 1: Setup, contracts, initial tests (setup tasks: 10-45min avg)
+      2: 1.5,   // Phase 2: Core implementation (implementation: 45-75min avg) - 50% heavier
+      3: 1.3,   // Phase 3: UI development (components: 30-60min avg) - 30% heavier
+      4: 0.8    // Phase 4: Testing, documentation (testing: 10-30min avg) - 20% lighter
+    };
+    const phaseWeight = phaseWeights[phaseNumber] || 1.0;
+    
+    // Average task complexity within phase (minutes per task)
+    const taskComplexityMinutes: Record<number, number> = {
+      1: 30,  // Phase 1: Mix of quick setup (10-15min) and medium (30-45min)
+      2: 55,  // Phase 2: Mostly complex implementation (45-75min)
+      3: 45,  // Phase 3: Mix of components (30-60min)
+      4: 25   // Phase 4: Mostly quick testing/documentation (10-30min)
+    };
+    const avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
+    
+    // Base phase estimate (18 tasks per phase, account for task complexity)
+    const totalPhaseMinutes = 18 * avgMinutesPerTask;
+    const basePhaseDays = (totalPhaseMinutes / 60 / 8) * phaseWeight * (totalValue / (72 * 30 / 60 / 8));
+    
+    // For AI, convert to hours (AI is much faster: 50x speedup for most tasks)
+    // AI can complete most tasks in 1-10 minutes
+    const aiSpeedupFactor = phaseNumber === 4 ? 30 : 50; // Testing tasks have less AI speedup
+    const aiMinutesPerTask = avgMinutesPerTask / aiSpeedupFactor;
+    const basePhaseHours = isAI ? Math.max(0.5, Math.ceil((18 * aiMinutesPerTask) / 60)) : basePhaseDays * 8;
+    
+    // PERT multipliers
+    const optimistic = Math.ceil(basePhaseHours * 0.6);   // 60% of average
+    const mostLikely = Math.ceil(basePhaseHours);          // Baseline
+    const pessimistic = Math.ceil(basePhaseHours * 1.8);   // 180% of average
+    
+    // PERT weighted average: (O + 4M + P) / 6
+    const weightedAverage = Math.ceil((optimistic + 4 * mostLikely + pessimistic) / 6);
+    
+    // Confidence intervals (simplified)
+    const confidenceIntervals = {
+      p50: Math.ceil(weightedAverage * 1.0),
+      p75: Math.ceil(weightedAverage * 1.15),
+      p90: Math.ceil(weightedAverage * 1.35)
+    };
+    
+    return {
+      optimistic,
+      mostLikely,
+      pessimistic,
+      weightedAverage,
+      confidenceIntervals
+    };
   }
 
   /**

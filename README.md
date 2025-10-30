@@ -8,63 +8,17 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 
 **Note: The tool will be open-sourced in the future. Github link is private for now.**
 
-## 🌟 What Makes This Special
+## 🌟 Key Features
 
-### 🛡️ Anti-Hallucination System
-- **AI must provide proof for every feature** - No guessing or assumptions
-- **No "fake" implementations or placeholders** - Everything works out of the box
-- **Continuous verification at each step** - Validates each component before proceeding
-
-### 🚨 Anti-Evasion Constitutional Gates
-- **7 Constitutional Gates prevent AI from skipping difficult tasks** - No "limited time" excuses
-- **Mandatory test execution and fixing** - AI cannot skip failing tests or work around issues
-- **Complete task completion enforcement** - No partial solutions or "good enough" acceptance
-- **Verification-based continuous execution** - AI proceeds automatically after each verification checkpoint
-
-### 🧪 Intelligent Testing Framework Selection
-- **Platform-aware testing strategies** - Automatically selects optimal testing approach for each project
-- **Real environment testing preference** - Prioritizes TestContainers and real databases over complex mocking
-- **85% coverage enforcement** - Mandates comprehensive test coverage with actual verification
-- **Anti-evasion testing rules** - Prevents AI from claiming "infrastructure issues" or skipping tests
-- **Contract testing integration** - Uses Pact and consumer-driven contracts to avoid mocking complexity
-
-### 🎯 Testing Intelligence Features
-- **Framework-specific testing commands** - NextJS (Jest + Playwright), React Native (Detox), Backend (TestContainers)
-- **Project complexity-aware strategies** - High complexity, database-heavy, API-heavy, or standard approaches
-- **Quality gates for testing** - Test execution, coverage, performance, integration, contract, and E2E gates
-- **Performance benchmarking** - Mandatory performance validation with time limits and metrics
-- **Real environment proof requirements** - Must show actual database/service connections and test results
-
-### 🏗️ Production-Ready Code
-- **Real databases** Production-grade data persistence
-- **Complete test suites** - Comprehensive testing coverage with 85% minimum
-- **Proper error handling** - Robust error management and recovery
-- **Documentation and deployment** - Ready-to-deploy applications
-
-### ⚡ Continuous Execution
-- **AI completes entire phases without stopping** - No manual intervention needed
-- **Builds complete features, not just snippets** - End-to-end functionality
-- **Verification-based task progression** - Natural checkpoints ensure quality and flow
-- **No manual intervention needed** - Fully automated development process
-
-### 🎨 Modern UI Requirements
-- **Anti-simple design enforcement** - Prohibits basic, plain, or minimal designs
-- **Mandatory modern UI patterns** - Cards, gradients, shadows, animations, micro-interactions
-- **Comprehensive design system** - Professional typography, color schemes, responsive design
-- **Accessibility compliance** - WCAG standards and inclusive design
-
-### 🌐 Multi-Platform Comprehensive Guidelines
-- **Platform-specific structure completion** - Web (all routes), Mobile (all screens), Desktop (all windows), Backend (all APIs), AI (all models)
-- **Platform-specific functionality requirements** - Event handlers, touch interactions, mouse/keyboard, API logic, ML logic
-- **Platform-specific quality standards** - Modern UI, mobile UX, desktop integration, production backend, accurate AI
-- **Universal task enforcement** - Same high standards across all platforms with platform-appropriate implementations
-- **Complete application structure** - No partial implementations, all navigation destinations must exist
-- **Interactive functionality mandate** - All buttons, forms, and interactive elements must be functional, not cosmetic
-
-### 🎯 Works With Any LLM
-- **Claude, GPT-4, Gemini, etc.** - No special AI model required
-- **Uses Cursor's built-in AI capabilities** - Leverages your existing setup
-- **No special AI model required** - Works with any language model
+- **AI-Driven Development** - Transform ideas into complete, working applications with TDD methodology
+- **72-Task Breakdown** - Automatically creates 18 tasks per phase (4 phases total) with PERT time estimates
+- **Anti-Evasion System** - 10 constitutional gates prevent AI from skipping tests or using time excuses
+- **Silent Execution** - AI completes all 18 tasks per phase without stopping or asking permission
+- **Code Snippet Requirements** - Must show actual working code, not just file creation
+- **GREEN State Verification** - Requires terminal output with PASS/✓ before task completion
+- **Platform Detection** - Automatically adapts to web (Next.js), mobile (React Native), desktop (Electron), backend (Node.js, Python), and AI platforms
+- **Real Environment Testing** - TestContainers, real databases, 85% coverage enforcement
+- **Production-Ready** - Complete test suites, error handling, documentation, and deployment
 
 ## 👥 Perfect For
 
@@ -80,48 +34,12 @@ Transform any idea into a complete, working application using AI in Cursor - wor
 - **Cursor IDE** (with MCP enabled)
 - **Any LLM** (Claude, GPT-4, Gemini, etc.)
 
-## ✨ Features
+## 🛠️ Commands
 
-### 🎯 **Core Capabilities**
-- **AI-Driven Specification Generation** - Create detailed project specifications from natural language descriptions
-- **Intelligent Implementation Planning** - Generate comprehensive implementation plans with technical context
-- **72-Task Atomic Breakdown** - Automatically create detailed task lists following TDD methodology
-- **Platform-Aware Implementation** - Detect and adapt to web, mobile, desktop, backend, and AI platforms
-- **Template-Based Architecture** - Consistent, maintainable development patterns
-- **Anti-Evasion Constitutional Gates** - 7 gates prevent AI from skipping difficult tasks or using time excuses
-- **Verification-Based Continuous Execution** - AI proceeds automatically after each verification checkpoint
-- **Modern UI Enforcement** - Mandatory sophisticated design patterns, no basic/plain designs allowed
-- **Multi-Platform Comprehensive Guidelines** - Platform-specific structure, functionality, and quality requirements
-- **Complete Application Structure Enforcement** - All routes/screens/windows/APIs/models must exist and be functional
-- **Interactive Functionality Mandate** - All buttons, forms, and interactive elements must work, not just look good
-- **Intelligent Testing Framework Selection** - Automatically selects optimal testing strategies based on platform and project complexity
-- **Real Environment Testing Preference** - Prioritizes TestContainers and real databases over complex mocking
-- **85% Coverage Enforcement** - Mandates comprehensive test coverage with actual verification
-
-### 🛠️ **Development Tools**
-- **`/sdd_specify`** - Generate project specifications from requirements
-- **`/sdd_plan`** - Create detailed implementation plans
-- **`/sdd_tasks`** - Generate 72-task atomic breakdown
-- **`/sdd_implement`** - Execute implementation with full auto or phase-by-phase modes
-
-### 🔧 **Technical Features**
-- **Platform Detection Engine** - Automatically detect web (Next.js, React), mobile (React Native), desktop (Electron), backend (Node.js, Python), and AI platforms
-- **Constitutional Compliance Gates** - Ensure code quality and architectural compliance
-- **TDD Enforcement** - RED-GREEN-REFACTOR-SMOKE methodology
-- **Template System** - Reusable templates for consistent project structure
-- **Anti-Evasion System** - Prevents AI from skipping tests, using time excuses, or accepting partial solutions
-- **Test Failure Handling** - Mandatory fixing of failing tests, no workarounds allowed
-- **Continuous Execution Policy** - AI completes entire phases without stopping or asking for permission
-- **Multi-Platform Structure Requirements** - Web (all routes), Mobile (all screens), Desktop (all windows), Backend (all APIs), AI (all models)
-- **Multi-Platform Functionality Requirements** - Event handlers, touch interactions, mouse/keyboard, API logic, ML logic
-- **Multi-Platform Quality Standards** - Modern UI, mobile UX, desktop integration, production backend, accurate AI
-- **Complete Structure Enforcement** - No partial implementations, all navigation destinations must exist
-- **Interactive Functionality Mandate** - All interactive elements must be functional, not cosmetic
-- **Testing Framework Intelligence** - Platform-specific testing strategies (Jest + Playwright for NextJS, Detox for React Native, TestContainers for Backend)
-- **Contract Testing Integration** - Pact and consumer-driven contracts to avoid mocking complexity
-- **Quality Gates for Testing** - Test execution, coverage, performance, integration, contract, and E2E gates
-- **Performance Benchmarking** - Mandatory performance validation with time limits and metrics
-- **Real Environment Testing** - TestContainers, real databases, and actual service testing
+- **`/sdd_specify`** - Generate project specifications
+- **`/sdd_plan`** - Create implementation plan
+- **`/sdd_tasks`** - Generate 72 tasks (18 per phase)
+- **`/sdd_implement phase=X`** - Execute phase-by-phase
 
 ## 🚀 Quick Start
 
@@ -149,267 +67,59 @@ Add the following configuration to your Cursor `mcp.json` file:
 }
 ```
 
-### Basic Usage
+## 📖 Usage
 
-1. **Create a new project specification:**
+### 1. Generate Specification
 ```bash
-/sdd_specify "Build a crowdfunding platform with user authentication, campaign management, and payment processing using Next.js, TypeScript, and Tailwind CSS"
+/sdd_specify "Build a crowdfunding platform with Next.js, TypeScript, and Tailwind"
 ```
 
-2. **Generate implementation plan:**
+### 2. Create Implementation Plan
 ```bash
 /sdd_plan
 ```
 
-3. **Create task breakdown:**
+### 3. Generate 72 Tasks (18 per phase)
 ```bash
 /sdd_tasks
 ```
+Outputs: `specs/phase1-tasks.md`, `specs/phase2-tasks.md`, `specs/phase3-tasks.md`, `specs/phase4-tasks.md`
 
-4. **Execute implementation:**
+### 4. Execute Phase-by-Phase
 ```bash
-/sdd_implement
-```
-
-## 📋 Detailed Usage
-
-### Specification Generation (`/sdd_specify`)
-
-Generate comprehensive project specifications from natural language descriptions:
-
-```bash
-# Web Application
-/sdd_specify "Create an e-commerce platform with product catalog, shopping cart, and payment integration using Next.js and TypeScript"
-
-# Mobile Application  
-/sdd_specify "Build a task management mobile app with offline sync, push notifications, and team collaboration using React Native"
-
-# Backend API
-/sdd_specify "Develop a REST API for a social media platform with user management, posts, comments, and real-time notifications using Node.js and Express"
-
-# AI Application
-/sdd_specify "Create an AI-powered content generation tool with natural language processing, text analysis, and automated content creation using Python and TensorFlow"
-```
-
-**Output:** Creates `specs/spec.md` with detailed functional requirements, user stories, technical specifications, and acceptance criteria.
-
-### Implementation Planning (`/sdd_plan`)
-
-Generate detailed implementation plans based on specifications:
-
-```bash
-/sdd_plan
-```
-
-**Features:**
-- **High-Level Planning** - Architecture and implementation approach (no platform detection)
-- **Technical Context** - Detailed implementation decisions and architecture
-- **Database Strategy** - Data modeling and persistence approach
-- **API Design** - RESTful API specifications and endpoints
-- **Project Structure** - Directory organization and file structure
-- **Implementation Phases** - 4-phase development approach with TDD methodology
-- **Constitutional Gates Review** - Validates SDD methodology compliance (7 gates)
-
-**Output:** Creates `specs/plan.md` with comprehensive implementation guidance.
-
-**Note:** Plan tool focuses on architecture and doesn't include time estimation. Time estimates are handled by the tasks tool.
-
-### Task Breakdown (`/sdd_tasks`)
-
-Generate 72-task atomic breakdown following TDD methodology:
-
-```bash
-/sdd_tasks
-```
-
-**Task Structure:**
-- **Phase 1: Project Setup & Foundations** (18 tasks)
-- **Phase 2: Core Implementation** (18 tasks)
-- **Phase 3: UI Development** (18 tasks)
-- **Phase 4: Testing, Documentation & Deployment** (18 tasks)
-
-**Each Task Includes:**
-- Detailed description and acceptance criteria
-- TDD phase (RED-GREEN-REFACTOR-SMOKE)
-- Duration and LOC estimates
-- Dependencies and constitutional compliance gates
-- Platform-specific verification requirements
-
-**Features:**
-- **Platform Detection** - Automatically detects technology stack from spec and plan
-- **Project Estimation** - Realistic time estimates using PERT methodology
-- **Scope Analysis** - Features, pages, and integrations count
-- **AI Time Savings** - Shows AI-assisted development time reduction
-- **Team Recommendations** - Suggests team size based on complexity
-
-**Output:** Creates `specs/tasks.md` with complete task breakdown and time estimates.
-
-### Implementation Execution (`/sdd_implement`)
-
-Execute implementation with intelligent AI-driven code generation:
-
-#### Full Auto Mode (All Phases)
-```bash
-/sdd_implement
-```
-
-#### Phase-by-Phase Mode
-```bash
-/sdd_implement phase=1  # Project Setup & Foundations
-/sdd_implement phase=2  # Core Implementation
+/sdd_implement phase=1  # Setup & Foundations
+/sdd_implement phase=2  # Core Implementation  
 /sdd_implement phase=3  # UI Development
 /sdd_implement phase=4  # Testing & Deployment
 ```
 
-#### Dry Run Mode
-```bash
-/sdd_implement dryrun=true           # Preview all phases
-/sdd_implement phase=1 dryrun=true  # Preview specific phase
-```
-
-**Features:**
-- **AI-Driven Code Generation** - Intelligent, context-aware code creation
-- **Platform-Specific Implementation** - Adapts to detected technology stack
-- **TDD Enforcement** - Follows RED-GREEN-REFACTOR-SMOKE methodology
-- **Constitutional Compliance** - Ensures code quality and architectural standards
-- **Continuous Execution** - Completes entire phases without interruption
-
-## 🏗️ Architecture
-
-### Architecture Overview
-
-**File-Based System:**
-- **Spec Tool** (`/sdd_specify`) - Creates `specs/spec.md`
-- **Plan Tool** (`/sdd_plan`) - Creates `specs/plan.md` (architecture-focused, no estimation)
-- **Tasks Tool** (`/sdd_tasks`) - Creates `specs/tasks.md` (includes platform detection & estimation)
-- **Implement Tool** (`/sdd_implement`) - Reads all markdown files and executes
-
-**Platform Detection (Tasks Tool only):**
-- **Web Platforms**: Next.js, React, Vue.js, Angular
-- **Mobile Platforms**: React Native, Flutter
-- **Desktop Platforms**: Electron, Tauri
-- **Backend Platforms**: Node.js, Python, Java, Go
-- **AI Platforms**: TensorFlow, PyTorch, OpenAI APIs
-
-**Realistic Time Estimation:**
-- **Human Estimates**: Based on PERT methodology (optimistic, most likely, pessimistic)
-- **AI Estimates**: Shows 40-50% time savings with AI-assisted development
-- **Scope Analysis**: Features, pages, and integrations counting
-- **Complexity Levels**: Low, Medium, High based on specification analysis
-
-### Template System
-
-Consistent, reusable JSON templates loaded from `src/templates/`:
-- `spec.json` - Specification template
-- `plan.json` - Implementation plan template
-- `tasks.json` - Task breakdown template (72 tasks)
+**Important:** Each phase completes all 18 tasks silently without stopping. The AI should NOT read `spec.md` or `plan.md` files - all information is provided inline.
 
 ## 🏆 Real-World Examples
 
-### VibeCoding Challenge Repository
+See **[Complete applications](https://github.com/asimsinan/VibeCoding)** built with this tool, including:
+- Recipe Finder (3 hours)
+- Invoice Generator (5.5 hours)  
+- Kanban Board (5.5 hours)
+- Video Conferencing (6.5 hours)
+- Learning Management System (5 hours)
+- AR Home Decorator (8 hours)
+- And 9 more applications!
 
-See SDD MCP Server in action with **15 complete applications** built using this tool:
+*Note: Some apps may have database connection issues due to Supabase auto-deletion.*
 
-**[🔗 View VibeCoding Repository](https://github.com/asimsinan/VibeCoding)**
+## 🏗️ How It Works
 
-**NOTE:SOME APPS MAY NOT BE WORKING DUE TO CLOUD DB (SUPABASE) ISSUES. IF THE DB IS NOT USED FOR A LONG TIME, IT IS AUTOMATICALLY DELETED. I WILL TRY TO FIND A ROBUST SOLUTION TO FIX THIS ISSUE. UNTIL THEN TRY THEM LOCALLY.**
+**Files Generated:**
+- `specs/spec.md` - Project specification
+- `specs/plan.md` - Implementation plan
+- `specs/phase1-tasks.md` through `phase4-tasks.md` - 18 tasks per phase (72 total)
 
-**Challenge 1: Recipe Finder** (Built in 3 hours)
-- Prompt: "Build a recipe finder app where users input ingredients and get matching recipes, using HTML, CSS, and vanilla JavaScript"
+**Platforms Supported:**
+Web (Next.js, React), Mobile (React Native, Flutter), Desktop (Electron, Tauri), Backend (Node.js, Python, Java), AI (TensorFlow, PyTorch)
 
-**Challenge 2: Invoice Generator** (Built in 5.5 hours)
-- Prompt: "Build an invoice generator that lets users enter client details and items and download as PDF, using React, CSS, and jsPDF"
-
-**Challenge 3: Appointment Scheduler** (Built in 3.5 hours)
-- Prompt: "Build a personal finance dashboard to track spending categories and visualize with charts using React, TypeScript, Tailwind, Chartjs"
-
-**Challenge 4: Personal Finance Dashboard** (Built in 3 hours)
-- Prompt: "Create an appointment scheduler with a calendar view and booking slots, using React, Tailwind CSS, and date-handling library like date-fns"
-
-**Challenge 5: Mental Health Journal** (Built in 3.5 hours)
-- Prompt: "Create a mental health journal app where users log mood daily and view trend charts, using Next.js, TypeScript, Tailwind"
-
-**Challenge 6: Personal Shopping Assistant** (Built in 4.5 hours)
-- Prompt: "Create a virtual personal shopping assistant that suggests products based on user preferences, using React, TypeScript, Node.js backend, PostgreSQL, and a simple recommendation algorithm"
-
-**Challenge 7: Marketplace** (Built in 4.5 hours)
-- Prompt: "Create a marketplace app where users list items and allow browsing/purchase, using Next.js, TypeScript, Tailwind, Node.js backend, Stripe, and PostgreSQL or MongoDB"
-
-**Challenge 8: Event Organizer** (Built in 5.5 hours)
-- Prompt: "Build a virtual event organizer app managing attendees, schedule, notifications, and networking, using Next.js, TypeScript, Tailwind, Supabase (Auth, real-time DB, storage), WebSockets for real-time features"
-
-**Challenge 9: Collaborative Whiteboard** (Built in 6 hours)
-- Prompt: "Build a collaborative whiteboard app where multiple users can draw and add sticky notes in real time, using Next.js, TypeScript, Tailwind, Supabase Realtime and deploy on Vercel"
-
-**Challenge 10: Kanban** (Built in 5.5 hours)
-- Prompt: "Build a kanban project management app with drag-and-drop tasks, user authentication, and team workspaces, using Next.js, TypeScript, Tailwind, Supabase"
-
-**Challenge 11: Video Conference** (Built in 6.5 hours)
-- Prompt: "Build a video conferencing web app with room creation, screen sharing, and chat, using Next.js, TypeScript, Tailwind, socket.io"
-
-**Challenge 12: Learning Management System** (Built in 5 hours)
-- Prompt: "Create a multi-tenant LMS (learning management system) where different organizations host courses, quizzes, student progress, and admin dashboards, using Next.js, TypeScript, Tailwind, Prisma, PostgreSQL, NextAuth"
-
-**Challenge 13: AR Decorator** (Built in 8 hours)
-- Prompt: "Develop a web-based AR home decorator where users upload room photos and virtually place furniture/décor items and preview in augmented reality, using React, three.js or WebGL, backend image processing APIs."
-
-**Challenge 14: Resume Reviewer** (Built in 3 hours)
-- Prompt: "Create an AI-powered résumé reviewer app where users upload resumes and receive AI feedback, using Next.js, TypeScript, Tailwind, Google Gemini API, file upload via Vercel Blob, and deploy on Vercel."
-
-**Challenge 15: Crowdfunding Platform** (Built in 3.5 hours)
-- Prompt: "Develop a crowdfunding / campaign platform where users can create campaigns, manage donations, comment, and track goals, using Next.js, TypeScript, Tailwind."
-
-## 📊 Example Workflow
-
-### 1. Project Initialization
-```bash
-# Initialize SDD
-/sdd_specify "Build a crowdfunding platform where users can create campaigns, manage donations, comment, and track goals, using Next.js, TypeScript, Tailwind"
-```
-
-### 2. Planning Phase
-```bash
-# Generate implementation plan
-/sdd_plan
-
-# Create task breakdown
-/sdd_tasks
-```
-
-### 3. Implementation Phase
-```bash
-# Preview what will be implemented
-/sdd_implement dryrun=true
-
-# Execute full implementation
-/sdd_implement
-```
-
-### 4. Implementation Complete
-```bash
-# Your project is now fully implemented!
-# Check the generated files and run your application
-```
-
-## 🔧 Configuration
-
-### Custom Templates
-
-SDD MCP Server supports custom templates for:
-- Specification formats
-- Implementation plans
-- Task structures
-- Code generation patterns
-
-## 📈 Supported Platforms
-
-| Platform | Frameworks | Languages | Structure Requirements | Functionality Requirements | Quality Standards |
-|----------|------------|-----------|----------------------|---------------------------|------------------|
-| **Web** | Next.js, React, Vue.js, Angular | TypeScript, JavaScript | ✅ All routes/pages must exist | ✅ Event handlers, navigation logic | ✅ Modern UI, custom branding |
-| **Mobile** | React Native, Flutter | TypeScript, Dart | ✅ All screens must exist | ✅ Touch interactions, gestures | ✅ Modern mobile UI, mobile UX |
-| **Desktop** | Electron, Tauri | TypeScript, JavaScript, Rust | ✅ All windows must exist | ✅ Mouse/keyboard interactions | ✅ Modern desktop UI, system integration |
-| **Backend** | Node.js, Express, FastAPI, Spring | TypeScript, Python, Java | ✅ All APIs/services must exist | ✅ Business logic, database operations | ✅ Production ready, security, performance |
-| **AI** | TensorFlow, PyTorch, OpenAI | Python, TypeScript | ✅ All models/pipelines must exist | ✅ ML logic, data processing | ✅ Production ready, accuracy, scalability |
+**Time Estimation:**
+PERT-based estimates showing 40-50% time savings with AI assistance.
 
 ---
 

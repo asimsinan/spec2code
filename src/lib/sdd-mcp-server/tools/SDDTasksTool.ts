@@ -81,6 +81,7 @@ export class SDDTasksTool {
 
       // Determine which phase to generate
       const phaseToGenerate = requestedPhase || 1; // Default to phase 1 if not specified
+
       const phaseInfo = this.getPhaseInfo(phaseToGenerate);
       
       // Get minimal project analysis needed for phase estimates
@@ -88,9 +89,13 @@ export class SDDTasksTool {
       const timeEstimate = this.projectEstimator.generateTimeEstimate(specContent);
       const aiTimeEstimate = this.projectEstimator.generateAITimeEstimate(specContent);
       
-      // Calculate phase-specific estimates using ProjectEstimator
+      // Calculate phase-specific PERT estimates (days for human, hours for AI)
+      const humanPhasePERT = this.projectEstimator.calculatePhasePERTEstimates(timeEstimate.totalDuration, phaseToGenerate, false);
+      const aiPhasePERT = this.projectEstimator.calculatePhasePERTEstimates(aiTimeEstimate.totalDuration, phaseToGenerate, true);
+      
+      // Format durations for display
       const humanPhaseDuration = this.projectEstimator.calculatePhaseDuration(timeEstimate.totalDuration, phaseToGenerate);
-      const aiPhaseDuration = this.projectEstimator.calculatePhaseDuration(aiTimeEstimate.totalDuration, phaseToGenerate);
+      const aiPhaseDuration = aiPhasePERT.weightedAverage <= 8 ? `${aiPhasePERT.weightedAverage} hours` : `${Math.ceil(aiPhasePERT.weightedAverage / 8)} days`;
       
       // Create simplified project context for phase
       const phaseEstimates = {
@@ -101,7 +106,19 @@ export class SDDTasksTool {
         pagesCount: scope.pages,
         integrationsCount: scope.integrations,
         humanPhaseDuration: humanPhaseDuration,
-        aiPhaseDuration: aiPhaseDuration
+        aiPhaseDuration: aiPhaseDuration,
+        // PERT values for human estimates
+        humanOptimistic: humanPhasePERT.optimistic,
+        humanMostLikely: humanPhasePERT.mostLikely,
+        humanPessimistic: humanPhasePERT.pessimistic,
+        humanWeightedAverage: humanPhasePERT.weightedAverage,
+        humanConfidenceIntervals: humanPhasePERT.confidenceIntervals,
+        // PERT values for AI estimates (convert to hours, AI is faster)
+        aiOptimistic: aiPhasePERT.optimistic,
+        aiMostLikely: aiPhasePERT.mostLikely,
+        aiPessimistic: aiPhasePERT.pessimistic,
+        aiWeightedAverage: aiPhasePERT.weightedAverage,
+        aiConfidenceIntervals: aiPhasePERT.confidenceIntervals
       };
       
       // Create success message for the specific phase
@@ -130,8 +147,6 @@ Using AI-driven template data provided below:
 - **Phase Title**: ${phaseInfo.title}
 - **Tasks in Phase**: ${phaseInfo.taskCount} tasks
 - **Task Range**: ${phaseInfo.taskRange}
-- **Project Context**: ${phaseEstimates.scope} size, ${phaseEstimates.featuresCount} features
-- **Full Project Duration**: ${phaseEstimates.totalDuration} (all 4 phases)
 
 **For This Phase (${phaseInfo.taskCount} tasks):**
 - **Estimated Phase Duration**: ~${phaseEstimates.humanPhaseDuration} for human development
@@ -147,14 +162,14 @@ ${JSON.stringify(phaseTemplate, null, 2)}
 - Generate these ${phaseInfo.taskCount} tasks ONLY
 
 📋 FULL SPECIFICATION (spec.md):
-\`\`\`
+
 ${specContent}
-\`\`\`
+
 
 📋 FULL IMPLEMENTATION PLAN (plan.md):
-\`\`\`
+
 ${planContent}
-\`\`\`
+
 
 ⚠️ **EXTRACT NECESSARY DATA**: The AI MUST read the full markdown files above and extract:
 - Platform from spec.md and plan.md
@@ -180,7 +195,6 @@ You are generating ONE markdown file for this tool call:
 **KEEP UNCHANGED:**
 - Task numbers for this phase (${phaseInfo.taskRange})
 - Task IDs and dependencies
-- Constitutional compliance gates
 - Parallelizable flags
 - Overall structure and format
 
@@ -254,14 +268,10 @@ The file should follow this structure:
 - **AI Time**: ~${phaseEstimates.aiPhaseDuration} for all ${phaseInfo.taskCount} tasks
 - **Focus**: ${phaseInfo.description}
 
-### Task Breakdown for This Phase
-Generate task-specific details for EACH of the ${phaseInfo.taskCount} tasks in this phase.
-
-## 📋 Tasks (${phaseInfo.taskCount} tasks)
 ### 📋 Implementation Tasks
 
 [For each task in the provided phase template tasks array:]
-### [task.id]: [task.title]
+### [task.id] [task.title]
 
 #### Task Details
 - **TDD Phase**: [task.tddPhase]
@@ -297,9 +307,6 @@ Generate task-specific details for EACH of the ${phaseInfo.taskCount} tasks in t
 - No Pause: [task.verification.postVerificationInstructions.noPause]
 - Next Task: [task.verification.postVerificationInstructions.nextTask]
 
-#### Constitutional Compliance
-[task.constitutionalCompliance]
-
 ---
 
 🎯 CRITICAL INSTRUCTIONS - GENERATE ${phaseInfo.taskCount} TASKS FOR THIS PHASE ONLY:
@@ -324,32 +331,19 @@ Include these fields for EACH task:
 - LOC Estimate: [Lines of code estimate]
 - Verification: [Commands, expected state, proof requirements]
 - Dependencies: [Other task IDs if applicable]
-- Constitutional Compliance: [SDD gate compliance]
 
-DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!`;
 
-        // Add instruction to call tool again with next phase (like finalize pattern)
-        let continuationInstruction = '';
-        if (phaseToGenerate < 4) {
-          const nextPhase = phaseToGenerate + 1;
-          
-          continuationInstruction = `
 
-🚨 CRITICAL: After completing the ${phaseInfo.filename} file, you MUST call sdd_tasks tool again with phase=${nextPhase} to generate the next phase file.
+8. CRITICAL: After creating the ${phaseInfo.filename} file, you MUST call sdd_tasks tool again with phase=${phaseToGenerate + 1} to generate the next phase file. Do not call the tool before you create the file. If phase is 4, do not call the tool again and stop.
 
 Make a TOOL CALL with these EXACT parameters:
 {
-  "phase": ${nextPhase}
+  "phase": ${phaseToGenerate + 1}
 }`;
-        } else {
-          continuationInstruction = `
-
-✅ ALL PHASES COMPLETE: All 4 phase files (phase1-tasks.md through phase4-tasks.md) are ready for implementation!`;
-        }
 
         const outputData = {
           success: true,
-          nextStep: successMessage + continuationInstruction
+          nextStep: successMessage
         };
         return outputData;
     } catch (error) {
@@ -386,7 +380,7 @@ Make a TOOL CALL with these EXACT parameters:
   private getPhaseInfo(phase: number): any {
     const phases = {
       1: {
-        filename: 'phase1-tasks.md',
+        filename: 'specs/phase1-tasks.md',
         title: 'Project Setup & Foundations',
         description: 'Setup tasks include project structure, dependencies, environment, API specifications, and database schema. Testing includes RED phase with failing tests.',
         taskCount: 18,
@@ -394,7 +388,7 @@ Make a TOOL CALL with these EXACT parameters:
         taskNumbers: ['001', '002', '003', '004', '005', '006', '007', '008', '009', '010', '011', '012', '013', '014', '015', '016', '017', '018']
       },
       2: {
-        filename: 'phase2-tasks.md',
+        filename: 'specs/phase2-tasks.md',
         title: 'Core Implementation',
         description: 'Core implementation includes business logic, service layer, controllers, and integration testing. Focus on GREEN phase implementation and REFACTOR phase.',
         taskCount: 18,
@@ -402,7 +396,7 @@ Make a TOOL CALL with these EXACT parameters:
         taskNumbers: ['019', '020', '021', '022', '023', '024', '025', '026', '027', '028', '029', '030', '031', '032', '033', '034', '035', '036']
       },
       3: {
-        filename: 'phase3-tasks.md',
+        filename: 'specs/phase3-tasks.md',
         title: 'UI Development',
         description: 'UI development includes platform setup, design system, app structure, components, API service layer, and UI integration. Focus on modern, sophisticated UI design.',
         taskCount: 18,
@@ -410,7 +404,7 @@ Make a TOOL CALL with these EXACT parameters:
         taskNumbers: ['037', '038', '039', '040', '041', '042', '043', '044', '045', '046', '047', '048', '049', '050', '051', '052', '053', '054']
       },
       4: {
-        filename: 'phase4-tasks.md',
+        filename: 'specs/phase4-tasks.md',
         title: 'Testing, Documentation & Deployment',
         description: 'Final phase includes comprehensive testing, documentation, performance/security refactoring, production build, deployment, and final verification.',
         taskCount: 18,

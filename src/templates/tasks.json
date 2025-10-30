@@ -2,7 +2,7 @@
   "id": "sdd-tasks-atomic-v9",
   "name": "SDD Atomic Tasks Template (Framework-Agnostic RED-GREEN-REFACTOR-SMOKE)",
   "version": "9.4.0",
-  "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system",
+  "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. CRITICAL: When tasks have multiple requirements (using 'AND', 'INCLUDE', 'ENSURE'), the AI MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria are met.",
   "template_data": {
     "metadata": {
       "generated": "{{CURRENT_DATE}}",
@@ -78,14 +78,17 @@
           "Never skip tests because they are failing or problematic",
           "Never work around issues - always fix them completely",
           "Never provide summaries instead of actual implementation",
-          "Never treat status updates as task completion"
+          "Never treat status updates as task completion",
+          "Never implement only the first requirement when multiple are listed (AND, INCLUDE, ENSURE)",
+          "Never stop at structure/creation without implementing all requirements",
+          "Verify ALL acceptance criteria before marking task complete"
         ]
       }
     },
     "taskPhases": {
       "phase1": {
         "title": "Phase 1: Project Setup & Foundations (18 tasks)",
-        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
+        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.",
         "taskCount": 18,
         "tasks": [
           {
@@ -104,21 +107,23 @@
               "action": "SHOW",
               "commands": [
                 "find . -type d -name 'src' -o -name 'tests' -o -name 'docs' -o -name 'config' | sort",
-                "tree -L 3 || ls -la"
+                "tree -L 3 || ls -la",
+                "CRITICAL: Verify ALL directories from description are created"
               ],
-              "expectedState": "Project structure visible with all required directories",
+              "expectedState": "Project structure visible with all required directories. MANDATORY: Verify source code + tests + documentation + configuration all present.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "src",
                   "tests",
                   "docs",
-                  "config"
+                  "config",
+                  "VERIFIED: All requirement directories present"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-002!",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-002!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-002"
@@ -135,8 +140,8 @@
             "dependencies": [
               "TASK-001"
             ],
-            "description": "SETUP development environment with all necessary tools, frameworks, and dependencies. SHOW successful installation of all required packages.",
-            "acceptanceCriteria": "Development environment configured, all dependencies installed, tools working properly",
+            "description": "SETUP development environment with all necessary tools, frameworks, and dependencies. SHOW successful installation of all required packages. MANDATORY: All tools AND all frameworks AND all dependencies must be installed, not just some!",
+            "acceptanceCriteria": "Development environment configured, ALL tools installed, ALL frameworks installed, ALL dependencies installed, tools working properly. Verify ALL requirements before marking complete!",
             "estimatedLOC": "50-100",
             "estimatedDuration": "20min",
             "verification": {
@@ -146,21 +151,23 @@
               "commands": [
                 "show installed dependencies",
                 "verify development tools",
-                "confirm environment ready"
+                "confirm environment ready",
+                "CRITICAL: Verify ALL tools AND ALL frameworks AND ALL dependencies"
               ],
-              "expectedState": "Development environment operational with all dependencies",
+              "expectedState": "Development environment operational with all dependencies. MANDATORY: ALL tools + ALL frameworks + ALL dependencies must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "dependencies",
                   "installed",
                   "environment",
-                  "ready"
+                  "ready",
+                  "VERIFIED: All requirements"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-003!",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-003!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-003"
@@ -188,21 +195,23 @@
               "commands": [
                 "show environment variables",
                 "verify configuration files",
-                "confirm settings applied"
+                "confirm settings applied",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Environment variables configured and visible",
+              "expectedState": "Environment variables configured and visible. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "environment",
                   "variables",
                   "configuration",
-                  "settings"
+                  "settings",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-004!",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-004!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-004"
@@ -230,21 +239,23 @@
               "commands": [
                 "validate OpenAPI specification",
                 "show validation results",
-                "confirm spec completeness"
+                "confirm spec completeness",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "OpenAPI specification valid and complete",
+              "expectedState": "OpenAPI specification valid and complete. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "validation",
                   "passed",
                   "openapi",
-                  "specification"
+                  "specification",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-005!",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-005!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-005"
@@ -261,8 +272,8 @@
             "dependencies": [
               "TASK-004"
             ],
-            "description": "SETUP database engine (PostgreSQL/MySQL/SQLite), configure connection, DEFINE complete database schema with all tables, relationships, constraints, and indexes. EXECUTE database migration and SHOW schema creation.",
-            "acceptanceCriteria": "Database engine installed and configured, connection established, schema defined, migration executed, tables created, relationships established",
+            "description": "SETUP database engine (PostgreSQL/MySQL/SQLite) AND configure connection AND DEFINE complete database schema with all tables, relationships, constraints, and indexes AND EXECUTE database migration AND SHOW schema creation. MANDATORY: You MUST complete ALL 5 steps - do not stop after just installing the database!",
+            "acceptanceCriteria": "Database engine installed AND configured, connection established, complete schema defined (all tables + relationships + constraints + indexes), migration executed, tables created, relationships established. Verify ALL 7 requirements before marking complete!",
             "estimatedLOC": "150-300",
             "estimatedDuration": "60min",
             "verification": {
@@ -273,9 +284,10 @@
                 "install and configure database engine",
                 "test database connection",
                 "execute schema migration",
-                "show created tables and relationships"
+                "show created tables and relationships",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Database engine operational, connection verified, schema created and validated",
+              "expectedState": "Database engine operational, connection verified, schema created and validated. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_database_schema",
                 "mustInclude": [
@@ -284,12 +296,13 @@
                   "connection",
                   "schema",
                   "migration",
-                  "tables"
+                  "tables",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-006!",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-006!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-006"
@@ -317,9 +330,10 @@
               "commands": [
                 "compile data model classes",
                 "show compilation results",
-                "verify model relationships"
+                "verify model relationships",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Data model classes compiled successfully with no errors",
+              "expectedState": "Data model classes compiled successfully with no errors. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code",
                 "mustInclude": [
@@ -327,12 +341,13 @@
                   "successful",
                   "models",
                   "classes",
-                  "relationships"
+                  "relationships",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-007!",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-007!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-007"
@@ -361,21 +376,23 @@
                 "show contract test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Contract tests created and failing as expected",
+              "expectedState": "Contract tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "contract tests",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed immediately to TASK-008 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-008!",
+                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-008!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-008"
@@ -404,21 +421,23 @@
                 "show model test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Model tests created and failing as expected",
+              "expectedState": "Model tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "model tests",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed immediately to TASK-009 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-009!",
+                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-009!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-009"
@@ -447,21 +466,23 @@
                 "show integration test files",
                 "count test scenarios",
                 "verify integration coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Integration tests created and failing as expected",
+              "expectedState": "Integration tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "integration tests",
                   "test scenarios",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-009 verification complete! Proceed immediately to TASK-010 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-009 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-010!",
+                "onFailure": "🚨 CRITICAL: TASK-009 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-010!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-010"
@@ -490,21 +511,23 @@
                 "run model tests",
                 "show GREEN status",
                 "verify validation",
-                "confirm relationships"
+                "confirm relationships",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All model tests pass with GREEN status",
+              "expectedState": "All model tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "models",
-                  "validation"
+                  "validation",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-010 verification complete! Proceed immediately to TASK-011 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-010 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-011!",
+                "onFailure": "🚨 CRITICAL: TASK-010 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-011!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-011"
@@ -533,21 +556,23 @@
                 "run integration tests",
                 "show GREEN status",
                 "verify database operations",
-                "confirm data persistence"
+                "confirm data persistence",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All integration tests pass with GREEN status",
+              "expectedState": "All integration tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "database",
-                  "operations"
+                  "operations",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-011 verification complete! Proceed immediately to TASK-012 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-011 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-012!",
+                "onFailure": "🚨 CRITICAL: TASK-011 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-012!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-012"
@@ -576,21 +601,23 @@
                 "run contract tests",
                 "show GREEN status",
                 "verify API endpoints",
-                "confirm request/response handling"
+                "confirm request/response handling",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All contract tests pass with GREEN status",
+              "expectedState": "All contract tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "API",
-                  "endpoints"
+                  "endpoints",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-012 verification complete! Proceed immediately to TASK-013 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-012 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-013!",
+                "onFailure": "🚨 CRITICAL: TASK-012 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-013!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-013"
@@ -619,21 +646,23 @@
                 "run all existing tests to confirm they still pass",
                 "show before/after code structure",
                 "confirm no new functionality added",
-                "show improved code organization"
+                "show improved code organization",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, code structure improved, no behavior changes",
+              "expectedState": "All tests pass, code structure improved, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
                   "all tests passing",
                   "before/after code",
                   "no new features",
-                  "improved structure"
+                  "improved structure",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-013 verification complete! Proceed immediately to TASK-014 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-013 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-014!",
+                "onFailure": "🚨 CRITICAL: TASK-013 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-014!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-014"
@@ -663,9 +692,10 @@
                 "show improved variable names",
                 "show extracted methods",
                 "show removed duplication",
-                "confirm consistent naming"
+                "confirm consistent naming",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, code quality improved, no behavior changes",
+              "expectedState": "All tests pass, code quality improved, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -673,12 +703,13 @@
                   "improved naming",
                   "extracted methods",
                   "removed duplication",
-                  "consistent style"
+                  "consistent style",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-014 verification complete! Proceed immediately to TASK-015 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-014 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-015!",
+                "onFailure": "🚨 CRITICAL: TASK-014 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-015!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-015"
@@ -708,9 +739,10 @@
                 "show consolidated error handling",
                 "show improved error messages",
                 "show standardized error responses",
-                "confirm consistent logging"
+                "confirm consistent logging",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, error handling improved, no behavior changes",
+              "expectedState": "All tests pass, error handling improved, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -718,12 +750,13 @@
                   "consolidated error handling",
                   "improved error messages",
                   "standardized responses",
-                  "consistent logging"
+                  "consistent logging",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-015 verification complete! Proceed immediately to TASK-016 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-015 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-016!",
+                "onFailure": "🚨 CRITICAL: TASK-015 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-016!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-016"
@@ -752,21 +785,23 @@
                 "compile entire codebase",
                 "show compilation results",
                 "verify 0 errors",
-                "confirm dependencies resolved"
+                "confirm dependencies resolved",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Code compiles successfully with 0 errors",
+              "expectedState": "Code compiles successfully with 0 errors. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "compilation",
                   "successful",
                   "0 errors",
-                  "dependencies"
+                  "dependencies",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-016 verification complete! Proceed immediately to TASK-017 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-016 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-017!",
+                "onFailure": "🚨 CRITICAL: TASK-016 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-017!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-017"
@@ -795,9 +830,10 @@
                 "run all test suites with actual commands",
                 "show test results with terminal output",
                 "confirm GREEN status with actual test output",
-                "show test coverage with real coverage report"
+                "show test coverage with real coverage report",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All test suites pass with GREEN status",
+              "expectedState": "All test suites pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
@@ -807,12 +843,13 @@
                   "85% coverage",
                   "≥85%",
                   "test results",
-                  "terminal output"
+                  "terminal output",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-017 verification complete! Proceed immediately to TASK-018 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-017 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-018!",
+                "onFailure": "🚨 CRITICAL: TASK-017 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-018!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-018"
@@ -829,8 +866,8 @@
             "dependencies": [
               "TASK-017"
             ],
-            "description": "EXECUTE comprehensive smoke test of Phase 1 functionality including API endpoints, database operations, and system integration. SHOW system is operational and ready for Phase 2.",
-            "acceptanceCriteria": "Smoke test executed, system operational, API endpoints working, database operations functional, ready for Phase 2",
+            "description": "EXECUTE comprehensive smoke test of Phase 1 functionality including: API endpoints tested AND database operations verified AND system integration confirmed. SHOW system is operational and ready for Phase 2. MANDATORY: Test ALL API endpoints created in Phase 1 - do not skip any!",
+            "acceptanceCriteria": "Smoke test executed with ALL API endpoints tested, system operational, ALL API endpoints working, ALL database operations functional, integration confirmed, ready for Phase 2. Verify ALL 6 requirements before marking complete!",
             "estimatedLOC": "50-100",
             "estimatedDuration": "20min",
             "verification": {
@@ -841,9 +878,10 @@
                 "execute smoke test",
                 "test API endpoints",
                 "verify database operations",
-                "confirm system operational"
+                "confirm system operational",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Phase 1 smoke test passes, system operational",
+              "expectedState": "Phase 1 smoke test passes, system operational. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
@@ -851,12 +889,13 @@
                   "operational",
                   "API",
                   "database",
-                  "system"
+                  "system",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-018 verification complete! Proceed immediately to TASK-019 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-018 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-019!",
+                "onFailure": "🚨 CRITICAL: TASK-018 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-019!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-019"
@@ -869,7 +908,7 @@
       },
       "phase2": {
         "title": "Phase 2: Core Implementation (18 tasks)",
-        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
+        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.",
         "taskCount": 18,
         "tasks": [
           {
@@ -892,21 +931,23 @@
                 "show business logic test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Business logic tests created and failing as expected",
+              "expectedState": "Business logic tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "business logic",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-019 verification complete! Proceed immediately to TASK-020 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-019 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-020!",
+                "onFailure": "🚨 CRITICAL: TASK-019 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-020!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-020"
@@ -935,21 +976,23 @@
                 "run business logic tests",
                 "show RED status",
                 "verify test failures",
-                "confirm no test errors"
+                "confirm no test errors",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Business logic tests fail with RED status as expected",
+              "expectedState": "Business logic tests fail with RED status as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "RED",
                   "failing",
                   "business logic",
-                  "tests"
+                  "tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-020 verification complete! Proceed immediately to TASK-021 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-020 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-021!",
+                "onFailure": "🚨 CRITICAL: TASK-020 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-021!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-021"
@@ -978,21 +1021,23 @@
                 "run business logic tests",
                 "show GREEN status",
                 "verify validation rules",
-                "confirm business rules"
+                "confirm business rules",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All business logic tests pass with GREEN status",
+              "expectedState": "All business logic tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "business logic",
-                  "validation"
+                  "validation",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-021 verification complete! Proceed immediately to TASK-022 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-021 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-022!",
+                "onFailure": "🚨 CRITICAL: TASK-021 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-022!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-022"
@@ -1022,9 +1067,10 @@
                 "show extracted business rules",
                 "show improved code organization",
                 "show simplified conditionals",
-                "confirm clean separation of concerns"
+                "confirm clean separation of concerns",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, business logic refactored, no behavior changes",
+              "expectedState": "All tests pass, business logic refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -1032,12 +1078,13 @@
                   "extracted rules",
                   "improved organization",
                   "simplified conditionals",
-                  "clean separation"
+                  "clean separation",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-022 verification complete! Proceed immediately to TASK-023 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-022 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-023!",
+                "onFailure": "🚨 CRITICAL: TASK-022 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-023!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-023"
@@ -1066,21 +1113,23 @@
                 "run business logic tests",
                 "show GREEN status",
                 "verify all functionality",
-                "confirm refactoring success"
+                "confirm refactoring success",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All business logic tests pass with GREEN status",
+              "expectedState": "All business logic tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "business logic",
-                  "refactoring"
+                  "refactoring",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-023 verification complete! Proceed immediately to TASK-024 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-023 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-024!",
+                "onFailure": "🚨 CRITICAL: TASK-023 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-024!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-024"
@@ -1109,21 +1158,23 @@
                 "show service layer test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Service layer tests created and failing as expected",
+              "expectedState": "Service layer tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "service layer",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-024 verification complete! Proceed immediately to TASK-025 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-024 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-025!",
+                "onFailure": "🚨 CRITICAL: TASK-024 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-025!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-025"
@@ -1152,21 +1203,23 @@
                 "run service layer tests",
                 "show RED status",
                 "verify test failures",
-                "confirm no test errors"
+                "confirm no test errors",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Service layer tests fail with RED status as expected",
+              "expectedState": "Service layer tests fail with RED status as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "RED",
                   "failing",
                   "service layer",
-                  "tests"
+                  "tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-025 verification complete! Proceed immediately to TASK-026 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-025 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-026!",
+                "onFailure": "🚨 CRITICAL: TASK-025 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-026!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-026"
@@ -1195,21 +1248,23 @@
                 "run service layer tests",
                 "show GREEN status",
                 "verify business operations",
-                "confirm data processing"
+                "confirm data processing",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All service layer tests pass with GREEN status",
+              "expectedState": "All service layer tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "service layer",
-                  "operations"
+                  "operations",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-026 verification complete! Proceed immediately to TASK-027 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-026 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-027!",
+                "onFailure": "🚨 CRITICAL: TASK-026 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-027!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-027"
@@ -1239,9 +1294,10 @@
                 "show improved service boundaries",
                 "show consolidated operations",
                 "show simplified methods",
-                "confirm separation of concerns"
+                "confirm separation of concerns",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, service layer refactored, no behavior changes",
+              "expectedState": "All tests pass, service layer refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -1249,12 +1305,13 @@
                   "improved boundaries",
                   "consolidated operations",
                   "simplified methods",
-                  "separation of concerns"
+                  "separation of concerns",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-027 verification complete! Proceed immediately to TASK-028 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-027 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-028!",
+                "onFailure": "🚨 CRITICAL: TASK-027 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-028!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-028"
@@ -1283,21 +1340,23 @@
                 "run service layer tests",
                 "show GREEN status",
                 "verify all functionality",
-                "confirm refactoring success"
+                "confirm refactoring success",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All service layer tests pass with GREEN status",
+              "expectedState": "All service layer tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "service layer",
-                  "refactoring"
+                  "refactoring",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-028 verification complete! Proceed immediately to TASK-029 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-028 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-029!",
+                "onFailure": "🚨 CRITICAL: TASK-028 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-029!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-029"
@@ -1326,21 +1385,23 @@
                 "show controller test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Controller tests created and failing as expected",
+              "expectedState": "Controller tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "controller",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-029 verification complete! Proceed immediately to TASK-030 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-029 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-030!",
+                "onFailure": "🚨 CRITICAL: TASK-029 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-030!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-030"
@@ -1369,21 +1430,23 @@
                 "run controller tests",
                 "show RED status",
                 "verify test failures",
-                "confirm no test errors"
+                "confirm no test errors",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Controller tests fail with RED status as expected",
+              "expectedState": "Controller tests fail with RED status as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "RED",
                   "failing",
                   "controller",
-                  "tests"
+                  "tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-030 verification complete! Proceed immediately to TASK-031 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-030 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-031!",
+                "onFailure": "🚨 CRITICAL: TASK-030 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-031!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-031"
@@ -1412,21 +1475,23 @@
                 "run controller tests",
                 "show GREEN status",
                 "verify request handling",
-                "confirm response formatting"
+                "confirm response formatting",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All controller tests pass with GREEN status",
+              "expectedState": "All controller tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "controller",
-                  "request handling"
+                  "request handling",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-031 verification complete! Proceed immediately to TASK-032 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-031 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-032!",
+                "onFailure": "🚨 CRITICAL: TASK-031 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-032!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-032"
@@ -1456,9 +1521,10 @@
                 "show improved request/response handling",
                 "show consolidated logic",
                 "show simplified error handling",
-                "confirm service integration"
+                "confirm service integration",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, controllers refactored, no behavior changes",
+              "expectedState": "All tests pass, controllers refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -1466,12 +1532,13 @@
                   "improved handling",
                   "consolidated logic",
                   "simplified error handling",
-                  "service integration"
+                  "service integration",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-032 verification complete! Proceed immediately to TASK-033 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-032 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-033!",
+                "onFailure": "🚨 CRITICAL: TASK-032 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-033!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-033"
@@ -1500,21 +1567,23 @@
                 "run controller tests",
                 "show GREEN status",
                 "verify all functionality",
-                "confirm refactoring success"
+                "confirm refactoring success",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All controller tests pass with GREEN status",
+              "expectedState": "All controller tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "controller",
-                  "refactoring"
+                  "refactoring",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-033 verification complete! Proceed immediately to TASK-034 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-033 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-034!",
+                "onFailure": "🚨 CRITICAL: TASK-033 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-034!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-034"
@@ -1543,21 +1612,23 @@
                 "run integration tests",
                 "show GREEN status",
                 "verify all scenarios",
-                "confirm system integration"
+                "confirm system integration",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All integration tests pass with GREEN status",
+              "expectedState": "All integration tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "integration",
-                  "scenarios"
+                  "scenarios",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-034 verification complete! Proceed immediately to TASK-035 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-034 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-035!",
+                "onFailure": "🚨 CRITICAL: TASK-034 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-035!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-035"
@@ -1586,21 +1657,23 @@
                 "compile entire codebase",
                 "show compilation results",
                 "verify 0 errors",
-                "confirm dependencies resolved"
+                "confirm dependencies resolved",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Code compiles successfully with 0 errors",
+              "expectedState": "Code compiles successfully with 0 errors. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "compilation",
                   "successful",
                   "0 errors",
-                  "dependencies"
+                  "dependencies",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-035 verification complete! Proceed immediately to TASK-036 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-035 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-036!",
+                "onFailure": "🚨 CRITICAL: TASK-035 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-036!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-036"
@@ -1629,9 +1702,10 @@
                 "execute smoke test",
                 "test business logic",
                 "verify service layer",
-                "confirm system operational"
+                "confirm system operational",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Phase 2 smoke test passes, system operational",
+              "expectedState": "Phase 2 smoke test passes, system operational. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
@@ -1639,12 +1713,13 @@
                   "operational",
                   "business logic",
                   "service layer",
-                  "system"
+                  "system",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-036 verification complete! Proceed immediately to TASK-037 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-036 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-037!",
+                "onFailure": "🚨 CRITICAL: TASK-036 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-037!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-037"
@@ -1657,7 +1732,7 @@
       },
       "phase3": {
         "title": "Phase 3: UI Development (18 tasks)",
-        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue!",
+        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 18 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.",
         "taskCount": 18,
         "tasks": [
           {
@@ -1680,21 +1755,23 @@
                 "show build configuration",
                 "verify development server",
                 "confirm build success",
-                "show project structure"
+                "show project structure",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Frontend platform operational with successful build",
+              "expectedState": "Frontend platform operational with successful build. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "build",
                   "successful",
                   "development server",
-                  "platform"
+                  "platform",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-037 verification complete! Proceed immediately to TASK-038 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-037 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-038!",
+                "onFailure": "🚨 CRITICAL: TASK-037 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-038!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-038"
@@ -1723,21 +1800,23 @@
                 "show build scripts",
                 "verify build configuration",
                 "test development build",
-                "test production build"
+                "test production build",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Build configuration complete and functional",
+              "expectedState": "Build configuration complete and functional. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "build scripts",
                   "configuration",
                   "development build",
-                  "production build"
+                  "production build",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-038 verification complete! Proceed immediately to TASK-039 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-038 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-039!",
+                "onFailure": "🚨 CRITICAL: TASK-038 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-039!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-039"
@@ -1766,21 +1845,23 @@
                 "show design system test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Design system tests created and failing as expected",
+              "expectedState": "Design system tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "design system",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-039 verification complete! Proceed immediately to TASK-040 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-039 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-040!",
+                "onFailure": "🚨 CRITICAL: TASK-039 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-040!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-040"
@@ -1809,21 +1890,23 @@
                 "run design system tests",
                 "show RED status",
                 "verify test failures",
-                "confirm no test errors"
+                "confirm no test errors",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Design system tests fail with RED status as expected",
+              "expectedState": "Design system tests fail with RED status as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "RED",
                   "failing",
                   "design system",
-                  "tests"
+                  "tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-040 verification complete! Proceed immediately to TASK-041 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-040 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-041!",
+                "onFailure": "🚨 CRITICAL: TASK-040 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-041!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-041"
@@ -1840,8 +1923,8 @@
             "dependencies": [
               "TASK-040"
             ],
-            "description": "IMPLEMENT modern design system with custom branding, visual appeal, and sophisticated UI patterns to make design system tests pass. CREATE custom color palette (no default blue/white), modern gradients, shadows, animations, and micro-interactions. IMPLEMENT brand identity with visual personality and professional styling. ENFORCE anti-simple design - prohibit basic, plain, or minimal designs. ENSURE modern UI patterns with cards, gradients, shadows, animations, and micro-interactions. CONFIRM all tests are GREEN and visual appeal is modern and sophisticated.",
-            "acceptanceCriteria": "Modern design system implemented, custom color palette created, brand identity established, visual appeal sophisticated, modern UI patterns implemented, gradients/shadows/animations working, anti-simple design enforced, components working, styling functional, accessibility features included, all tests pass",
+            "description": "IMPLEMENT modern design system with: custom branding AND visual appeal AND sophisticated UI patterns to make design system tests pass. CREATE: custom color palette (no default blue/white) AND modern gradients AND shadows AND animations AND micro-interactions. IMPLEMENT brand identity with visual personality AND professional styling. ENFORCE anti-simple design (prohibit basic, plain, minimal designs). ENSURE modern UI patterns with cards AND gradients AND shadows AND animations AND micro-interactions. CONFIRM all tests are GREEN. MANDATORY: You MUST implement ALL of these (12 requirements) - do not skip any!",
+            "acceptanceCriteria": "ALL 12 requirements completed: 1) Modern design system implemented 2) Custom color palette created (no default colors) 3) Brand identity established 4) Visual appeal sophisticated 5) Modern UI patterns with cards 6) Gradients working 7) Shadows working 8) Animations working 9) Micro-interactions working 10) Anti-simple design enforced 11) Components working 12) All tests pass. Verify ALL 12 before marking complete!",
             "estimatedLOC": "500-800",
             "estimatedDuration": "90min",
             "verification": {
@@ -1858,9 +1941,10 @@
                 "test visual appeal",
                 "verify modern UI patterns",
                 "confirm gradients/shadows/animations",
-                "test anti-simple design enforcement"
+                "test anti-simple design enforcement",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All design system tests pass with GREEN status and visual appeal is modern and sophisticated",
+              "expectedState": "All design system tests pass with GREEN status and visual appeal is modern and sophisticated. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
@@ -1874,12 +1958,13 @@
                   "modern UI patterns",
                   "gradients",
                   "shadows",
-                  "animations"
+                  "animations",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-041 verification complete! Proceed immediately to TASK-042 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-041 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-042!",
+                "onFailure": "🚨 CRITICAL: TASK-041 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-042!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-042"
@@ -1909,9 +1994,10 @@
                 "show improved component consistency",
                 "show consolidated styles",
                 "show simplified components",
-                "confirm design patterns"
+                "confirm design patterns",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, design system refactored, no behavior changes",
+              "expectedState": "All tests pass, design system refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -1919,12 +2005,13 @@
                   "improved consistency",
                   "consolidated styles",
                   "simplified components",
-                  "design patterns"
+                  "design patterns",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-042 verification complete! Proceed immediately to TASK-043 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-042 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-043!",
+                "onFailure": "🚨 CRITICAL: TASK-042 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-043!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-043"
@@ -1953,21 +2040,23 @@
                 "run design system tests",
                 "show GREEN status",
                 "verify all functionality",
-                "confirm refactoring success"
+                "confirm refactoring success",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All design system tests pass with GREEN status",
+              "expectedState": "All design system tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "design system",
-                  "refactoring"
+                  "refactoring",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-043 verification complete! Proceed immediately to TASK-044 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-043 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-044!",
+                "onFailure": "🚨 CRITICAL: TASK-043 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-044!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-044"
@@ -1984,8 +2073,8 @@
             "dependencies": [
               "TASK-043"
             ],
-            "description": "SETUP complete application structure including entry point, main layout, routing structure, and ALL individual route pages/components. Create the primary application file and ensure ALL navigation destinations exist. For web: create main page/route AND all individual route pages. For mobile: create main screen/activity AND all individual screens. For desktop: create main window/view AND all individual views. SHOW complete application structure and confirm successful launch with all routes accessible.",
-            "acceptanceCriteria": "Complete application structure created, ALL route pages/components created, routing structure functional, all navigation destinations exist, application launches successfully, all routes accessible",
+            "description": "SETUP complete application structure including entry point, main layout, routing structure, and ALL individual route pages/components. Create the primary application file and ensure ALL navigation destinations exist. For web: create main page/route AND all individual route pages. For mobile: create main screen/activity AND all individual screens. For desktop: create main window/view AND all individual views. SHOW complete application structure and confirm successful launch with all routes accessible. MANDATORY: You MUST implement ALL of these requirements - do not stop at just creating the entry point!",
+            "acceptanceCriteria": "Complete application structure created (entry point + main layout + routing + ALL routes), ALL route pages/components created, routing structure functional, all navigation destinations exist, application launches successfully, all routes accessible. VERIFY all 6 criteria are met before marking task complete!",
             "estimatedLOC": "300-500",
             "estimatedDuration": "60min",
             "verification": {
@@ -1996,25 +2085,34 @@
                 "show complete application structure",
                 "show all route pages/components",
                 "verify routing structure",
+                "show navigation menu code with links",
+                "list all pages/routes created",
+                "verify ALL pages accessible via navigation (show <Link> or <a> tags)",
+                "show code proving navigation links work (e.g., <Link to=\"/page\"> or router.push)",
                 "test all navigation destinations",
                 "confirm application launch",
-                "verify all routes accessible"
+                "verify all routes accessible",
+                "CRITICAL: Verify ALL requirements from description are implemented, not just entry point!"
               ],
-              "expectedState": "Complete application structure operational with all routes and navigation destinations",
+              "expectedState": "Complete application structure operational with all routes and navigation destinations. MANDATORY: All requirements from description must be implemented (entry point + main layout + routing + ALL routes + navigation).",
               "proofRequired": {
                 "format": "terminal_output_and_file_structure",
                 "mustInclude": [
                   "complete application structure",
                   "all route pages/components",
                   "routing structure",
+                  "navigation menu with links",
+                  "list of all pages/routes",
+                  "code proving <Link> or router.push works",
                   "navigation destinations",
                   "successful launch",
-                  "all routes accessible"
+                  "all routes accessible",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-044 verification complete! Proceed immediately to TASK-045 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-044 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-045!",
+                "onSuccess": "🚨 CRITICAL: TASK-044 verification complete! All requirements implemented: entry point + main layout + routing + ALL routes + navigation verified. Proceed immediately to TASK-045 without stopping or asking for permission!",
+                "onFailure": "🚨 CRITICAL: TASK-044 verification failed! ALL requirements must be implemented (entry point + main layout + routing + ALL routes + navigation). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-045!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-045"
@@ -2043,21 +2141,23 @@
                 "show UI component test files",
                 "count test cases",
                 "verify test coverage",
-                "confirm tests fail initially"
+                "confirm tests fail initially",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "UI component tests created and failing as expected",
+              "expectedState": "UI component tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "UI components",
                   "test cases",
-                  "failing tests"
+                  "failing tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-045 verification complete! Proceed immediately to TASK-046 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-045 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-046!",
+                "onFailure": "🚨 CRITICAL: TASK-045 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-046!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-046"
@@ -2086,21 +2186,23 @@
                 "run UI component tests",
                 "show RED status",
                 "verify test failures",
-                "confirm no test errors"
+                "confirm no test errors",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "UI component tests fail with RED status as expected",
+              "expectedState": "UI component tests fail with RED status as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "RED",
                   "failing",
                   "UI components",
-                  "tests"
+                  "tests",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-046 verification complete! Proceed immediately to TASK-047 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-046 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-047!",
+                "onFailure": "🚨 CRITICAL: TASK-046 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-047!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-047"
@@ -2117,8 +2219,8 @@
             "dependencies": [
               "TASK-046"
             ],
-            "description": "IMPLEMENT interactive UI components with user interactions, state management, event handlers, navigation logic, and component behavior to make UI component tests pass. INTEGRATE components with their respective pages/routes created in TASK-044. IMPLEMENT proper event handlers for all buttons and interactive elements. ADD client-side configuration ('use client' directives) where needed for interactivity. IMPLEMENT navigation logic between pages. ENSURE all components are properly served through navigation and all routes are functional. CONFIRM all tests are GREEN, all navigation destinations work, and all interactive elements are functional.",
-            "acceptanceCriteria": "Interactive UI components implemented, event handlers working, navigation logic functional, client-side configuration added, user interactions working, state management functional, components integrated with pages/routes, all navigation destinations functional, all interactive elements functional, all tests pass",
+            "description": "IMPLEMENT interactive UI components with: user interactions AND state management AND event handlers AND navigation logic AND component behavior to make UI component tests pass. INTEGRATE components with pages/routes from TASK-044. IMPLEMENT event handlers for ALL buttons AND ALL interactive elements. CRITICAL: Event handlers MUST call API service functions (NOT console.log, alert, or placeholder implementations). For EACH button/form: SHOW code proving it calls an API function (e.g., onClick={() => apiService.method()}). ADD client-side configuration ('use client' directives) where needed. IMPLEMENT navigation logic between ALL pages. ENSURE ALL components served through navigation AND ALL routes functional. CONFIRM: all tests GREEN AND all navigation destinations work AND all interactive elements functional. MANDATORY: You MUST implement ALL requirements - do not skip navigation or event handlers!",
+            "acceptanceCriteria": "ALL 11 requirements completed: 1) Interactive UI components implemented 2) Event handlers for ALL buttons working 3) Event handlers for ALL interactive elements working 4) Navigation logic between ALL pages functional 5) Client-side configuration added where needed 6) User interactions working 7) State management functional 8) Components integrated with pages/routes 9) ALL navigation destinations functional 10) ALL interactive elements functional 11) ALL tests pass. Verify ALL 11 before marking complete!",
             "estimatedLOC": "600-1000",
             "estimatedDuration": "120min",
             "verification": {
@@ -2135,12 +2237,17 @@
                 "confirm all routes are functional",
                 "test all button event handlers",
                 "verify all interactive elements work",
+                "show code proving buttons call API functions",
+                "verify no console.log or placeholder in handlers",
+                "confirm real API functions called",
+                "list all API calls made by event handlers",
                 "confirm navigation logic functions",
-                "test client-side configuration"
+                "test client-side configuration",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All UI component tests pass with GREEN status, all navigation destinations functional, and all interactive elements working",
+              "expectedState": "All UI component tests pass with GREEN status, all navigation destinations functional, and all interactive elements working. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
-                "format": "terminal_output",
+                "format": "terminal_output_and_code_snippets",
                 "mustInclude": [
                   "GREEN",
                   "passing",
@@ -2150,14 +2257,18 @@
                   "navigation destinations",
                   "routes functional",
                   "event handlers",
+                  "code showing button → apiService call",
+                  "list of all API endpoints called from UI",
+                  "proof that handlers call APIs not placeholders",
                   "interactive elements",
                   "navigation logic",
-                  "client-side configuration"
+                  "client-side configuration",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-047 verification complete! Proceed immediately to TASK-048 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-047 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-048!",
+                "onFailure": "🚨 CRITICAL: TASK-047 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-048!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-048"
@@ -2187,9 +2298,10 @@
                 "show improved reusability",
                 "show consolidated logic",
                 "show simplified components",
-                "confirm component architecture"
+                "confirm component architecture",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, UI components refactored, no behavior changes",
+              "expectedState": "All tests pass, UI components refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -2197,12 +2309,13 @@
                   "improved reusability",
                   "consolidated logic",
                   "simplified components",
-                  "component architecture"
+                  "component architecture",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-048 verification complete! Proceed immediately to TASK-049 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-048 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-049!",
+                "onFailure": "🚨 CRITICAL: TASK-048 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-049!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-049"
@@ -2231,21 +2344,23 @@
                 "run UI component tests",
                 "show GREEN status",
                 "verify all functionality",
-                "confirm refactoring success"
+                "confirm refactoring success",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All UI component tests pass with GREEN status",
+              "expectedState": "All UI component tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "UI components",
-                  "refactoring"
+                  "refactoring",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-049 verification complete! Proceed immediately to TASK-050 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-049 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-050!",
+                "onFailure": "🚨 CRITICAL: TASK-049 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-050!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-050"
@@ -2274,21 +2389,23 @@
                 "show API service test files",
                 "count test cases",
                 "verify HTTP scenarios",
-                "confirm error handling tests"
+                "confirm error handling tests",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "API service tests created and failing as expected",
+              "expectedState": "API service tests created and failing as expected. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
                   "test files",
                   "API service",
                   "HTTP scenarios",
-                  "error handling"
+                  "error handling",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-050 verification complete! Proceed immediately to TASK-051 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-050 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-051!",
+                "onFailure": "🚨 CRITICAL: TASK-050 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-051!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-051"
@@ -2317,21 +2434,23 @@
                 "run API service tests",
                 "show GREEN status",
                 "verify HTTP client",
-                "confirm service functions"
+                "confirm service functions",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All API service tests pass with GREEN status",
+              "expectedState": "All API service tests pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "GREEN",
                   "passing",
                   "API service",
-                  "HTTP client"
+                  "HTTP client",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-051 verification complete! Proceed immediately to TASK-052 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-051 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-052!",
+                "onFailure": "🚨 CRITICAL: TASK-051 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-052!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-052"
@@ -2348,7 +2467,7 @@
             "dependencies": [
               "TASK-051"
             ],
-            "description": "INTEGRATE API service layer with UI components by connecting components to real API services, implementing data fetching hooks, and ensuring real data flows through the application. CONFIRM UI components display real data from APIs.",
+            "description": "INTEGRATE API service layer with UI components by: 1) WIRING buttons to call API service functions (show code: onClick={() => apiService.method()}). 2) WIRING forms to POST data to API endpoints (show code: onSubmit={(e) => apiService.submit(e)}). 3) IMPLEMENTING data fetching hooks that call real APIs (useEffect, useQuery, etc.). 4) ENSURING all interactive elements trigger real backend calls. MANDATORY PROOF: Show actual HTTP requests captured from browser dev tools OR show curl/wfetch commands proving API calls work OR show terminal logs with API request/response pairs. For EACH integration point, SHOW code proving integration (e.g., Button → Show code: onClick={() => apiService.createUser(data)}, Form → Show code: onSubmit={(e) => apiService.submitForm(e)}). CONFIRM UI components display real data from APIs.",
             "acceptanceCriteria": "UI components connected to API services, data fetching hooks implemented, real data flowing through UI, components display actual API data, integration working",
             "estimatedLOC": "300-500",
             "estimatedDuration": "60min",
@@ -2357,24 +2476,36 @@
               "mandatory": true,
               "action": "CONFIRM",
               "commands": [
+                "capture HTTP requests from UI interactions",
+                "show browser dev tools network tab with API calls OR run curl/wfetch to verify API endpoints",
+                "show API request/response logs",
+                "list all UI components and their API integration points (Component → API endpoint)",
+                "verify forms POST to backend",
+                "verify buttons trigger API calls",
                 "test UI with real API data",
-                "show data flow",
-                "confirm integration",
-                "verify real data display"
+                "show code snippets for each integration (onClick/api calls)",
+                "show HTTP request/response pairs",
+                "verify real data display",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "UI components display real API data successfully",
+              "expectedState": "UI components display real API data successfully. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
-                "format": "terminal_output_and_ui_screenshots",
+                "format": "network_traffic_and_code_snippets",
                 "mustInclude": [
+                  "HTTP request/response pairs for each integration",
+                  "list: Component → API endpoint mapping",
+                  "code snippets showing onClick/api calls",
+                  "network logs or curl output showing real API calls",
                   "real data",
                   "API integration",
                   "UI components",
-                  "data flow"
+                  "data flow",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-052 verification complete! Proceed immediately to TASK-053 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-052 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-053!",
+                "onFailure": "🚨 CRITICAL: TASK-052 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-053!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-053"
@@ -2403,21 +2534,23 @@
                 "execute smoke test",
                 "test UI components",
                 "verify design system",
-                "confirm API integration"
+                "confirm API integration",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Phase 3 smoke test passes, UI working",
+              "expectedState": "Phase 3 smoke test passes, UI working. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "smoke test",
                   "UI working",
                   "design system",
-                  "API integration"
+                  "API integration",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-053 verification complete! Proceed immediately to TASK-054 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-053 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-054!",
+                "onFailure": "🚨 CRITICAL: TASK-053 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-054!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-054"
@@ -2446,9 +2579,10 @@
                 "{{PLATFORM_BUILD_COMMAND}}",
                 "{{UI_COMPILATION_CHECK}}",
                 "{{COMPONENT_RENDER_CHECK}}",
-                "{{API_INTEGRATION_CHECK}}"
+                "{{API_INTEGRATION_CHECK}}",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "UI implementation compiles successfully with 0 errors",
+              "expectedState": "UI implementation compiles successfully with 0 errors. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_browser",
                 "mustInclude": [
@@ -2457,12 +2591,13 @@
                   "0 errors",
                   "ui",
                   "components",
-                  "rendering"
+                  "rendering",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-054 verification complete! Proceed immediately to TASK-055 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-054 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-055!",
+                "onFailure": "🚨 CRITICAL: TASK-054 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-055!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-055"
@@ -2497,20 +2632,22 @@
               "commands": [
                 "run all test suites",
                 "show test results",
-                "confirm GREEN status"
+                "confirm GREEN status",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All test suites pass with GREEN status",
+              "expectedState": "All test suites pass with GREEN status. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "passing",
                   "GREEN",
-                  "0 failed"
+                  "0 failed",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-055 verification complete! Proceed immediately to TASK-056 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-055 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-056!",
+                "onFailure": "🚨 CRITICAL: TASK-055 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-056!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-056"
@@ -2538,21 +2675,23 @@
               "commands": [
                 "execute smoke tests",
                 "document user journeys",
-                "show test results"
+                "show test results",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All critical user journeys pass smoke testing",
+              "expectedState": "All critical user journeys pass smoke testing. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "documentation_and_terminal_output",
                 "mustInclude": [
                   "user journey",
                   "smoke test",
                   "documentation",
-                  "results"
+                  "results",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-056 verification complete! Proceed immediately to TASK-057 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-056 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-057!",
+                "onFailure": "🚨 CRITICAL: TASK-056 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-057!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-057"
@@ -2569,7 +2708,7 @@
             "dependencies": [
               "TASK-056"
             ],
-            "description": "VERIFY system-level integration: demonstrate UI→API→DB roundtrip with captured HTTP request/response and persisted data proof. This is beyond subsystem integration in Phase 2.",
+            "description": "VERIFY system-level integration: demonstrate complete UI→API→DB flow with actual proof. For EACH user action (e.g., click button, submit form), SHOW: 1) UI component (button/form), 2) HTTP request (method, URL, body), 3) HTTP response (status, data), 4) Database state before/after, 5) UI update after API response. This is beyond subsystem integration in Phase 2. MANDATORY: Show complete flow with proof for each integration point.",
             "acceptanceCriteria": "End-to-end data flow verified, HTTP requests/responses captured, database persistence confirmed, system integration working",
             "estimatedLOC": "50-100",
             "estimatedDuration": "30min",
@@ -2578,24 +2717,37 @@
               "mandatory": true,
               "action": "VERIFY",
               "commands": [
-                "verify UI to API flow",
-                "verify API to DB flow",
-                "show HTTP requests/responses",
-                "show persisted data"
+                "for each UI action, show: HTTP request → response → DB → UI update",
+                "capture complete flow with curl/network logs (browser dev tools OR curl/wfetch)",
+                "verify database changes from UI interactions (show before/after)",
+                "test actual user journeys with API proof",
+                "show UI component for each action",
+                "show HTTP request details (method, URL, headers, body)",
+                "show HTTP response details (status, body)",
+                "show database state change proof",
+                "verify UI update after API response",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Complete UI→API→DB data flow verified with proof",
+              "expectedState": "Complete UI→API→DB data flow verified with proof. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
-                "format": "terminal_output_and_network_logs",
+                "format": "request_response_pairs_and_ui_screenshots",
                 "mustInclude": [
+                  "user action (e.g., Click button)",
+                  "HTTP request (method, URL, body)",
+                  "HTTP response (status, body)",
+                  "database state before/after",
+                  "UI update after API response",
+                  "complete flow demonstration",
+                  "network logs showing real requests",
+                  "database state change proof",
                   "UI to API",
                   "API to DB",
-                  "HTTP requests",
-                  "persisted data"
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-057 verification complete! Proceed immediately to TASK-058 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-057 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-058!",
+                "onFailure": "🚨 CRITICAL: TASK-057 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-058!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-058"
@@ -2623,21 +2775,23 @@
               "commands": [
                 "verify specification requirements",
                 "show evidence for each requirement",
-                "confirm compliance"
+                "confirm compliance",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All specification requirements met and verified",
+              "expectedState": "All specification requirements met and verified. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "documentation_and_terminal_output",
                 "mustInclude": [
                   "specification",
                   "requirements",
                   "evidence",
-                  "compliance"
+                  "compliance",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-058 verification complete! Proceed immediately to TASK-059 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-058 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-059!",
+                "onFailure": "🚨 CRITICAL: TASK-058 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-059!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-059"
@@ -2666,21 +2820,23 @@
                 "verify all components render",
                 "check styling consistency",
                 "test accessibility standards",
-                "show component rendering"
+                "show component rendering",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All design system components render correctly",
+              "expectedState": "All design system components render correctly. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_screenshots",
                 "mustInclude": [
                   "components",
                   "rendering",
                   "styling",
-                  "accessibility"
+                  "accessibility",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-059 verification complete! Proceed immediately to TASK-060 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-059 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-060!",
+                "onFailure": "🚨 CRITICAL: TASK-059 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-060!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-060"
@@ -2709,21 +2865,23 @@
                 "run Apache Bench or Artillery load tests",
                 "measure actual response times",
                 "measure actual load times",
-                "show real performance benchmarks"
+                "show real performance benchmarks",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Performance tests pass with acceptable benchmarks",
+              "expectedState": "Performance tests pass with acceptable benchmarks. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_metrics",
                 "mustInclude": [
                   "performance",
                   "benchmarks",
                   "load times",
-                  "response times"
+                  "response times",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-060 verification complete! Proceed immediately to TASK-061 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-060 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-061!",
+                "onFailure": "🚨 CRITICAL: TASK-060 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-061!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-061"
@@ -2752,21 +2910,23 @@
                 "run npm audit to scan for vulnerabilities",
                 "run OWASP ZAP security scan",
                 "test authentication flows",
-                "show actual security scan results"
+                "show actual security scan results",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Security tests pass with no vulnerabilities",
+              "expectedState": "Security tests pass with no vulnerabilities. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_security_report",
                 "mustInclude": [
                   "security",
                   "vulnerabilities",
                   "authentication",
-                  "data protection"
+                  "data protection",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-061 verification complete! Proceed immediately to TASK-062 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-061 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-062!",
+                "onFailure": "🚨 CRITICAL: TASK-061 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-062!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-062"
@@ -2795,21 +2955,23 @@
                 "execute accessibility tests",
                 "verify standards compliance",
                 "test usability",
-                "show compliance report"
+                "show compliance report",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Accessibility tests pass with full compliance",
+              "expectedState": "Accessibility tests pass with full compliance. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_accessibility_report",
                 "mustInclude": [
                   "accessibility",
                   "compliance",
                   "standards",
-                  "usability"
+                  "usability",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-062 verification complete! Proceed immediately to TASK-063 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-062 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-063!",
+                "onFailure": "🚨 CRITICAL: TASK-062 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-063!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-063"
@@ -2826,8 +2988,8 @@
             "dependencies": [
               "TASK-062"
             ],
-            "description": "CREATE comprehensive API documentation including endpoints, request/response examples, and usage instructions. SHOW generated documentation.",
-            "acceptanceCriteria": "API documentation created, endpoints documented, examples provided, usage instructions clear",
+            "description": "CREATE comprehensive API documentation including: ALL endpoints documented AND request/response examples for each endpoint AND usage instructions. SHOW generated documentation. MANDATORY: Document EVERY single API endpoint created in previous tasks - do not skip any!",
+            "acceptanceCriteria": "ALL API endpoints documented (every single one), request/response examples provided for ALL endpoints, usage instructions clear and complete. Verify ALL endpoints from TASK-004 to TASK-012 are documented before marking complete!",
             "estimatedLOC": "100-200",
             "estimatedDuration": "45min",
             "verification": {
@@ -2838,21 +3000,23 @@
                 "generate API documentation",
                 "show endpoint documentation",
                 "show request/response examples",
-                "show usage instructions"
+                "show usage instructions",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "API documentation complete and accessible",
+              "expectedState": "API documentation complete and accessible. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "documentation_and_terminal_output",
                 "mustInclude": [
                   "API documentation",
                   "endpoints",
                   "examples",
-                  "usage instructions"
+                  "usage instructions",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-063 verification complete! Proceed immediately to TASK-064 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-063 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-064!",
+                "onFailure": "🚨 CRITICAL: TASK-063 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-064!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-064"
@@ -2869,8 +3033,8 @@
             "dependencies": [
               "TASK-063"
             ],
-            "description": "WRITE comprehensive user documentation including user guide, getting started instructions, and feature explanations. SHOW complete user guide.",
-            "acceptanceCriteria": "User documentation written, user guide complete, getting started instructions clear, features explained",
+            "description": "WRITE comprehensive user documentation including: user guide AND getting started instructions AND feature explanations for ALL features. SHOW complete user guide. MANDATORY: Document ALL features implemented in the application - do not skip any features!",
+            "acceptanceCriteria": "User guide created with ALL sections, getting started instructions complete with all steps, ALL features explained with examples. Verify documentation covers EVERY feature from spec.md before marking complete!",
             "estimatedLOC": "200-400",
             "estimatedDuration": "60min",
             "verification": {
@@ -2881,21 +3045,23 @@
                 "show user guide",
                 "show getting started instructions",
                 "show feature explanations",
-                "verify documentation completeness"
+                "verify documentation completeness",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "User documentation complete and user-friendly",
+              "expectedState": "User documentation complete and user-friendly. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "documentation_and_terminal_output",
                 "mustInclude": [
                   "user guide",
                   "getting started",
                   "feature explanations",
-                  "documentation"
+                  "documentation",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-064 verification complete! Proceed immediately to TASK-065 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-064 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-065!",
+                "onFailure": "🚨 CRITICAL: TASK-064 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-065!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-065"
@@ -2912,8 +3078,8 @@
             "dependencies": [
               "TASK-064"
             ],
-            "description": "GENERATE complete deployment files including Docker configurations, CI/CD pipelines, environment files, and deployment scripts. DOCUMENT the complete deployment process with step-by-step instructions.",
-            "acceptanceCriteria": "Deployment files generated (Dockerfile, docker-compose.yml, CI/CD configs, .env templates, deployment scripts), deployment documentation complete, environment setup documented, configuration steps clear",
+            "description": "GENERATE complete deployment files including: Dockerfile AND docker-compose.yml AND CI/CD pipeline configuration AND environment templates (.env files) AND deployment scripts. DOCUMENT the complete deployment process with step-by-step instructions. MANDATORY: Generate ALL 5 deployment files - do not skip any!",
+            "acceptanceCriteria": "ALL 5 deployment files generated: 1) Dockerfile 2) docker-compose.yml 3) CI/CD configuration 4) .env templates 5) Deployment scripts. Deployment documentation complete, environment setup documented, configuration steps clear. Verify ALL files before marking complete!",
             "estimatedLOC": "300-500",
             "estimatedDuration": "60min",
             "verification": {
@@ -2927,9 +3093,10 @@
                 "generate environment templates",
                 "generate deployment scripts",
                 "show deployment files",
-                "show deployment documentation"
+                "show deployment documentation",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All deployment files generated and deployment process documented",
+              "expectedState": "All deployment files generated and deployment process documented. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "files_and_documentation",
                 "mustInclude": [
@@ -2940,12 +3107,13 @@
                   "deployment scripts",
                   "deployment documentation",
                   "environment setup",
-                  "configuration steps"
+                  "configuration steps",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-065 verification complete! Proceed immediately to TASK-066 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-065 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-066!",
+                "onFailure": "🚨 CRITICAL: TASK-065 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-066!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-066"
@@ -2975,9 +3143,10 @@
                 "show optimized database queries",
                 "show improved code efficiency",
                 "show reduced memory usage",
-                "confirm performance improvements"
+                "confirm performance improvements",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, performance refactored, no behavior changes",
+              "expectedState": "All tests pass, performance refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_performance_metrics",
                 "mustInclude": [
@@ -2985,12 +3154,13 @@
                   "optimized queries",
                   "improved efficiency",
                   "reduced memory usage",
-                  "performance improvements"
+                  "performance improvements",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-066 verification complete! Proceed immediately to TASK-067 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-066 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-067!",
+                "onFailure": "🚨 CRITICAL: TASK-066 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-067!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-067"
@@ -3020,9 +3190,10 @@
                 "show strengthened authentication",
                 "show improved input validation",
                 "show enhanced encryption",
-                "confirm security hardening"
+                "confirm security hardening",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, security refactored, no behavior changes",
+              "expectedState": "All tests pass, security refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_security_report",
                 "mustInclude": [
@@ -3030,12 +3201,13 @@
                   "strengthened authentication",
                   "improved validation",
                   "enhanced encryption",
-                  "security hardening"
+                  "security hardening",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-067 verification complete! Proceed immediately to TASK-068 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-067 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-068!",
+                "onFailure": "🚨 CRITICAL: TASK-067 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-068!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-068"
@@ -3065,9 +3237,10 @@
                 "show applied coding standards",
                 "show improved readability",
                 "show removed technical debt",
-                "confirm maintainability"
+                "confirm maintainability",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, code quality refactored, no functionality changes",
+              "expectedState": "All tests pass, code quality refactored, no functionality changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_code_comparison",
                 "mustInclude": [
@@ -3075,12 +3248,13 @@
                   "coding standards",
                   "improved readability",
                   "removed technical debt",
-                  "maintainability"
+                  "maintainability",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-068 verification complete! Proceed immediately to TASK-069 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-068 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-069!",
+                "onFailure": "🚨 CRITICAL: TASK-068 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-069!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-069"
@@ -3110,9 +3284,10 @@
                 "show improved documentation clarity",
                 "show ensured completeness",
                 "show standardized format",
-                "confirm documentation quality"
+                "confirm documentation quality",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "All tests pass, documentation refactored, no behavior changes",
+              "expectedState": "All tests pass, documentation refactored, no behavior changes. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_documentation_comparison",
                 "mustInclude": [
@@ -3120,12 +3295,13 @@
                   "improved clarity",
                   "ensured completeness",
                   "standardized format",
-                  "documentation quality"
+                  "documentation quality",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-069 verification complete! Proceed immediately to TASK-070 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-069 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-070!",
+                "onFailure": "🚨 CRITICAL: TASK-069 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-070!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-070"
@@ -3154,21 +3330,23 @@
                 "execute production build",
                 "verify asset optimization",
                 "confirm configuration",
-                "show production readiness"
+                "show production readiness",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Production build successful and ready for deployment",
+              "expectedState": "Production build successful and ready for deployment. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output",
                 "mustInclude": [
                   "production build",
                   "optimized assets",
                   "configuration",
-                  "production ready"
+                  "production ready",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-070 verification complete! Proceed immediately to TASK-071 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-070 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-071!",
+                "onFailure": "🚨 CRITICAL: TASK-070 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-071!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-071"
@@ -3197,21 +3375,23 @@
                 "execute deployment tests",
                 "verify deployment success",
                 "confirm application running",
-                "show operational services"
+                "show operational services",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Deployment tests pass and application is operational",
+              "expectedState": "Deployment tests pass and application is operational. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_deployment_logs",
                 "mustInclude": [
                   "deployment tests",
                   "deployment success",
                   "application running",
-                  "operational services"
+                  "operational services",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-071 verification complete! Proceed immediately to TASK-072 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-071 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-072!",
+                "onFailure": "🚨 CRITICAL: TASK-071 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-072!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-072"
@@ -3241,9 +3421,10 @@
                 "verify all functionality",
                 "confirm performance",
                 "verify security",
-                "confirm production readiness"
+                "confirm production readiness",
+                "CRITICAL: Verify ALL requirements from description are implemented"
               ],
-              "expectedState": "Final verification passes and application is production ready",
+              "expectedState": "Final verification passes and application is production ready. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_verification_report",
                 "mustInclude": [
@@ -3251,12 +3432,13 @@
                   "all functionality",
                   "performance",
                   "security",
-                  "production ready"
+                  "production ready",
+                  "VERIFIED: All requirements implemented"
                 ]
               },
               "postVerificationInstructions": {
                 "onSuccess": "🚨 CRITICAL: TASK-072 verification complete! Proceed immediately to TASK-073 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-072 verification failed! Fix the issue and re-verify, then proceed immediately to TASK-073!",
+                "onFailure": "🚨 CRITICAL: TASK-072 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-073!",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-073"

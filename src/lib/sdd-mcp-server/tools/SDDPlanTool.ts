@@ -26,7 +26,7 @@ export class SDDPlanTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_plan',
-      description: 'Analyze spec.md file and generate implementation plan template. Returns AI instructions to create plan.md file following SDD methodology with platform-specific implementation approach and phases.',
+      description: 'Analyze specs/spec.md file and generate implementation plan template. Returns AI instructions to create specs/plan.md file following SDD methodology with platform-specific implementation approach and phases.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -37,10 +37,10 @@ export class SDDPlanTool {
 
   async execute(input: any): Promise<any> {
     try {
-      // Read spec.md file
+      // Read specs/spec.md file
       const specPath = path.join(this.basePath, 'specs', 'spec.md');
       if (!fs.existsSync(specPath)) {
-        return this.error('spec.md not found. Please create a specification first using sdd_specify tool.');
+        return this.error('specs/spec.md not found. Please create a specification first using sdd_specify tool.');
       }
 
       const specContent = fs.readFileSync(specPath, 'utf-8');
@@ -59,9 +59,9 @@ export class SDDPlanTool {
         });
       // Report success with AI-driven capabilities
       const successMessage = `
-🚨🚨🚨 CRITICAL: YOU MUST CREATE THE plan.md FILE NOW! 🚨🚨🚨
+🚨🚨🚨 CRITICAL: YOU MUST CREATE THE specs/plan.md FILE NOW! 🚨🚨🚨
 
-📋 TASK: Create plan.md file in specs/plan.md directory using the AI-driven template data provided below.
+📋 TASK: Create specs/plan.md file in specs/plan.md directory using the AI-driven template data provided below.
 
 🎯 IMPLEMENTATION FOCUS:
 This plan focuses on HOW to implement the specification. Generate platform-specific considerations, compilation safety strategies, and implementation phases based on the technologies in the specification.
@@ -87,7 +87,7 @@ ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 - Reference template_data.cursor_ai_instructions.placeholders for placeholder guidance
 
 📝 MARKDOWN STRUCTURE:
-Create plan.md with this comprehensive structure:
+Create specs/plan.md with this comprehensive structure:
 
 # 📋 [template_data.title]
 
@@ -215,10 +215,10 @@ Create plan.md with this comprehensive structure:
 - **[AI Platform Planning](#ai-platform)**: [template_data.platformSpecificPlanning.ai.content]
 
 🚫 **CRITICAL: DO NOT READ OR SEARCH FOR ANY EXISTING FILES**
-- DO NOT read plan.md or any .md files from filesystem
+- DO NOT read specs/plan.md or any .md files from filesystem
 - DO NOT search for existing plans
 - The template data below contains ALL information you need
-- Simply CREATE the plan.md file with the content from the template below
+- Simply CREATE the specs/plan.md file with the content from the template below
 
 1. Create file: specs/plan.md
 2. Fill template with actual content using the condensed structure above
@@ -227,7 +227,7 @@ Create plan.md with this comprehensive structure:
 5. Reference specContext fields to ensure plan aligns with actual requirements
 6. Use specContext.platformGates and specContext.constitutionalGates for compliance
 7. Use specContext.apiVersioning and specContext.apiTesting for API planning
-8. That's it! The plan.md file is now created and ready for use
+8. That's it! The specs/plan.md file is now created and ready for use
 
 📋 SPECIFICATION CONTEXT USAGE GUIDE:
 - specContext.functionalRequirements → Inform implementation phases and core functionality

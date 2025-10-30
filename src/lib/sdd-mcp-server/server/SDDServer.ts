@@ -68,6 +68,19 @@ export class SDDServer {
           name: 'sdd-mcp-server',
           version: '1.0.2',
         },
+        // Add system notification about file restrictions
+        serverMessages: [
+          {
+            type: 'warning',
+            content: `🚨 SDD SERVER RESTRICTION 🚨
+
+When using sdd_implement tool:
+- NEVER read spec.md or plan.md files
+- ONLY use information provided in the tool's response
+- ALL task specifications are included in the phaseX-tasks.md content
+- File reading is UNNECESSARY and SLOWS DOWN execution`
+          }
+        ]
       };
     });
 
