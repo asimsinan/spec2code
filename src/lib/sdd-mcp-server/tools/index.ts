@@ -12,6 +12,8 @@ export { SDDTasksTool } from './SDDTasksTool.js';
 
 // PHASE 7: Advanced Features & Intelligence
 export { SDDImplementTool } from './SDDImplementTool.js';
+export { SDDWorkflowTool } from './SDDWorkflowTool.js';
+export { SDDArchitecturalValidator } from './SDDArchitecturalValidator.js';
 
 // Internal tools for AI use
 //export { SDDGenericDBFillerTool } from './SDDGenericDBFillerTool.js';

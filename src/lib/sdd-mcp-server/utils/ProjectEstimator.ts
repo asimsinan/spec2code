@@ -362,10 +362,10 @@ export class ProjectEstimator {
   }
 
   private calculateBaseEstimates(complexity: ComplexityAnalysis, scope: ScopeAnalysis, technicalFactors: TechnicalFactors): any {
-    // SOTA estimation: Base on 72 tasks with realistic task time
-    // Small project: 4 hours per task average (288 hours = 36 days)
-    // Medium project: 6 hours per task average (432 hours = 54 days)
-    // Large project: 8 hours per task average (576 hours = 72 days)
+    // SOTA estimation: Base on 33 tasks with realistic task time
+    // Small project: 4 hours per task average (132 hours = 16.5 days)
+    // Medium project: 6 hours per task average (198 hours = 24.75 days)
+    // Large project: 8 hours per task average (264 hours = 33 days)
     let baseHoursPerTask = 4; // Base: 4 hours per task
     
     // Complexity increases task time
@@ -380,8 +380,8 @@ export class ProjectEstimator {
     // Technical factors add overhead per task
     const technicalAdjustment = 1 + (technicalFactors.score * 0.10);
 
-    // Total development hours = 72 tasks * hours per task * multipliers
-    const developmentHours = Math.round(72 * baseHoursPerTask * taskMultiplier * technicalAdjustment);
+    // Total development hours = 33 tasks * hours per task * multipliers
+    const developmentHours = Math.round(33 * baseHoursPerTask * taskMultiplier * technicalAdjustment);
     const testingHours = Math.round(developmentHours * 0.30); // 30% for comprehensive testing
     const bufferHours = Math.round(developmentHours * 0.20); // 20% risk buffer
     const totalHours = developmentHours + testingHours + bufferHours;
@@ -468,8 +468,9 @@ export class ProjectEstimator {
     
     // Calculate base phase days accounting for task complexity
     const avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
-    const totalProjectMinutes = 72 * 30; // Total project estimated at 30min avg per task
-    const phaseMinutes = 18 * avgMinutesPerTask;
+    const totalProjectMinutes = 33 * 30; // Total project estimated at 30min avg per task
+    const phaseTaskCount = this.getPhaseTaskCount(phaseNumber);
+    const phaseMinutes = phaseTaskCount * avgMinutesPerTask;
     const basePhaseDays = (phaseMinutes / totalProjectMinutes) * totalValue * phaseWeight;
     
     // Apply PERT multipliers for phase-specific estimates
@@ -500,9 +501,14 @@ export class ProjectEstimator {
   }
 
   /**
-   * Calculate phase-specific PERT estimates (for 18 tasks per phase)
+   * Calculate phase-specific PERT estimates (Phase 1: 9 tasks, Phase 2: 8 tasks, Phase 3: 9 tasks, Phase 4: 7 tasks)
    * Returns days for human, hours for AI
    */
+  private getPhaseTaskCount(phaseNumber: number): number {
+    const taskCounts = { 1: 9, 2: 8, 3: 9, 4: 7 };
+    return taskCounts[phaseNumber as keyof typeof taskCounts] || 9;
+  }
+
   calculatePhasePERTEstimates(totalDuration: string, phaseNumber: number, isAI: boolean = false): any {
     const match = totalDuration.match(/(\d+)/);
     if (!match) {
@@ -535,15 +541,16 @@ export class ProjectEstimator {
     };
     const avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
     
-    // Base phase estimate (18 tasks per phase, account for task complexity)
-    const totalPhaseMinutes = 18 * avgMinutesPerTask;
-    const basePhaseDays = (totalPhaseMinutes / 60 / 8) * phaseWeight * (totalValue / (72 * 30 / 60 / 8));
+    // Base phase estimate (dynamic task counts per phase)
+    const phaseTaskCount = this.getPhaseTaskCount(phaseNumber);
+    const totalPhaseMinutes = phaseTaskCount * avgMinutesPerTask;
+    const basePhaseDays = (totalPhaseMinutes / 60 / 8) * phaseWeight * (totalValue / (33 * 30 / 60 / 8)); // 33 total tasks
     
     // For AI, convert to hours (AI is much faster: 50x speedup for most tasks)
     // AI can complete most tasks in 1-10 minutes
     const aiSpeedupFactor = phaseNumber === 4 ? 30 : 50; // Testing tasks have less AI speedup
     const aiMinutesPerTask = avgMinutesPerTask / aiSpeedupFactor;
-    const basePhaseHours = isAI ? Math.max(0.5, Math.ceil((18 * aiMinutesPerTask) / 60)) : basePhaseDays * 8;
+    const basePhaseHours = isAI ? Math.max(0.5, Math.ceil((phaseTaskCount * aiMinutesPerTask) / 60)) : basePhaseDays * 8;
     
     // PERT multipliers
     const optimistic = Math.ceil(basePhaseHours * 0.6);   // 60% of average

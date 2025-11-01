@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Comprehensive specification template based on SDD methodology with balanced 4-phase structure optimal workload distribution",
   "template_data": {
-    "title": "Feature Specification: {{FEATURE_NAME}}",
+    "title": "{{FEATURE_NAME}}",
     "metadata": {
       "created": "{{CURRENT_DATE}}",
       "status": "Draft",
@@ -63,6 +63,18 @@
         "content": "{{TECH_STACK_REQUIREMENTS}}",
         "instruction": "Extract ALL technologies mentioned in the user input and organize them by category. Include: - **Frontend**: [Any frontend technologies mentioned] - **Backend**: [Any backend technologies mentioned] - **Styling**: [Any styling approaches mentioned] - **Charts**: [Any chart libraries mentioned] - **State Management**: [Any state management mentioned] - **Database**: [Any database mentioned] - **Other**: [Any other technologies mentioned] - **Validation Checklist**: [Create checklist to verify all technologies are used]"
       }
+    },
+    "architecture": {
+      "pattern": "{{ARCHITECTURE_PATTERN}}",
+      "description": "{{ARCHITECTURE_DESCRIPTION}}",
+      "indicators": "{{ARCHITECTURE_INDICATORS}}",
+      "implications": {
+        "clientSideServices": "{{ARCHITECTURE_CLIENT_SIDE_SERVICES}}",
+        "serverSideLayers": "{{ARCHITECTURE_SERVER_SIDE_LAYERS}}",
+        "securityRules": "{{ARCHITECTURE_SECURITY_RULES}}",
+        "apiLayerRequired": "{{ARCHITECTURE_API_LAYER_REQUIRED}}"
+      },
+      "instruction": "Detect and document the backend architecture pattern from the tech stack and user input. Patterns: - **BaaS (Firebase)**: Client-side SDKs, Security Rules, no server-side controllers - **BaaS (Supabase)**: Client-side PostgREST, RLS policies, no server-side controllers - **BaaS (AWS Amplify)**: Client-side AppSync, IAM policies - **Traditional Backend**: Express/FastAPI controllers, service layers, REST APIs - **Serverless**: Lambda functions, Cloud Functions, Vercel Functions - **Hybrid**: Mixed patterns (e.g., Firebase + custom API endpoints). Extract indicators from keywords, dependencies, and architecture description. Document implications for services (client-side vs server-side), security model (rules vs middleware), and API layer requirements. Store pattern in metadata.architecturePattern from tool detection."
     },
     "apiSpecification": {
       "title": "API Specification (API-First Approach)",
@@ -131,7 +143,7 @@
         "title": "Library-First Gate",
         "description": "Every feature starts as a standalone library (desktop/backend) or modular component (web/mobile/embedded). UI/app layers are thin veneers over core functionality",
         "check": "{{LIBRARY_FIRST_GATE_CHECK}}",
-        "platforms": ["web", "desktop", "backend", "ai"]
+        "platforms": ["web", "desktop", "backend", "ai", "mobile"]
       },
       "cliInterfaceGate": {
         "title": "CLI Interface Gate",

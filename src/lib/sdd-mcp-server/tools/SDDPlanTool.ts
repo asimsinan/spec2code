@@ -26,7 +26,7 @@ export class SDDPlanTool {
   getToolDefinition(): Tool {
     return {
       name: 'sdd_plan',
-      description: 'Analyze specs/spec.md file and generate implementation plan template. Returns AI instructions to create specs/plan.md file following SDD methodology with platform-specific implementation approach and phases.',
+      description: '🚀 PLAN GENERATION (STANDALONE): Analyze specs/spec.md specification file and generate comprehensive implementation plan template. Returns structured AI instructions and template data to create specs/plan.md. This tool operates independently - it does NOT automatically call other SDD tools. Focuses on HOW to implement, not WHAT to implement.',
       inputSchema: {
         type: 'object',
         properties: {},
@@ -45,6 +45,9 @@ export class SDDPlanTool {
 
       const specContent = fs.readFileSync(specPath, 'utf-8');
       
+      // Extract architecture pattern from spec
+      const architecturePattern = this.extractArchitectureFromSpec(specContent);
+      
       // Analyze edge cases for complexity and planning
       const edgeCaseAnalysis = this.analyzeEdgeCases({ content: specContent });
 
@@ -55,200 +58,72 @@ export class SDDPlanTool {
       // Fill plan template with Cursor AI instructions and estimates
       const templateWithInstructions = this.fillPlanTemplate(template, {
         specData: specContent,
-          edgeCaseAnalysis: edgeCaseAnalysis
+        edgeCaseAnalysis: edgeCaseAnalysis,
+        architecturePattern: architecturePattern
         });
-      // Report success with AI-driven capabilities
+      // Report success with clear, actionable instructions
       const successMessage = `
-🚨🚨🚨 CRITICAL: YOU MUST CREATE THE specs/plan.md FILE NOW! 🚨🚨🚨
+🚀 **PLAN GENERATION COMPLETE** - Create specs/plan.md file now!
 
-📋 TASK: Create specs/plan.md file in specs/plan.md directory using the AI-driven template data provided below.
+📋 **WHAT TO DO NEXT:**
+1. Create file: \`specs/plan.md\`
+2. Use the template data below to fill in each section
+3. Focus on **HOW** to implement, not **WHAT** to implement
 
-🎯 IMPLEMENTATION FOCUS:
-This plan focuses on HOW to implement the specification. Generate platform-specific considerations, compilation safety strategies, and implementation phases based on the technologies in the specification.
-
-📋 TEMPLATE DATA FOR AI PROCESSING:
+📋 **TEMPLATE DATA:**
 ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 
-⚠️ **SPECIFICATION DATA**: The template above includes the full specification markdown content. Extract from template_data.specData:
-- Key technologies and requirements
-- API specifications
-- Constitutional gates and requirements
+⚠️ **INSTRUCTIONS:**
+- Follow \`cursor_ai_instructions\` in the template for each section
+- Extract technologies and requirements from \`specData\` field
+- Generate platform-specific implementation details
+- Validate all 7 constitutional gates
 
-🚨 CRITICAL: The template includes cursor_ai_instructions with specific instructions for each section:
-- Use template_data.cursor_ai_instructions.instructions.summary for creating the Summary section
-- Use template_data.cursor_ai_instructions.instructions.technicalContext for creating the Technical Context section
-- Use template_data.cursor_ai_instructions.instructions.projectStructure for creating the Project Structure section
-- Use template_data.cursor_ai_instructions.instructions.designSystemPlanning for creating the Design System Planning section
-- Use template_data.cursor_ai_instructions.instructions.implementationPhases for creating the Implementation Phases sections
-- Use template_data.cursor_ai_instructions.instructions.apiFirstPlanning for creating the API First Planning section
-- Use template_data.cursor_ai_instructions.instructions.platformSpecificPlanning for creating the Platform Specific Planning section
-- Use template_data.cursor_ai_instructions.instructions.constitutionCheck for validating constitutional gates
-- Use template_data.cursor_ai_instructions.instructions.languageAgnosticStandards for language compliance
-- Reference template_data.cursor_ai_instructions.placeholders for placeholder guidance
+📝 **REQUIRED STRUCTURE:**
+# [Feature Title]
 
-📝 MARKDOWN STRUCTURE:
-Create specs/plan.md with this comprehensive structure:
+## Metadata
+- Created: [date]
+- Platform: [detected platform]
+- Status: planning
 
-# 📋 [template_data.title]
+## Summary
+[Primary requirement + technical approach]
 
-## 📊 Metadata
-- **Created:** [template_data.metadata.created]
-- **Platform:** [template_data.metadata.platform]
-- **Status:** [template_data.metadata.status]
+## Technical Context
+[Language, stack, dependencies, testing, performance goals]
 
-## 📝 Summary
-[Follow template_data.cursor_ai_instructions.instructions.summary - Create comprehensive summary with primary requirement + technical approach]
+## Project Structure
+[Mandatory folder structure with specific paths]
 
-## 🔧 Technical Context
-[Follow template_data.cursor_ai_instructions.instructions.technicalContext - Include language/version, dependencies, storage, testing, target platform, performance goals]
-- **Language/Version:** [template_data.technicalContext.languageVersion]
-- **Primary Dependencies:** [template_data.technicalContext.primaryDependencies]
-- **Technology Stack:** [template_data.technicalContext.technologyStack]
-- **Frontend Stack:** [template_data.technicalContext.frontendStack]
-- **Backend Stack:** [template_data.technicalContext.backendStack]
-- **Storage:** [template_data.technicalContext.storage]
-- **Testing:** [template_data.technicalContext.testing]
-- **Target Platform:** [template_data.technicalContext.targetPlatform]
-- **Performance Goals:** [template_data.technicalContext.performanceGoals]
+## Implementation Phases
+[4 phases, 33 tasks total with RED-GREEN-REFACTOR-SMOKE patterns]
 
-## 🏗️ Project Structure
-[Follow template_data.cursor_ai_instructions.instructions.projectStructure - Define MANDATORY EXACT folder structure with specific directory names, file naming conventions, organizational rules]
-[template_data.projectStructure.content]
+## Database Strategy
+[Technology choice, schema, migrations, connections]
 
-## 🚀 Implementation Phases (72 tasks with RED-GREEN-REFACTOR-SMOKE pattern)
+## Design System Planning
+[Modern UI patterns, components, interactions]
 
-### Phase 1: Foundations (18 tasks: TASK-001 to TASK-018)
-[Follow template_data.cursor_ai_instructions.instructions.implementationPhases - CONTRACT→RED→GREEN→REFACTOR→SMOKE pattern]
-**Pattern:** CONTRACT (001-006) → RED (007-009) → GREEN (010-012) → REFACTOR (013-015) → SMOKE (016-018)
-[template_data.implementationPhases.phase1.content - Use phase1.instruction for detailed guidance]
+## API-First Planning
+[API design, contracts, testing, documentation]
 
-### Phase 2: Core Implementation (18 tasks: TASK-019 to TASK-036)
-**Pattern:** Business Logic → Service Layer → Controllers → Integration → SMOKE
-[template_data.implementationPhases.phase2.content - Use phase2.instruction for detailed guidance]
+## Constitutional Gates Review
+[Validate all 7 SDD gates with pass/fail status]
 
-### Phase 3: UI Development (18 tasks: TASK-037 to TASK-054)
-[Follow template_data.cursor_ai_instructions.instructions.designSystemPlanning - MODERN UI MANDATE, NO basic designs]
-**Pattern:** Platform Setup → Design System (RED→GREEN→REFACTOR) → App Structure → Components → API Service Layer → UI Integration → SMOKE
-[template_data.implementationPhases.phase3.content - Use phase3.instruction for detailed guidance]
+## Platform-Specific Planning
+[Web/Mobile/Desktop/Backend/AI platform details]
 
-### Phase 4: Testing, Documentation & Deployment (18 tasks: TASK-055 to TASK-072)
-**Pattern:** Comprehensive Testing → Documentation → Performance/Security/Code Quality Refactor → Production Build → Deployment → Final Verification
-[template_data.implementationPhases.phase4.content - Use phase4.instruction for detailed guidance]
+🚫 **IMPORTANT:** Do NOT read existing files - use only the template data above!
 
-## 🗄️ Database Strategy
-[Follow template_data.cursor_ai_instructions.instructions - Implementation approach only]
-### Database Technology Choice
-[template_data.databaseStrategy.databaseChoice.content - NO SQLite, use PostgreSQL/MongoDB/MySQL/Redis]
-
-### Schema Design Planning
-[template_data.databaseStrategy.schemaDesign.content - Tables/collections, relationships, indexes, constraints]
-
-### Migration Strategy
-[template_data.databaseStrategy.migrationStrategy.content - Version control, rollback, data migration]
-
-### Connection Management
-[template_data.databaseStrategy.connectionManagement.content - Connection pooling, timeout handling, retry logic]
-
-## 🎨 Design System Planning
-[Follow template_data.cursor_ai_instructions.instructions.designSystemPlanning - MODERN UI MANDATE, sophisticated design, NO basic/plain designs]
-
-### Design System Architecture Planning
-[template_data.designSystemPlanning.designSystemArchitecture.content - Component library, design tokens, style guide]
-
-### Modern UI Patterns Planning
-[template_data.designSystemPlanning.modernUIPatterns.content - Card layouts, color schemes, typography, interactive elements]
-
-### Visual Enhancement Planning
-[template_data.designSystemPlanning.visualEnhancementPlanning.content - Micro-interactions, animations, visual depth, transitions]
-
-## 🌐 API-First Planning
-[Follow template_data.cursor_ai_instructions.instructions.apiFirstPlanning - API design, contracts, testing, documentation]
-
-### API Design Planning
-[template_data.apiFirstPlanning.apiDesign.content - RESTful/GraphQL, endpoints, resource modeling]
-
-### API Contract Planning
-[template_data.apiFirstPlanning.apiContracts.content - Request/response schemas, validation, error handling]
-
-### API Testing Planning
-[template_data.apiFirstPlanning.apiTesting.content - Contract testing, integration testing, performance testing]
-
-### Visual Regression Testing Planning
-[template_data.apiFirstPlanning.visualTesting.content - Playwright setup, screenshots, cross-browser testing]
-
-### Project Structure Planning
-[template_data.apiFirstPlanning.projectStructurePlanning.content - Structure validation and cleanup, legacy code removal]
-
-### API Documentation Planning
-[template_data.apiFirstPlanning.apiDocumentation.content - OpenAPI specification, versioning, developer experience]
-
-## 📊 Constitutional Gates Review
-[Follow template_data.cursor_ai_instructions.instructions.constitutionCheck - Validate all 7 SDD constitutional gates]
-
-| Gate | Status | Details |
-|------|--------|---------|
-| **Simplicity Gate** | ✅ PASSED / ❌ FAILED | ≤10 projects (max 5 recommended) |
-| **Library-First Gate** | ✅ PASSED / ❌ FAILED | Core functionality as libraries, UI as thin veneer |
-| **CLI Interface Gate** | ✅ PASSED / ⚠️ NOT APPLICABLE / ❌ FAILED | Library must have CLI interface (not applicable for web/mobile UI apps) |
-| **Test-First Gate** | ✅ PASSED / ❌ FAILED | Contract → Integration → E2E → Unit order enforced |
-| **Integration-First Gate** | ✅ PASSED / ❌ FAILED | Real dependencies, no mocks |
-| **Anti-Abstraction Gate** | ✅ PASSED / ❌ FAILED | Single domain model, direct data access |
-| **Traceability Gate** | ✅ PASSED / ❌ FAILED | FR-XXX tags in all code, tracing requirements |
-
-### Compliance Details
-[For each gate: Explain why it passed or failed with specific details]
-
-## 🤖 AI-Driven Platform-Specific Planning
-[Follow template_data.cursor_ai_instructions.instructions.platformSpecificPlanning - Platform-specific gates and requirements]
-
-### Platform Detection Strategy
-[template_data.platformSpecificPlanning.platformDetection.content - Multi-source detection, confidence scoring]
-
-### Compilation Safety Strategy
-[template_data.platformSpecificPlanning.compilationSafety.content - Timeout protection, command wrapping, verification]
-
-### Platform-Specific Planning
-- **[Web Platform Planning](#web-platform)**: [template_data.platformSpecificPlanning.web.content]
-- **[Mobile Platform Planning](#mobile-platform)**: [template_data.platformSpecificPlanning.mobile.content]
-- **[Desktop Platform Planning](#desktop-platform)**: [template_data.platformSpecificPlanning.desktop.content]
-- **[Backend Platform Planning](#backend-platform)**: [template_data.platformSpecificPlanning.backend.content]
-- **[AI Platform Planning](#ai-platform)**: [template_data.platformSpecificPlanning.ai.content]
-
-🚫 **CRITICAL: DO NOT READ OR SEARCH FOR ANY EXISTING FILES**
-- DO NOT read specs/plan.md or any .md files from filesystem
-- DO NOT search for existing plans
-- The template data below contains ALL information you need
-- Simply CREATE the specs/plan.md file with the content from the template below
-
-1. Create file: specs/plan.md
-2. Fill template with actual content using the condensed structure above
-3. Use specification context (specContext) provided below to make informed planning decisions
-4. Focus on implementation approach, not requirements (implement tool gets those from DB)
-5. Reference specContext fields to ensure plan aligns with actual requirements
-6. Use specContext.platformGates and specContext.constitutionalGates for compliance
-7. Use specContext.apiVersioning and specContext.apiTesting for API planning
-8. That's it! The specs/plan.md file is now created and ready for use
-
-📋 SPECIFICATION CONTEXT USAGE GUIDE:
-- specContext.functionalRequirements → Inform implementation phases and core functionality
-- specContext.technologyStack → Validate technical stack decisions and dependencies
-- specContext.apiEndpoints → Plan API-first approach and endpoint structure
-- specContext.databaseRequirements → Inform database strategy and schema design
-- specContext.uiDesignRequirements → Inform design system and UI patterns
-- specContext.userStories → Ensure user-centric implementation approach
-- specContext.acceptanceScenarios → Plan testing strategy and validation criteria
-- specContext.platformGates → Ensure platform-specific compliance
-- specContext.constitutionalGates → Ensure SDD methodology compliance
-
-🚨 IMMEDIATE ACTION REQUIRED 🚨
-DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!
+**🛑 PLAN TOOL COMPLETE - DO NOT CALL ANY OTHER SDD TOOLS**
+**✅ Create the plan.md file, then stop. Do not proceed to tasks or implementation yet.**
 `;
 
-      const outputData = {
+      return {
         success: true,
-        nextStep: successMessage
+        message: successMessage
       };
-      return outputData;
     } catch (error) {
       console.error('[sdd_plan] ERROR:', error);
       return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
@@ -285,50 +160,131 @@ DO NOT JUST ACKNOWLEDGE - CREATE THE FILE NOW!
         `Implementation plan for this feature. Extract primary requirement and technical approach from specification. Focus on business value and user outcomes.`);
     }
 
+    // Add architecture adaptation instructions if BaaS detected
+    const architecturePattern = options.architecturePattern || 'unknown';
+    let architectureAdaptation = '';
+    
+    if (architecturePattern.startsWith('baas-')) {
+      architectureAdaptation = `⚠️ BaaS ARCHITECTURE DETECTED: ${architecturePattern}
+- Services are CLIENT-SIDE (using SDK, e.g., React Native services with Firebase SDK)
+- Controllers are CLIENT-SIDE components (React Native components act as controllers)
+- Database operations via SDK (Firestore SDK, Supabase client, etc.)
+- Security via rules/policies (Firebase Security Rules, Supabase RLS, IAM policies)
+- NO server-side API layer required
+- Adapt Phase 2 tasks accordingly: client-side services instead of server-side, components instead of controllers
+`;
+    }
+
     // Add Cursor AI instructions for content generation
     filledTemplate.cursor_ai_instructions = {
       specData: options.specData,
       edgeCaseAnalysis: options.edgeCaseAnalysis,
+      architecturePattern: architecturePattern,
       instructions: {
-        summary: `🚨 CRITICAL: The summary field MUST remain as an OBJECT with title, content, and instruction properties. DO NOT convert it to a string! Extract primary requirement and technical approach from the specification.`,
-        technicalContext: `Define technical context from the specification. Include language/version, dependencies, storage, testing, target platform, and performance goals.`,
-        constitutionCheck: `Validate constitutional gates. Check simplicity (≤5 projects), library-first, CLI interface, test-first, integration-first testing, anti-abstraction, and traceability gates.`,
-        languageAgnosticStandards: `CRITICAL LANGUAGE COMPLIANCE: Always use the correct comment syntax for the detected file type. JavaScript/TypeScript files MUST use // and /* */ comments, NEVER Python-style """ docstrings. Python files MUST use # and """ docstrings, NEVER JavaScript-style // comments. This is non-negotiable for professional code quality.
+        summary: `🎯 SUMMARY: Extract the single most important business requirement + high-level technical approach. Focus on WHAT the system does and HOW it will be built. Keep under 3 sentences. Example: "Build a REST API for user management using Node.js/Express with PostgreSQL, implementing CRUD operations with JWT authentication."`,
 
-CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json includes proper path mapping for @/ aliases. Configure baseUrl and paths to prevent "Cannot find module" errors. Example: {"compilerOptions": {"baseUrl": "./", "paths": {"@/*": ["src/*"]}}}.`,
-        projectStructure: 'Define project structure based on technologies in the specification. Create a comprehensive folder structure with specific directory names and file naming conventions.',
-        designSystemPlanning: `Plan comprehensive design system. 
-        
-🎨 **DESIGN SYSTEM PLANNING REQUIREMENTS**:
-- **MODERN UI MANDATE**: Design MUST be modern, sophisticated, and visually appealing (NO basic/plain designs)
-- **DESIGN SYSTEM ARCHITECTURE**: Plan component library, design tokens, and style guide
-- **VISUAL HIERARCHY**: Define typography scales, spacing systems, and color palettes
-- **INTERACTION DESIGN**: Plan animations, transitions, and micro-interactions
-- **RESPONSIVE STRATEGY**: Design mobile-first responsive layouts
-- **ACCESSIBILITY STANDARDS**: Plan WCAG compliance and inclusive design
-- **BRAND CONSISTENCY**: Define visual identity and brand guidelines
-- **ANTI-SIMPLE-DESIGN RULE**: Explicitly prohibit basic, minimal, or plain designs
+        technicalContext: `🔧 TECHNICAL CONTEXT: Extract concrete technical decisions from spec:
+- Language & version (e.g., "Node.js 18+ with TypeScript")
+- Primary dependencies (e.g., "Express, TypeORM, Jest")
+- Technology stack (e.g., "MERN: MongoDB, Express, React, Node.js")
+- Frontend/backend stacks (specific frameworks)
+- Storage solution (database choice)
+- Testing approach (unit/integration/e2e tools)
+- Target platform (web/mobile/desktop/cloud)
+- **Architecture Pattern**: [BaaS (Firebase/Supabase), Traditional Backend, Serverless, Hybrid]
+- **Backend Approach**: [Client-side SDK (BaaS), Server-side API (Traditional), Serverless functions]
+- **Security Model**: [Security Rules (BaaS), Middleware (Traditional), IAM (Serverless)]
+- Performance goals (response times, scalability targets)
+Be specific and actionable, not generic.`,
 
-🚫 **FORBIDDEN DESIGN PATTERNS**:
-- Basic white backgrounds with simple text
-- Plain buttons without styling
-- Minimal layouts without visual hierarchy
-- Simple forms without proper styling
-- Basic navigation without modern patterns
+        constitutionCheck: `⚖️ CONSTITUTIONAL GATES: Validate each gate with YES/NO + justification:
 
-✅ **REQUIRED DESIGN PATTERNS**:
-- Modern card-based layouts with shadows and gradients
-- Sophisticated color schemes with proper contrast
-- Professional typography with proper hierarchy
-- Interactive elements with hover states and animations
+| Gate | Status | Justification |
+|------|--------|---------------|
+| Simplicity | ≤5 projects | Count microservices/libraries |
+| Library-First | Core as libraries | UI as thin veneer over libraries |
+| CLI Interface | Has CLI | Required for libraries (N/A for UI-only) |
+| Test-First | Contract→Integration→E2E→Unit | Testing order enforcement |
+| Integration-First | Real dependencies | No mocks for core functionality |
+| Anti-Abstraction | Single domain model | Direct data access, no ORMs |
+| Traceability | FR-XXX tags | Requirements linked to code |
+
+For each FAILED gate, explain specific violations and mitigation plans.`,
+
+        languageAgnosticStandards: `💻 LANGUAGE STANDARDS:
+- **JavaScript/TypeScript**: Use // comments and /* */ blocks, NEVER """ docstrings
+- **Python**: Use # comments and """ docstrings, NEVER // comments
+- **TypeScript Config**: Ensure tsconfig.json has path mapping: {"compilerOptions": {"baseUrl": "./", "paths": {"@/*": ["src/*"]}}}
+- **File Extensions**: .ts for TypeScript, .js for JavaScript, .py for Python
+- **Import Style**: Match language conventions (ES6 imports for JS/TS, standard imports for Python)`,
+
+        projectStructure: `📁 PROJECT STRUCTURE: Define EXACT folder hierarchy that will be MANDATORY. Include:
+- Root level directories (src/, tests/, docs/, scripts/)
+- Source code organization (controllers/, services/, models/, utils/)
+- Testing structure (unit/, integration/, e2e/)
+- Configuration files (config/, environments/)
+- Specific file naming conventions
+- Import path patterns (@/ for TypeScript, relative paths for others)
+Structure must be enforceable and specific enough to prevent developer discretion.`,
+
+        designSystemPlanning: `🎨 MODERN UI DESIGN SYSTEM:
+**MANDATORY MODERN REQUIREMENTS:**
+- Modern card layouts with shadows, gradients, rounded corners
+- Sophisticated color schemes (not basic grays/whites)
+- Professional typography hierarchy (not just font sizes)
+- Interactive elements with hover/focus states and smooth animations
 - Responsive grid systems with proper spacing
-- Modern form designs with proper validation styling
-- Professional navigation with modern patterns`,
-        implementationPhases: `Create implementation phases. Follow TDD order: Contract → Integration → E2E → Unit → Implementation → UI-API Integration.`,
-        apiFirstPlanning: `Plan API-First approach. Include API design, contracts, testing, and documentation planning.`,
-        platformSpecificPlanning: `Create platform-specific planning based on specification. Include platform-specific gates and requirements.`,
-        complexityTracking: `Assess complexity tracking. Document any constitutional gate violations with justification.`,
-        edgeCaseAnalysis: `Analyze edge cases from specification. Extract edge cases, categorize by complexity (high/medium/low), and estimate additional development time. Include specific edge cases that need special attention during implementation and testing.`
+- Modern form designs with validation styling
+- Professional navigation patterns
+
+**ABSOLUTELY FORBIDDEN:**
+- Basic white backgrounds with plain text
+- Simple buttons without styling/hover effects
+- Minimal layouts without visual depth
+- Plain forms without modern styling
+- Basic navigation without modern UX patterns
+
+**ENFORCEMENT:** Design system must explicitly prevent "basic/plain/minimal" designs through mandatory patterns and component standards.`,
+
+        implementationPhases: `🚀 4-PHASE IMPLEMENTATION ROADMAP:
+${architectureAdaptation ? `\n${architectureAdaptation}` : ''}
+**Phase 1 (9 tasks)**: Foundation & Design → Models & Test Suite → Core System → Architecture Refactor → Quality Refactor → Compilation → Test Execution → Integration Testing → Final Verification
+**Phase 2 (8 tasks)**: ${architecturePattern?.startsWith('baas-') ? 'SDK Integration → Client-Side Service Layer → Client-Side Controllers/Components → Security Rules Configuration → Integration Tests → Authentication (Client-Side) → Data Validation → Phase 2 Verification' : 'Business Logic → Service Layer → Controller Layer → Integration Tests → Authentication → Data Validation → Performance Optimization → Phase 2 Verification'}
+**Phase 3 (9 tasks)**: Platform Setup → Design System → Application Structure → UI Components → ${architecturePattern?.startsWith('baas-') ? 'SDK Integration (Client-Side)' : 'API Integration'} → State Management → User Experience → Responsive Design → Phase 3 Verification
+**Phase 4 (7 tasks)**: Comprehensive Testing → System Optimization → Production Build → Documentation → Security Assessment → Load Testing → Database Migration
+
+Each phase follows RED-GREEN-REFACTOR-SMOKE pattern. Specify concrete deliverables and success criteria for each phase.`,
+
+        apiFirstPlanning: `🌐 API-FIRST PLANNING:
+- **API Design**: REST/GraphQL endpoints, HTTP methods, resource modeling
+- **Contracts**: Request/response schemas, validation rules, error formats
+- **Testing**: Contract tests, integration tests, performance benchmarks
+- **Documentation**: OpenAPI specs, versioning, developer experience
+- **Security**: Authentication, authorization, rate limiting
+- **Versioning**: URL/header versioning strategy with migration plans`,
+
+        platformSpecificPlanning: `📱 PLATFORM-SPECIFIC PLANNING:
+Based on detected platform (web/mobile/desktop/backend/ai), specify:
+- Platform-specific dependencies and tools
+- Build configurations and deployment targets
+- Platform conventions and best practices
+- Testing frameworks and strategies
+- Performance considerations and monitoring
+- Platform-specific security requirements
+Include concrete commands, file structures, and platform gates.`,
+
+        complexityTracking: `📊 COMPLEXITY ASSESSMENT:
+- Count microservices/libraries (must be ≤5 for simplicity gate)
+- Identify core business logic that must be library-first
+- Document any constitutional violations with mitigation plans
+- Assess technical complexity vs business value
+- Estimate realistic development timelines based on complexity factors`,
+
+        edgeCaseAnalysis: `🔍 EDGE CASE ANALYSIS:
+Extract from specification: error conditions, boundary cases, unusual user flows, data edge cases.
+Categorize: High (blocks core functionality), Medium (important but not critical), Low (nice-to-have).
+Estimate additional time: High (+2 days), Medium (+1 day), Low (+0.5 days).
+Include specific test scenarios and implementation considerations.`
       },
       placeholders: {
         '{{SUMMARY}}': 'Replace with generated summary (primary requirement + technical approach)',
@@ -355,9 +311,10 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
         '{{CONTRACT_TESTS_PLANNED}}': 'Replace with yes/no for contract tests',
         '{{PLATFORM_SPECIFIC_GATES}}': 'Replace with platform-specific gates validation',
         '{{PROJECT_STRUCTURE}}': 'Replace with generated project structure',
-        '{{PHASE_1_CONTRACTS_TESTS}}': 'Replace with Phase 1 implementation details',
-        '{{PHASE_2_LIBRARY_IMPLEMENTATION}}': 'Replace with Phase 2 implementation details',
-        '{{PHASE_3_INTEGRATION_VALIDATION}}': 'Replace with Phase 3 implementation details',
+        '{{PHASE_1_CONTRACTS_TESTS}}': 'Replace with Phase 1 foundation & design setup, models & test suite creation, core system implementation details',
+        '{{PHASE_2_LIBRARY_IMPLEMENTATION}}': 'Replace with Phase 2 business logic, service layer, controller layer, authentication & security implementation details',
+        '{{PHASE_3_INTEGRATION_VALIDATION}}': 'Replace with Phase 3 platform setup, design system, UI components, API integration implementation details',
+        '{{PHASE_4_TESTING_DEPLOYMENT}}': 'Replace with Phase 4 comprehensive testing, optimization, documentation, security assessment, load testing, database migration implementation details',
         '{{API_DESIGN_PLANNING}}': 'Replace with API design planning',
         '{{API_CONTRACT_PLANNING}}': 'Replace with API contract planning',
         '{{API_TESTING_PLANNING}}': 'Replace with API testing planning',
@@ -585,14 +542,47 @@ CRITICAL TYPESCRIPT CONFIGURATION: For TypeScript projects, ensure tsconfig.json
   /**
    * Fill plan template with data
    */
+  /**
+   * Extract architecture pattern from spec content
+   */
+  private extractArchitectureFromSpec(specContent: string): string {
+    // Check metadata section for architecture pattern
+    const metadataMatch = specContent.match(/architecture.*pattern[:\s]*([a-z-]+)/i);
+    if (metadataMatch) {
+      return metadataMatch[1].toLowerCase();
+    }
+
+    // Check architecture section
+    const archSectionMatch = specContent.match(/##\s+Architecture[\s\S]*?###\s+Pattern\s*\n([a-z-]+)/i);
+    if (archSectionMatch) {
+      return archSectionMatch[1].toLowerCase();
+    }
+
+    // Check for keywords
+    const content = specContent.toLowerCase();
+    if (content.includes('firebase')) return 'baas-firebase';
+    if (content.includes('supabase')) return 'baas-supabase';
+    if (content.includes('amplify') || content.includes('appsync')) return 'baas-amplify';
+    if (content.includes('serverless') || content.includes('lambda')) return 'serverless';
+    if (content.includes('express') || content.includes('fastapi') || content.includes('rest api')) {
+      // Check if also has BaaS
+      if (content.includes('firebase') || content.includes('supabase')) return 'hybrid';
+      return 'traditional-backend';
+    }
+
+    return 'unknown';
+  }
+
   private fillPlanTemplate(template: any, options: {
     edgeCaseAnalysis: any;
     specData: any;
+    architecturePattern?: string;
   }): any {
     // Fill template using fillTemplateWithUserInput
     const filledTemplate = this.fillTemplateWithUserInput(template, {
       specData: options.specData,
-      edgeCaseAnalysis: options.edgeCaseAnalysis
+      edgeCaseAnalysis: options.edgeCaseAnalysis,
+      architecturePattern: options.architecturePattern
     });
 
     return filledTemplate;

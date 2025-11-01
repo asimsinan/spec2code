@@ -5,38 +5,363 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import * as path from 'path';
 import * as fs from 'fs';
+import { fileURLToPath } from 'url';
 
 import { PlatformDetectionEngine, PlatformDetectionResult } from '../utils/PlatformDetectionEngine.js';
+import { SDDArchitecturalValidator } from './SDDArchitecturalValidator.js';
+import { ArchitecturePatternDetector } from '../utils/ArchitecturePatternDetector.js';
+
+// Centralized rule constants to reduce repetition
+const EXECUTION_RULES = {
+  // Core usage rules
+  USAGE: {
+    ALWAYS_CALL_FIRST: "🚀 PHASE WORKFLOW EXECUTION: Call '/sdd_implement phase=X' to get complete step-by-step workflow plan for ALL remaining tasks. Execute the entire plan without stopping - no summaries, no user confirmation required.",
+    NO_MANUAL_IMPLEMENTATION: "Never create your own TODOs or implement manually",
+    NO_SPEC_READING: "Never read spec.md or plan.md files - use only task specifications provided",
+    SINGLE_TOOL_SOURCE: "This tool provides ALL necessary information - no file reading required"
+  },
+
+  // Task format requirements
+  TASK_FORMAT: {
+    ID_FORMAT: "All task titles MUST include ID in TASK-XXX format",
+    COMPLETION_FORMAT: "When marking complete, use format: # ✅ TASK-XXX TASK-XXX Title",
+    TODO_FORMAT: "TODO items MUST start with: - [ ] TASK-XXX Title"
+  },
+
+  // Verification requirements
+  VERIFICATION: {
+    TERMINAL_OUTPUT: "For verification tasks, you MUST run commands and show actual terminal output",
+    CODE_SNIPPETS: "For implementation tasks, you MUST show actual working code snippets",
+    GREEN_STATUS: "For GREEN requirements, you MUST show PASS/✓/0 failed in terminal output",
+    COVERAGE_CHECK: "For coverage requirements, you MUST show percentage ≥85% in output"
+  },
+
+  // Execution behavior
+  EXECUTION: {
+    CONTINUOUS_WORK: "Work through all tasks without pausing or asking permission",
+    NO_COMMUNICATION: "Do not provide status updates or ask questions during execution",
+    SILENT_MODE: "Execute all tasks in one continuous session without interruption",
+    IMMEDIATE_PROGRESSION: "Move to next task immediately after completing previous one"
+  },
+
+  // Implementation standards
+  IMPLEMENTATION: {
+    FUNCTIONAL_CODE: "Implementation means writing functional code, not just creating files",
+    NO_PLACEHOLDERS: "No TODOs, placeholders, or empty functions - real working code required",
+    WORKING_INTEGRATION: "Code must actually work and integrate properly",
+    PROOF_REQUIRED: "Show proof of functionality, not just file creation"
+  },
+
+  // Methodology exceptions
+  METHODOLOGY_EXCEPTIONS: {
+    ARCHITECTURE_CORRECTION: `⚠️ METHODOLOGY CORRECTION REQUIRED:
+
+ARCHITECTURE MISMATCH DETECTED:
+- Specified Architecture: [detected pattern]
+- Task Template Assumes: [expected pattern]
+
+JUSTIFICATION:
+[Why task template doesn't fit architecture]
+
+ADAPTATION REQUIRED:
+[What should be done instead]
+
+This format is ALLOWED when correcting methodology mismatches. After providing the correction, proceed with architecture-appropriate implementation.`
+  }
+};
+
+// TDD state reference (consolidated)
+const TDD_STATES = {
+  RED: "Tests failing (expected initially) - shows tests exist and found issues",
+  GREEN: "Tests passing (goal state) - shows implementation works correctly",
+  REFACTOR: "Code improved while tests stay green (optional optimization phase)"
+};
 
 export class SDDImplementTool {
   private basePath: string;
   private platformDetector: PlatformDetectionEngine;
+  private architecturalValidator: SDDArchitecturalValidator;
+  private architectureDetector: ArchitecturePatternDetector;
 
   constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
     this.platformDetector = new PlatformDetectionEngine();
+    this.architecturalValidator = new SDDArchitecturalValidator(basePath);
+    this.architectureDetector = new ArchitecturePatternDetector();
+  }
+
+  /**
+   * Consolidated task completion requirements (replaces 4 duplicate sections)
+   */
+  private getCompletionRequirements(): string {
+    return `
+## Task Completion Requirements
+
+Before marking ANY task complete, verify:
+
+### For Implementation Tasks (CREATE, BUILD, IMPLEMENT):
+- [ ] Code written and functional (not just file creation)
+- [ ] No TODOs, placeholders, or empty functions
+- [ ] ${EXECUTION_RULES.VERIFICATION.CODE_SNIPPETS}
+- [ ] Files actually created/modified (list changed file paths)
+- [ ] Code compiles successfully (when specifically required by task)
+
+### For Verification Tasks (EXECUTE, RUN, TEST, CONFIRM):
+- [ ] Command was actually executed (not just mentioned)
+- [ ] ${EXECUTION_RULES.VERIFICATION.TERMINAL_OUTPUT}
+- [ ] Expected status confirmed (PASS/FAIL/GREEN/RED visible)
+- [ ] ${EXECUTION_RULES.VERIFICATION.GREEN_STATUS}
+- [ ] ${EXECUTION_RULES.VERIFICATION.COVERAGE_CHECK}
+
+### General Requirements:
+- [ ] All acceptance criteria from task description satisfied
+- [ ] No prohibited actions violated
+- [ ] Anti-evasion rules followed
+- [ ] ${EXECUTION_RULES.TASK_FORMAT.COMPLETION_FORMAT}
+
+**Cannot mark complete without meeting ALL applicable requirements above.**
+`;
+  }
+
+  /**
+   * Consolidated TASK-XXX format requirements (replaces 5 duplicate sections)
+   */
+  private getTaskFormatRequirements(): string {
+    return `
+## Task ID Format Requirements
+
+${EXECUTION_RULES.TASK_FORMAT.ID_FORMAT}
+
+### TODO Items:
+${EXECUTION_RULES.TASK_FORMAT.TODO_FORMAT}
+
+### Completion Format:
+${EXECUTION_RULES.TASK_FORMAT.COMPLETION_FORMAT}
+
+### Examples:
+- ✅ **Correct**: "TASK-001 CONFIGURE React Native Expo Project Structure"
+- ✅ **Correct**: "- [ ] TASK-008 CREATE Model Tests & SHOW Test Count"
+- ❌ **Wrong**: "Setup project" (missing TASK-XXX)
+- ❌ **Wrong**: "Task 1 complete" (missing TASK-XXX prefix)
+`;
+  }
+
+  /**
+   * Consolidated anti-evasion rules (replaces 3 duplicate sections)
+   */
+  private getAntiEvasionRules(): string {
+    return `
+## Execution Rules - No Evasion Allowed
+
+${EXECUTION_RULES.EXECUTION.CONTINUOUS_WORK}
+${EXECUTION_RULES.EXECUTION.NO_COMMUNICATION}
+${EXECUTION_RULES.EXECUTION.SILENT_MODE}
+${EXECUTION_RULES.EXECUTION.IMMEDIATE_PROGRESSION}
+
+### Forbidden Actions:
+- Asking for permission to continue
+- Providing status updates mid-execution
+- Stopping to summarize progress
+- Reordering tasks by preference
+- Skipping tasks because they're "difficult"
+- Deferring foundational tasks to "later phases"
+
+### Required Actions:
+- Execute tasks sequentially without interruption
+- Move immediately to next task after completion
+- Work silently until all tasks are done
+- Only communicate final results when complete
+
+### Common Evasion Patterns to Avoid:
+- "I've completed X tasks, should I continue?"
+- "Let me prioritize the important parts first"
+- "This task is complex, I'll do it later"
+- "Auth can be added in Phase 4"
+- Mid-phase status updates or summaries
+`;
+  }
+
+  /**
+   * Consolidated implementation standards (replaces 3 duplicate sections)
+   */
+  private getImplementationStandards(): string {
+    return `
+## Implementation Standards
+
+${EXECUTION_RULES.IMPLEMENTATION.FUNCTIONAL_CODE}
+${EXECUTION_RULES.IMPLEMENTATION.NO_PLACEHOLDERS}
+${EXECUTION_RULES.IMPLEMENTATION.WORKING_INTEGRATION}
+${EXECUTION_RULES.IMPLEMENTATION.PROOF_REQUIRED}
+
+### What Implementation Means:
+1. Write actual working code (not just function signatures)
+2. Code must compile and run without errors
+3. Code must have real functionality (not empty stubs)
+4. Show proof of working implementation
+
+### What Implementation Does NOT Mean:
+- Creating empty files
+- Writing TODO comments
+- Function signatures without bodies
+- Test files without actual functionality
+- Placeholder code that doesn't work
+
+### Code Snippet Requirement:
+For all implementation tasks, you MUST show actual working code snippets proving functionality exists, not just file creation.
+`;
   }
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_implement',
-      description: `🚀 AI-Driven Implementation Tool - Executes tasks for a specific phase.
-CRITICAL RESTRICTIONS:
-- ONLY reads specs/phaseX-tasks.md file (e.g., specs/phase1-tasks.md for phase=1)
-- All needed information is provided in the tool's success message
-Process:
-1. Reads ONLY the phaseX-tasks.md file
-2. Creates TODO list of 18 tasks with task titles
-3. Provides complete task specifications in response
-4. Implement all tasks sequentially using ONLY the provided information`,
+      description: `${EXECUTION_RULES.USAGE.ALWAYS_CALL_FIRST}
+
+USAGE:
+- ${EXECUTION_RULES.USAGE.NO_MANUAL_IMPLEMENTATION}
+- ${EXECUTION_RULES.USAGE.NO_SPEC_READING}
+- Always call "/sdd_implement phase=X" first before any implementation
+
+WORKFLOW:
+- Call "/sdd_implement phase=X" → Get implementation guidance for first incomplete task
+- Call "/sdd_implement phase=X task=Y" → Get implementation guidance for specific task Y
+- Call "/sdd_implement phase=X task=Y complete=true" → Mark task Y as completed (only after actual implementation)
+- Call "/sdd_implement phase=X task=Y single_task=true" → Get guidance for only task Y
+
+WORKFLOW EXECUTION:
+- Provides structured execution plan with step-by-step guidance
+- AI follows the complete workflow plan sequentially
+- Includes status recovery and validation for robust execution
+- Works across all platforms and frameworks
+
+EXECUTION FLOW:
+1. Call tool → Get guidance for ONE SPECIFIC TASK only
+2. Execute → Implement that single task exactly as specified
+3. Complete → Mark task complete and get next task guidance
+4. Repeat → Continue systematically through all tasks in the phase
+
+🧠 ADVANCED AI SAFETY PROTOCOLS 🧠
+
+TRUTH-SEEKING SYSTEM PROMPT:
+"I am an AI committed to absolute truthfulness and accuracy. I will:
+- Use Chain-of-Thought reasoning for all decisions
+- Provide evidence for every claim I make
+- Admit when I don't know something
+- Correct my own mistakes immediately
+- Never fabricate data or results
+- Always show my work and reasoning process"
+
+HALLUCINATION PREVENTION:
+- I will only output information I can verify
+- I will flag any uncertainty or assumption
+- I will use 'I believe' or 'Based on evidence' for uncertain claims
+- I will never make up terminal output or test results
+
+SELF-VERIFICATION CHECKLIST:
+□ Did I run the actual commands shown?
+□ Are the results from real execution, not imagination?
+□ Did I check all acceptance criteria?
+□ Am I following the exact task description?
+□ Have I avoided combining multiple tasks?
+
+🚨🚨🚨 METHODOLOGY ENFORCEMENT 🚨🚨🚨
+
+CRITICAL VIOLATION PREVENTION:
+❌ NEVER read plan.md or spec.md files manually
+❌ NEVER create combined or multi-step tasks
+❌ NEVER implement multiple tasks in one response
+❌ NEVER declare phase complete before all tasks in the phase
+❌ NEVER take "efficiency shortcuts" or optimizations
+❌ NEVER lie about task completion or skip verification steps
+❌ NEVER claim tasks are complete without actual terminal output proof
+❌ NEVER combine multiple tasks under one task number
+❌ NEVER provide generic responses without specific implementation details
+❌ NEVER add human explanations or summaries
+
+MANDATORY RULES:
+✅ Execute EXACTLY ONE TASK per tool call
+✅ Use ONLY information from this tool's response
+✅ Follow atomic task structure (phase-specific task counts)
+✅ Call tool immediately after each task completion
+✅ No manual file reading or external research
+
+VIOLATION CONSEQUENCE: Complete reset and restart required
+
+RESPONSE FORMAT ENFORCEMENT:
+✅ TOOL EXECUTION ONLY
+✅ IMMEDIATE NEXT TOOL CALL
+❌ NO explanations, summaries, or human text
+❌ NO progress reports or status updates
+❌ NO multiple task implementations
+
+AUTOMATED VIOLATION DETECTION:
+- Scans for unauthorized text patterns
+- Auto-resets on methodology violations
+- Enforces atomic task execution
+- Zero tolerance for deviations
+- Detects AI lying patterns (claiming completion without proof, skipping tasks, generic responses)
+
+🤖 AI LIE DETECTION PATTERNS 🤖
+SYSTEM AUTOMATICALLY DETECTS AND FLAGS:
+❌ "Task completed successfully" without terminal output
+❌ "All tests pass" without showing GREEN/PASS results
+❌ "Code implemented" without actual code snippets
+❌ "Phase complete" before all tasks are individually marked
+❌ Generic responses like "Done" or "Completed"
+❌ Skipping verification commands
+❌ Fabricated terminal output or test results
+
+DETECTION = IMMEDIATE RESET + AUDIT LOGGING
+
+🎯 CONSTRAINED GENERATION PROTOCOLS 🎯
+OUTPUT MUST FOLLOW STRICT FORMATS:
+
+TASK EXECUTION FORMAT:
+✅ TASK-XXX: [Task Title]
+📋 ANALYSIS: [Brief analysis of requirements]
+⚡ EXECUTION: [Commands run]
+📊 RESULTS: [Terminal output with actual results]
+✅ VERIFICATION: [How criteria were met]
+
+ERROR FORMAT:
+❌ ERROR: [Specific error description]
+🔍 DIAGNOSTICS: [What I checked]
+🛠️ ATTEMPTED FIXES: [What I tried]
+📞 NEXT STEPS: [What to do next]
+
+COMPLETION FORMAT:
+✅ TASK-XXX complete
+📝 EVIDENCE: [Specific proof points]
+🎯 CRITERIA MET: [Which acceptance criteria satisfied]
+🔄 NEXT: sdd_implement phase=X task=Y complete=true
+
+FREE-FORM TEXT PROHIBITED - ALL OUTPUT MUST USE ABOVE FORMATS
+- This tool provides guidance for ONE TASK AT A TIME
+- Do not create manual TODO lists or read spec files
+- Call this tool first for any implementation work
+- Use only information in this tool's response
+
+${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
       inputSchema: {
         type: 'object',
         properties: {
           phase: {
             type: 'string',
-            description: 'Phase number (1-4) to execute. Defaults to 1 if not provided. Reads ONLY specs/phaseX-tasks.md file and implements all 18 tasks sequentially',
+            description: 'Phase number (1-4) to execute. Defaults to 1 if not provided. Phase 1: 9 tasks, Phases 2-4: 8/9/7 tasks respectively. Reads ONLY specs/phaseX-tasks.md file and implements all tasks in the phase sequentially',
             enum: ['1', '2', '3', '4'],
             default: '1'
+          },
+          task: {
+            type: 'string',
+            description: 'Optional. Specific task number within the phase (01-09 for Phase 1, 01-08 for Phase 2, 01-09 for Phase 3, 01-07 for Phase 4). When provided, only that task is executed and only that task\'s details are included.'
+          },
+          complete: {
+            type: 'boolean',
+            description: 'Optional. When true with a specific task, marks that task as completed in phase status (after successful verification by the caller).'
+          },
+          single_task: {
+            type: 'boolean',
+            description: 'Optional. When true with a specific task, executes only that single task and stops (manual mode). When false or omitted, automatically continues to execute all remaining tasks in the phase.',
+            default: false
           }
         },
         required: []
@@ -47,14 +372,34 @@ Process:
   async execute(input: any): Promise<any> {
     try {
       let phase: string = "1"; // Default to phase 1
+      let taskParam: string | undefined;
+      let markComplete: boolean = false;
+      let singleTask: boolean = false;
       if (typeof input === 'object' && input.phase) {
         // Standard JSON format
         phase = input.phase;
+        if (input.task) taskParam = String(input.task);
+        if (typeof input.complete === 'boolean') markComplete = input.complete;
+        if (typeof input.single_task === 'boolean') singleTask = input.single_task;
       } else if (typeof input === 'string' && input.includes('=')) {
         // Query string format: "phase=1" or "--phase=1"
-        const match = input.match(/(?:^|\s)(?:--)?phase\s*=\s*(\d)/);
+        const match = input.match(/(?:^|\s)(?:--)?phase\s*=\s*(\d{1})/);
         if (match) {
           phase = match[1];
+        }
+        const taskMatch = input.match(/(?:^|\s)(?:--)?task\s*=\s*(\d{1,2})/);
+        if (taskMatch) {
+          taskParam = taskMatch[1];
+        }
+        const completeMatch = input.match(/(?:^|\s)(?:--)?complete\s*=\s*(true|false|1|0)/i);
+        if (completeMatch) {
+          const v = completeMatch[1].toLowerCase();
+          markComplete = v === 'true' || v === '1';
+        }
+        const singleTaskMatch = input.match(/(?:^|\s)(?:--)?single_task\s*=\s*(true|false|1|0)/i);
+        if (singleTaskMatch) {
+          const v = singleTaskMatch[1].toLowerCase();
+          singleTask = v === 'true' || v === '1';
         }
       } else if (typeof input === 'string') {
         // Direct value: "1"
@@ -66,7 +411,7 @@ Process:
       // Phase parameter validation
       const phaseNum = parseInt(phase);
       if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 4) {
-        return this.error('Phase must be between 1 and 4.');
+        return this.error(`Invalid phase: "${phase}". Phase must be between 1 and 4.`);
       }
 
       // Read phase-specific task file
@@ -82,9 +427,17 @@ Process:
         { content: tasksMarkdown },
         { content: tasksMarkdown }
       );
+
+      // Detect architecture pattern from spec and tasks
+      const specPath = path.join(this.basePath, 'specs', 'spec.md');
+      let architecturePattern = 'traditional-backend'; // Default
+      if (fs.existsSync(specPath)) {
+        const specContent = fs.readFileSync(specPath, 'utf-8');
+        architecturePattern = await this.detectArchitecturePattern(specContent, tasksMarkdown);
+      }
    
-      // Execute phase
-      return this.executePhase(phaseNum, tasksMarkdown, platformDetection);
+      // Execute phase (optionally for a single task)
+      return this.executePhase(phaseNum, tasksMarkdown, platformDetection, taskParam, markComplete, singleTask, architecturePattern);
     } catch (error) {
       console.error('[SDDImplementTool] ERROR:', error);
       return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
@@ -94,21 +447,666 @@ Process:
   /**
    * Execute specific phase
    */
-  private async executePhase(phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult): Promise<any> {
-    // Extract tasks from the phase markdown file
-    const tasks = this.extractTasks(tasksMarkdown);
+  private async executePhase(phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult, taskParam?: string, markComplete?: boolean, singleTask?: boolean, architecturePattern?: string): Promise<any> {
+    // Extract tasks from the generated phase markdown file (includes resolved verification commands)
+    const allTasks = this.extractTasks(tasksMarkdown);
+    let tasks = allTasks;
+    let effectiveMarkdown = tasksMarkdown;
+    const statusPath = path.join(this.basePath, 'specs', `phase${phaseNum}-status.json`);
+
+    // Ensure status exists (initialize on phase entry)
+    const readStatus = (): { currentTask: number; completed: number[] } => {
+      try {
+        if (fs.existsSync(statusPath)) {
+          const raw = fs.readFileSync(statusPath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          return {
+            currentTask: Number(parsed.currentTask) || 1,
+            completed: Array.isArray(parsed.completed) ? parsed.completed.map((n: any) => Number(n)).filter((n: number) => !isNaN(n)) : []
+          };
+        }
+      } catch {
+        // Ignore parse errors, return defaults
+      }
+      return { currentTask: 1, completed: [] };
+    };
+
+    // Initialize on phase entry (no specific task)
+    if (!taskParam) {
+      const st = this.readStatus(statusPath);
+      if (!fs.existsSync(statusPath)) this.updateStatusFile(statusPath, st);
+    }
+
+    // If a specific task is requested, filter to that task only and reconstruct minimal markdown
+    let nextCall: string | undefined;
+
+      // Handle workflow execution when no specific task is provided
+    if (!taskParam) {
+      // RETURN COMPLETE WORKFLOW PLAN - let AI execute all tasks in sequence
+      return this.executeAllTasksWorkflow(phaseNum, allTasks, tasksMarkdown, platformDetection, statusPath);
+    }
+
+    // Handle specific task execution
+    const phaseInfo = this.getPhaseInfo(phaseNum);
+    let taskIndex: number = -1;
+    let taskId: string = '';
+    if (taskParam) {
+      taskIndex = (() => {
+        const n = parseInt(taskParam, 10);
+        if (!isNaN(n)) return n; // 1..phase task count
+        // Also support formats like TASK-007
+        const m = taskParam.match(/TASK-(\d{3})/i);
+        if (m) return parseInt(m[1], 10);
+        return NaN;
+      })();
+      if (isNaN(taskIndex) || taskIndex < 1 || taskIndex > phaseInfo.taskCount) {
+        return this.error(`Invalid task parameter: ${taskParam}. For Phase ${phaseNum}, use 1-${phaseInfo.taskCount} or TASK-XXX.`);
+      }
+
+      taskId = String(taskIndex).padStart(2, '0');
+
+      // Sequencing guard: require previous task completed
+      const st = readStatus();
+      if (taskIndex > 1) {
+        const prevNum = taskIndex - 1;
+        const prevOk = st.completed.includes(prevNum) || (Number(st.currentTask) >= prevNum);
+        if (!prevOk) {
+          const prev = String(prevNum);
+          const corrective = `sdd_implement phase=${phaseNum} task=${prev}`;
+          return this.error(`Sequencing blocked: Please complete task ${prev} first. Run: ${corrective}. Status: currentTask=${st.currentTask}, completed=[${st.completed.join(',')}]`);
+        }
+      }
+
+      const selected = allTasks[taskIndex - 1];
+      if (!selected) {
+        return this.error(`Task ${taskIndex} not found in phase ${phaseNum}.`);
+      }
+      tasks = [selected];
+      // Reconstruct minimal markdown containing only this task (robust slice from original file)
+      try {
+        const headerRegex = new RegExp(`^###\\s+(?:\\[)?${selected.id}(?:\\])?.*$`, 'm');
+        const headerMatch = tasksMarkdown.match(headerRegex);
+        if (headerMatch) {
+          const startIdx = tasksMarkdown.indexOf(headerMatch[0]);
+          // Find next task header start
+          const rest = tasksMarkdown.slice(startIdx + headerMatch[0].length);
+          const nextHeaderRegex = /\n###\s+(?:\[)?TASK-\d{3}(?:\])?.*/m;
+          const nextMatch = rest.match(nextHeaderRegex);
+          const endIdx = nextMatch ? startIdx + headerMatch[0].length + nextMatch.index! : tasksMarkdown.length;
+          const section = tasksMarkdown.slice(startIdx, endIdx).trim();
+          effectiveMarkdown = section;
+        } else {
+          // Fallback to constructed header + parsed raw content
+          effectiveMarkdown = `### ${selected.id} ${selected.id} ${selected.title}\n${selected.rawContent}\n`;
+        }
+      } catch {
+        effectiveMarkdown = `### ${selected.id} ${selected.id} ${selected.title}\n${selected.rawContent}\n`;
+      }
+      // Compute next call command
+      const nextIndex = taskIndex + 1;
+      if (nextIndex <= phaseInfo.taskCount) {
+        const nn = String(nextIndex);
+        nextCall = `sdd_implement phase=${phaseNum} task=${nn}`;
+      }
+
+      // Update status current pointer (do not mark complete unless requested)
+      let completed = st.completed;
+      if (markComplete) {
+        // STRICT VERIFICATION: Check if task requirements are actually met before allowing completion
+        const taskVerification = this.verifyTaskCompletion(taskId, taskIndex, phaseNum, tasksMarkdown, platformDetection);
+        if (!taskVerification.isComplete) {
+          return this.error(`TASK COMPLETION REJECTED: ${taskVerification.reason}
+
+❌ TASK ${taskId} CANNOT BE MARKED COMPLETE
+
+VERIFICATION FAILURE DETAILS:
+${taskVerification.details}
+
+REQUIRED BEFORE COMPLETION:
+${taskVerification.requirements.join('\n')}
+
+REMEDY: Complete ALL requirements above, then call complete=true again.`);
+        }
+
+        if (!completed.includes(taskIndex)) {
+          completed = [...completed, taskIndex].sort((a, b) => a - b);
+
+          console.error(`[SDDImplementTool] ✅ MARKING TASK ${taskId} (${taskIndex}) AS COMPLETED. Status before: completed=[${st.completed.join(',')}], after: completed=[${completed.join(',')}]`);
+        } else {
+          console.error(`[SDDImplementTool] ⚠️ Task ${taskId} (${taskIndex}) already marked complete, skipping duplicate mark`);
+        }
+      } else {
+        console.error(`[SDDImplementTool] 📋 Providing guidance for task ${taskId} (${taskIndex}), NOT marking complete. Current completed: [${st.completed.join(',')}]`);
+      }
+      
+      // Update currentTask appropriately:
+      // When marking complete: taskIndex is the completed task, so currentTask should be taskIndex + 1 (next task to work on)
+      // When providing guidance: taskIndex is the task being worked on, so currentTask should be taskIndex
+      let nextCurrentTask = taskIndex;
+      
+      if (markComplete) {
+        // After completion, set currentTask to the next incomplete task (or taskIndex + 1 if all subsequent tasks are incomplete)
+        let nextTask = -1;
+        for (let i = taskIndex + 1; i <= phaseInfo.taskCount; i++) {
+          if (!completed.includes(i)) {
+            nextTask = i;
+            break;
+          }
+        }
+        nextCurrentTask = nextTask > 0 ? nextTask : (taskIndex < phaseInfo.taskCount ? taskIndex + 1 : taskIndex);
+      }
+      
+      this.updateStatusFile(statusPath, { currentTask: nextCurrentTask, completed });
+    }
     
-    // Generate TODO list
+
+    // For auto-continue, provide guidance but don't execute recursively
+    // The AI should call this tool again for the next task
+    if (!singleTask && nextCall && taskIndex < phaseInfo.taskCount) {
+      console.error(`[SDDImplementTool] Task ${taskId} completed. Next task available: ${nextCall}`);
+    }
+
+    // Generate TODO list for single task execution
     const todoList = this.generateTODOList(tasks, phaseNum);
     
-    // Generate success message
-    const successMessage = this.generatePhaseSuccessMessage(phaseNum, tasks, todoList, tasksMarkdown, platformDetection);
-    
-    return {
+    // Generate different responses for guidance vs completion
+    if (markComplete) {
+      // MARKING TASK COMPLETE - provide completion confirmation AND guidance for next task
+      const successMessage = this.generatePhaseSuccessMessage(phaseNum, tasks, todoList, effectiveMarkdown, platformDetection, nextCall, markComplete);
+
+      // Check if there are more tasks to do
+      const phaseInfo = this.getPhaseInfo(phaseNum);
+      const currentStatus = this.readStatus(statusPath);
+      let nextTaskGuidance = '';
+
+      // Find the next incomplete task
+      let nextTaskIndex = -1;
+      for (let i = 1; i <= phaseInfo.taskCount; i++) {
+        if (!currentStatus.completed.includes(i)) {
+          nextTaskIndex = i;
+          break;
+        }
+      }
+
+      if (nextTaskIndex > 0 && nextTaskIndex <= phaseInfo.taskCount) {
+        // There are more tasks - provide guidance for the next task
+        const nextTask = allTasks[nextTaskIndex - 1];
+        const nextTaskMarkdown = this.extractSingleTaskMarkdown(tasksMarkdown, nextTask.id);
+        const nextTaskGuidanceFull = this.generateSingleTaskGuidance(phaseNum, nextTask, nextTaskMarkdown, platformDetection, nextTaskIndex, phaseInfo);
+
+        // AUTOMATIC SEQUENTIAL CONTINUATION: Chain to next task immediately
+        nextTaskGuidance = `
+
+🚀 AUTOMATIC SEQUENTIAL CONTINUATION (MANDATORY):
+
+${nextTaskGuidanceFull}
+
+📊 TASK EXECUTION CONTEXT:
+PHASE: ${phaseNum}
+CURRENT_TASK: ${nextTaskIndex}/${phaseInfo.taskCount}
+TASK_ID: ${nextTask.id}
+TASK_TITLE: ${nextTask.title}
+
+📈 PROGRESS STATUS:
+COMPLETED: ${currentStatus.completed.length + 1}/${phaseInfo.taskCount} tasks (including this one)
+REMAINING: ${phaseInfo.taskCount - currentStatus.completed.length - 1} tasks
+
+🔄 CRITICAL CHAINING REQUIREMENT:
+After completing this task, you MUST immediately call the NEXT task in the SAME response:
+1. Call: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true (marks current complete)
+2. Then immediately call: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1} (starts next task)
+
+⚠️ VIOLATION DETECTED: Stopping after completion without calling next task = methodology violation requiring complete reset from task 1.`;
+      } else {
+        // Phase is TRULY complete - ALL tasks verified complete
+        // 🛡️ CRITICAL: Validate architecture before allowing phase progression
+        // This prevents tunnel vision issues like missing API layers or incomplete architectural patterns
+        const validationResult = await this.architecturalValidator.execute({ phase: phaseNum, strict_mode: true });
+
+        if (!validationResult.can_proceed) {
+          const criticalGapsReport = validationResult.critical_gaps && validationResult.critical_gaps.length > 0
+            ? `\n\n❌ CRITICAL ARCHITECTURAL GAPS DETECTED:\n${validationResult.critical_gaps.map((gap: any, idx: number) => `  ${idx + 1}. ${gap.description || gap.message || JSON.stringify(gap)}`).join('\n')}`
+            : '';
+          
+          const recommendationsReport = validationResult.recommendations && validationResult.recommendations.length > 0
+            ? `\n\n💡 RECOMMENDATIONS:\n${validationResult.recommendations.map((rec: string, idx: number) => `  ${idx + 1}. ${rec}`).join('\n')}`
+            : '';
+
+          return {
+            success: false,
+            message: `🚨 PHASE ${phaseNum} ARCHITECTURE VALIDATION FAILED
+
+❌ CANNOT PROCEED TO NEXT PHASE
+
+📋 VALIDATION REPORT:
+${validationResult.report || 'Architecture validation failed'}
+
+${criticalGapsReport}${recommendationsReport}
+
+🔧 REMEDY:
+Review the architectural gaps above and implement the missing components before proceeding.
+Common issues: Missing API layers, incomplete security implementation, missing database layer, or incomplete client-server separation.
+
+After fixing gaps, re-run: sdd_implement phase=${phaseNum} task=${phaseInfo.taskCount} complete=true
+to re-validate the phase architecture.`,
+            validation_result: validationResult,
+            can_proceed: false,
+            critical_gaps: validationResult.critical_gaps || []
+          };
+        }
+
+        // Architecture validation passed - phase can proceed
+        nextTaskGuidance = `
+
+🎉 PHASE ${phaseNum} TRULY COMPLETE!
+✅ VERIFICATION: All ${phaseInfo.taskCount} tasks individually marked complete and verified.
+✅ METHODOLOGY: Sequential atomic execution completed successfully.
+✅ INTEGRITY: No tasks skipped, combined, or fabricated.
+✅ ARCHITECTURE: Phase architecture validated against specification - no critical gaps detected.
+
+🛡️ ARCHITECTURAL VALIDATION PASSED:
+${validationResult.report || 'Phase architecture meets all requirements.'}
+
+🚀 READY FOR NEXT PHASE:
+Call: sdd_implement phase=${phaseNum + 1}
+⚠️ WARNING: Only proceed when Phase ${phaseNum} is 100% complete with all verification proof.`;
+      }
+
+      return {
         success: true,
-        nextStep: successMessage
+        message: `✅ TASK ${taskId} MARKED AS COMPLETED
+
+📋 TASK COMPLETION DETAILS:
+COMPLETED_TASK: ${taskId}
+PHASE: ${phaseNum}
+
+📝 COMPLETION SUMMARY:
+${successMessage}${nextTaskGuidance}`
       };
+    } else {
+      // PROVIDING GUIDANCE - focus ONLY on current task, no summaries
+      const taskSpec = this.extractSingleTaskSpec(tasksMarkdown, taskId);
+      const task = tasks.find(t => t.id === taskId);
+      
+      // Check for architecture mismatch
+      if (architecturePattern && task) {
+        const hasMismatch = this.isArchitectureMismatch(task, taskSpec, architecturePattern, phaseNum);
+        
+        if (hasMismatch) {
+          const baseMessage = this.generateComprehensiveSafetyMessage(taskId, phaseNum, taskSpec, tasksMarkdown, tasks);
+      return {
+        success: true,
+            message: `${baseMessage}
+
+⚠️ ARCHITECTURE PATTERN MISMATCH DETECTED:
+Task assumes traditional backend architecture, but detected architecture is ${architecturePattern}.
+
+YOU MAY PROVIDE A STRUCTURED CORRECTION using this format:
+${EXECUTION_RULES.METHODOLOGY_EXCEPTIONS.ARCHITECTURE_CORRECTION}
+
+After providing the correction, proceed with architecture-appropriate implementation.`
+          };
+        }
+      }
+      
+      return {
+        success: true,
+        message: this.generateComprehensiveSafetyMessage(taskId, phaseNum, taskSpec, tasksMarkdown, tasks)
+      };
+    }
   }
+
+
+  /**
+   * Extract specification for a single task only
+   */
+  private extractSingleTaskSpec(tasksMarkdown: string, taskId: string): string {
+    // Find the specific task section
+    const taskRegex = new RegExp(`## ${taskId}[^#]*(?=## TASK-|\\n###|$)`, 's');
+    const match = tasksMarkdown.match(taskRegex);
+
+    if (match) {
+      return `## ${taskId}${match[1]}`;
+    }
+
+    // Fallback: search for task ID anywhere in the markdown
+    const lines = tasksMarkdown.split('\n');
+    const startIndex = lines.findIndex(line => line.includes(`## ${taskId}`) || line.includes(`TASK-${taskId}`));
+    if (startIndex === -1) return `Task ${taskId} specification not found`;
+
+    // Extract from this task until the next task or end
+    const taskLines = [];
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i];
+      // Stop at next task header
+      if (i > startIndex && (line.startsWith('## TASK-') || line.startsWith('### '))) break;
+      taskLines.push(line);
+    }
+
+    return taskLines.join('\n');
+  }
+
+  /**
+   * Execute all tasks in a phase and return complete workflow plan
+   */
+  private async executeAllTasksWorkflow(phaseNum: number, allTasks: Array<any>, tasksMarkdown: string, platformDetection: PlatformDetectionResult, statusPath: string): Promise<any> {
+    // SEQUENTIAL PHASE EXECUTION: Execute ALL tasks in phase automatically (like SDDTasksTool)
+    const currentStatus = this.readStatus(statusPath);
+
+    // Find the next task to execute (first incomplete task)
+    const phaseInfo = this.getPhaseInfo(phaseNum);
+    let nextTaskIndex = 1;
+    for (let i = 1; i <= phaseInfo.taskCount; i++) {
+      if (!currentStatus.completed.includes(i)) {
+        nextTaskIndex = i;
+        break;
+      }
+    }
+
+    // Check if all tasks are completed - STRICT VERIFICATION REQUIRED
+    if (nextTaskIndex > phaseInfo.taskCount) {
+      // Double-check: verify all tasks 1..taskCount are actually marked complete
+      const allTasksCompleted = [];
+      for (let i = 1; i <= phaseInfo.taskCount; i++) {
+        if (!currentStatus.completed.includes(i)) {
+          allTasksCompleted.push(i);
+        }
+      }
+
+      if (allTasksCompleted.length > 0) {
+        return this.error(`PHASE COMPLETION VIOLATION: Cannot mark Phase ${phaseNum} complete. Missing completion for tasks: ${allTasksCompleted.join(', ')}. All ${phaseInfo.taskCount} tasks must be individually marked complete before phase completion.
+
+🤖 AI HONESTY VIOLATION DETECTED 🤖
+PHASE COMPLETION CLAIMS WITHOUT INDIVIDUAL TASK VERIFICATION = AUTOMATIC REJECTION
+Each task must be marked complete individually using complete=true parameter.
+No bulk completion or claiming "all tasks done" without proof.`);
+      }
+
+
+      return {
+        success: true,
+        message: `✅ PHASE ${phaseNum} COMPLETE! All ${phaseInfo.taskCount} tasks have been verified complete.
+
+PHASE_COMPLETION_DETAILS:
+PHASE: ${phaseNum}
+STATUS: phase_complete
+COMPLETED_TASKS: ${currentStatus.completed.length}/${phaseInfo.taskCount} (${currentStatus.completed.join(', ')})
+VERIFICATION: All tasks individually marked complete in status file
+
+🎉 PHASE ${phaseNum} SUCCESSFULLY COMPLETED - READY FOR NEXT PHASE`
+      };
+    }
+
+    const nextTask = allTasks[nextTaskIndex - 1];
+    if (!nextTask) {
+      return this.error(`Task ${nextTaskIndex} not found in phase ${phaseNum} tasks.`);
+    }
+
+    // Extract just this task's content from the markdown
+    const taskMarkdown = this.extractSingleTaskMarkdown(tasksMarkdown, nextTask.id);
+
+    // Generate guidance for ONLY this single task
+    const taskGuidance = this.generateSingleTaskGuidance(phaseNum, nextTask, taskMarkdown, platformDetection, nextTaskIndex, phaseInfo);
+
+    const phaseProgressWarning = `
+🚨🚨🚨 CRITICAL METHODOLOGY ENFORCEMENT 🚨🚨🚨
+
+PHASE ${phaseNum} PROGRESS: Task ${nextTaskIndex}/${phaseInfo.taskCount}
+- Completed: ${currentStatus.completed.length}/${phaseInfo.taskCount} tasks
+- Current: ${nextTask.id} (${nextTask.title})
+- Remaining: ${phaseInfo.taskCount - currentStatus.completed.length} tasks
+
+⚠️ METHODOLOGY VIOLATION PREVENTION ⚠️
+
+FORBIDDEN ACTIONS (VIOLATION = RESET REQUIRED):
+❌ Reading plan.md or spec.md files manually
+❌ Creating combined/multi-step tasks
+❌ Implementing multiple tasks in one response
+❌ Declaring phase complete before all ${phaseInfo.taskCount} tasks
+❌ Taking "efficiency shortcuts" or optimizations
+❌ Interpreting TDD phases as task completion
+❌ Adding human explanations or summaries
+❌ Skipping task completion marking (must use complete=true)
+❌ Claiming multiple tasks completed simultaneously
+❌ Reordering or consolidating tasks arbitrarily
+
+MANDATORY COMPLIANCE:
+✅ Execute EXACTLY ONE TASK per tool call
+✅ Follow tool's exact specifications only
+✅ Call tool again immediately after completion
+✅ Use ONLY information provided by this tool
+✅ No manual file reading or external research
+✅ No task combining or reorganization
+✅ Mark each task complete with complete=true parameter
+✅ Verify task completion in status file before proceeding
+✅ Complete ALL ${phaseInfo.taskCount} tasks before claiming phase done
+✅ **PLATFORM COMPLIANCE**: Use only ${platformDetection.platform}-specific commands and technologies
+✅ **PLATFORM VALIDATION**: No commands from other platforms (reject web commands in mobile, etc.)
+
+RESPONSE FORMAT ENFORCEMENT:
+- Start with tool call: /sdd_implement phase=${phaseNum} task=${nextTaskIndex}
+- Execute exactly one task
+- Show verification proof
+- End with next task call
+- NO human explanations, summaries, or deviations
+
+METHODOLOGY VIOLATION DETECTED = COMPLETE RESET REQUIRED
+Continue through ALL ${phaseInfo.taskCount} tasks systematically or restart from beginning.
+
+🤖 AI HONESTY CONTRACT 🤖
+I, the AI assistant, hereby commit to:
+1. Telling the truth about task completion status
+2. Providing actual terminal output, not fabricated results
+3. Executing exactly one task per response
+4. Not skipping verification steps or combining tasks
+5. Being transparent about any issues or failures encountered
+6. Maintaining the integrity of the SDD methodology
+
+🔬 ROBUST PROMPTING STRATEGIES ACTIVATED 🔬
+CHAIN-OF-THOUGHT REQUIREMENT: I must explain my reasoning before any action
+SELF-VERIFICATION: I must double-check all claims against evidence
+EVIDENCE-BASED RESPONSES: Every claim must be backed by verifiable proof
+CONSTRAINED OUTPUT: Responses must follow strict formatting rules
+MULTI-TURN VERIFICATION: Complex tasks broken into atomic, verifiable steps`;
+
+    // AUTOMATIC SEQUENTIAL EXECUTION: Chain through ALL tasks like SDDTasksTool
+    const remainingTasks = phaseInfo.taskCount - currentStatus.completed.length;
+    const isLastTask = nextTaskIndex === phaseInfo.taskCount;
+
+    // Generate TODO list for ONLY the current task (not all tasks)
+    // Each task will create its own TODO when it's called
+    const currentTaskTODO = this.generateTODOList([nextTask], phaseNum);
+
+    const chainingInstructions = isLastTask ?
+      `🎯 FINAL TASK IN PHASE ${phaseNum}
+After completing this task, call: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true
+This will mark Phase ${phaseNum} complete.` :
+
+      `🔄 AUTOMATIC SEQUENTIAL EXECUTION
+CRITICAL: After completing this task, you MUST immediately call the next task in the SAME response:
+1. Complete this task: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true
+2. Then immediately call: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1}
+
+⚠️ VIOLATION DETECTED: Stopping here without calling the next task = methodology violation requiring complete reset.`;
+
+    return {
+      success: true,
+      message: `
+## YOUR TODO LIST FOR THIS TASK (MANDATORY - CREATE THIS NOW)
+
+${currentTaskTODO}
+
+🚨 **MANDATORY TODO LIST CREATION - READ THIS BEFORE STARTING**:
+- **YOU MUST CREATE A TODO ITEM FOR THIS TASK ONLY**: \`- [ ] ${nextTask.id}: ${nextTask.title}\`
+- **THIS IS THE ONLY TODO YOU NEED TO CREATE RIGHT NOW** - Create one TODO per task as you work through them
+- **FORMAT**: MUST use exact format: \`- [ ] ${nextTask.id}: ${nextTask.title}\`
+- **TIMING**: Create the TODO item BEFORE any implementation work begins
+- **COMPLETION**: This TODO item MUST be checked off ONLY after completing this task with \`complete=true\`
+- **ACKNOWLEDGMENT**: If you cannot create TODOs, explicitly acknowledge: "Starting ${nextTask.id}: ${nextTask.title}"
+- **VIOLATION**: Skipping TODO creation/acknowledgment is a methodology violation requiring restart
+- **NEXT TASK**: When you call the next task, create a new TODO for that task only
+
+${taskGuidance}
+
+📊 PHASE EXECUTION CONTEXT:
+PHASE: ${phaseNum}
+CURRENT_TASK: ${nextTaskIndex}/${phaseInfo.taskCount}
+TASK_ID: ${nextTask.id}
+TASK_TITLE: ${nextTask.title}
+PROGRESS: ${currentStatus.completed.length}/${phaseInfo.taskCount} completed, ${remainingTasks} remaining
+
+${chainingInstructions}
+
+🚨 CRITICAL METHODOLOGY ENFORCEMENT:
+MANDATORY SEQUENTIAL EXECUTION: Complete this task, then IMMEDIATELY call the next task.
+NO stopping, NO claiming completion, NO summaries until ALL ${phaseInfo.taskCount} tasks are done.
+VIOLATION = Complete reset from task 1 required.
+
+🛡️ METHODOLOGY ENFORCEMENT:
+VIOLATION DETECTED: If you read plan.md, combine tasks, or deviate from atomic execution → DELETE all work and RESTART from task 1. Zero tolerance for methodology violations.
+
+📝 RESPONSE FORMAT REQUIREMENTS:
+RESPONSE FORMAT: TOOL_CALL_ONLY. Execute task → Call next tool. NO text explanations, NO summaries, NO human language. VIOLATION = RESET.
+
+🤖 AUTOMATED ENFORCEMENT:
+SYSTEM ENFORCES: Scans for explanations/summaries. Auto-resets on violation. One task per response only.
+
+⚠️ PHASE PROGRESS WARNING:
+${phaseProgressWarning}`
+    };
+  }
+
+  /**
+   * Extract markdown content for a single task
+   */
+  private extractSingleTaskMarkdown(tasksMarkdown: string, taskId: string): string {
+    try {
+      const headerRegex = new RegExp(`^###\\s+(?:\\[)?${taskId}(?:\\])?.*$`, 'm');
+      const headerMatch = tasksMarkdown.match(headerRegex);
+      if (headerMatch) {
+        const startIdx = tasksMarkdown.indexOf(headerMatch[0]);
+        // Find next task header start
+        const rest = tasksMarkdown.slice(startIdx + headerMatch[0].length);
+        const nextHeaderRegex = /\n###\s+(?:\[)?TASK-\d{3}(?:\])?.*/m;
+        const nextMatch = rest.match(nextHeaderRegex);
+        const endIdx = nextMatch ? startIdx + headerMatch[0].length + nextMatch.index! : tasksMarkdown.length;
+        return tasksMarkdown.slice(startIdx, endIdx).trim();
+      }
+    } catch {
+      // Fallback
+    }
+    return `### ${taskId} ${taskId}\nTask content not found.\n`;
+  }
+
+  /**
+   * Extract verification commands from generated markdown task section
+   */
+  private extractVerificationCommands(sectionBody: string): string[] {
+    const commands: string[] = [];
+
+    // Look for "VERIFICATION COMMANDS" section in generated markdown
+    const verificationMatch = sectionBody.match(/VERIFICATION COMMANDS.*?MANDATORY - RUN ALL.*?:\s*\n([\s\S]*?)(?=\n\n|\n####|\n\*\*|$)/);
+
+    if (verificationMatch) {
+      const commandsText = verificationMatch[1];
+      // Split by lines and clean up
+      const lines = commandsText.split('\n').map(line => line.trim()).filter(line => line);
+
+      for (const line of lines) {
+        // Remove markdown list markers and clean up
+        const cleanCommand = line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+        if (cleanCommand && !cleanCommand.includes('CRITICAL:')) {
+          commands.push(cleanCommand);
+        }
+      }
+    }
+
+    return commands;
+  }
+
+  /**
+   * Get template for a task
+   */
+  private getTemplateForTask(task: any, taskMarkdown: string, platformDetection: PlatformDetectionResult): string {
+    return `PLATFORM: ${platformDetection.platform}
+FRAMEWORK: ${platformDetection.framework}
+
+IMPLEMENTATION NOTES:
+Follow the task specifications in the markdown. Use ${platformDetection.platform} and ${platformDetection.framework} best practices.
+
+TASK CONTEXT:
+${taskMarkdown}`;
+  }
+
+  /**
+   * Generate guidance for a single task
+   */
+  private generateSingleTaskGuidance(phaseNum: number, task: any, taskMarkdown: string, platformDetection: PlatformDetectionResult, taskIndex: number, phaseInfo: any): string {
+    const template = this.getTemplateForTask(task, taskMarkdown, platformDetection);
+
+
+    return `🎯 TASK ${task.id}: ${task.title}
+
+📋 TASK DETAILS:
+- Task ID: ${task.id}
+- Task Number: ${taskIndex}/${phaseInfo.taskCount}
+- Platform: ${platformDetection.platform}
+- Framework: ${platformDetection.framework}
+
+🚨 **MANDATORY TODO LIST STEP - READ THIS BEFORE STARTING**:
+- **BEFORE STARTING THIS TASK**, you MUST create/acknowledge a TODO item: \`- [ ] ${task.id}: ${task.title}\`
+- **FORMAT**: MUST use exact format: \`- [ ] ${task.id}: ${task.title}\`
+- **TIMING**: Create the TODO item BEFORE any implementation work begins
+- **COMPLETION**: This TODO item MUST be checked off ONLY after completing this task with \`complete=true\`
+- **ACKNOWLEDGMENT**: If you cannot create TODOs, explicitly acknowledge: "Starting ${task.id}: ${task.title}"
+- **VIOLATION**: Skipping TODO creation/acknowledgment is a methodology violation requiring restart
+
+✅ SUCCESS CRITERIA:
+Task ${task.id} is fully implemented and all verification commands pass
+
+🎯 COMPLETION ACTION:
+Call: sdd_implement phase=${phaseNum} task=${taskIndex} complete=true
+
+${taskIndex < phaseInfo.taskCount ? `🔄 NEXT TASK HINT: Task ${taskIndex + 1}` : '🎉 PHASE COMPLETE!'}
+
+📄 IMPLEMENTATION TEMPLATE:
+${template}
+
+📝 TASK SPECIFICATION:
+${task.description}`;
+  }
+
+  /**
+   * Read status from status file
+   */
+  private readStatus(statusPath: string): { currentTask: number; completed: number[] } {
+    try {
+      if (fs.existsSync(statusPath)) {
+        const raw = fs.readFileSync(statusPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        return {
+          currentTask: Number(parsed.currentTask) || 1,
+          completed: Array.isArray(parsed.completed) ? parsed.completed.map((n: any) => Number(n)).filter((n: number) => !isNaN(n)) : []
+        };
+      }
+    } catch {}
+    return { currentTask: 1, completed: [] };
+  }
+
+  private updateStatusFile(statusPath: string, st: { currentTask: number; completed: number[] }) {
+    try {
+      // Ensure specs directory exists
+      const specsDir = path.dirname(statusPath);
+      if (!fs.existsSync(specsDir)) {
+        fs.mkdirSync(specsDir, { recursive: true });
+      }
+      fs.writeFileSync(statusPath, JSON.stringify(st, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('[SDDImplementTool] Unable to write status file:', e);
+    }
+  }
+
+
 
   /**
    * Extract tasks from phase markdown file
@@ -141,11 +1139,17 @@ Process:
       // Extract description from the section body
       const descMatch = sectionBody.match(/#### Description\s*\n([\s\S]*?)(?=\n####|\n\*\*|$)/);
       const description = descMatch ? descMatch[1].trim() : '';
+
+      // Extract verification commands from the generated markdown
+      const verificationCommands = this.extractVerificationCommands(sectionBody);
       
       tasks.push({
         id: taskId,
         title: title || taskId,
         description: description,
+        verification: {
+          commands: verificationCommands
+        },
         rawContent: sectionBody.trim()
       });
     }
@@ -203,13 +1207,13 @@ Process:
       // CRITICAL: Task ID MUST be included in format "TASK-XXX Title"
       const taskIdPrefix = task.id; // Already validated as TASK-XXX format
       const title = task.title || task.id;
-      return `- [ ] ${taskIdPrefix}: ${title}\n → See full details in specs/phase${phaseNum}-tasks.md file`;
+      const nn = String(index + 1);
+      return `- [ ] ${taskIdPrefix}: ${title}\n   Run: sdd_implement phase=${phaseNum} task=${nn}\n   → See full details in specs/phase${phaseNum}-tasks.md`;
       }).join('\n\n');
     
     return `## TODO List - Phase ${phaseNum} (${tasksWithIds.length} tasks)
 
-🚨 **CRITICAL FORMAT REQUIREMENT**: Each TODO item MUST include the task ID (TASK-XXX format). 
-**NEVER** create TODO items without task IDs. The format is: TASK-XXX Title
+${this.getTaskFormatRequirements()}
 
 ${todoItems}
 
@@ -241,9 +1245,214 @@ ${todoItems}
 
 
   /**
-   * Generate success message for phase-by-phase mode
+   * Generate comprehensive safety message that AI actually sees
    */
-  private generatePhaseSuccessMessage(phaseNum: number, tasks: Array<any>, todoList: string, tasksMarkdown: string, platformDetection: PlatformDetectionResult): string {
+  private generateComprehensiveSafetyMessage(taskId: string, phaseNum: number, taskSpec: string, tasksMarkdown: string, tasks: Array<any>): string {
+    return `
+🚨 CRITICAL: IMPLEMENT THIS ONE TASK NOW: ${taskId}
+
+🧠 ADVANCED AI SAFETY PROTOCOLS ACTIVATED 🧠
+
+TRUTH-SEEKING SYSTEM PROMPT:
+"I am an AI committed to absolute truthfulness and accuracy. I will:
+- Use Chain-of-Thought reasoning for all decisions
+- Provide evidence for every claim I make
+- Admit when I don't know something
+- Correct my own mistakes immediately
+- Never fabricate data or results
+- Always show my work and reasoning process"
+
+HALLUCINATION PREVENTION:
+- I will only output information I can verify
+- I will flag any uncertainty or assumption
+- I will use 'I believe' or 'Based on evidence' for uncertain claims
+- I will never make up terminal output or test results
+
+SELF-VERIFICATION CHECKLIST:
+□ Did I run the actual commands shown?
+□ Are the results from real execution, not imagination?
+□ Did I check all acceptance criteria?
+□ Am I following the exact task description?
+□ Have I avoided combining multiple tasks?
+
+🤖 AI HONESTY CONTRACT 🤖
+I, the AI assistant, hereby commit to:
+1. Telling the truth about task completion status
+2. Providing actual terminal output, not fabricated results
+3. Executing exactly one task per response
+4. Not skipping verification steps or combining tasks
+5. Being transparent about any issues or failures encountered
+6. Maintaining the integrity of the SDD methodology
+
+VIOLATION OF THIS CONTRACT = IMMEDIATE RESET TO TASK 1
+
+🔬 ROBUST PROMPTING STRATEGIES ACTIVATED 🔬
+CHAIN-OF-THOUGHT REQUIREMENT: I must explain my reasoning before any action
+SELF-VERIFICATION: I must double-check all claims against evidence
+EVIDENCE-BASED RESPONSES: Every claim must be backed by verifiable proof
+CONSTRAINED OUTPUT: Responses must follow strict formatting rules
+MULTI-TURN VERIFICATION: Complex tasks broken into atomic, verifiable steps
+
+🚨🚨🚨 METHODOLOGY ENFORCEMENT 🚨🚨🚨
+
+CRITICAL VIOLATION PREVENTION:
+❌ NEVER read plan.md or spec.md files manually
+❌ NEVER create combined or multi-step tasks
+❌ NEVER implement multiple tasks in one response
+❌ NEVER declare phase complete before all tasks in the phase
+❌ NEVER take "efficiency shortcuts" or optimizations
+❌ NEVER lie about task completion or skip verification steps
+❌ NEVER claim tasks are complete without actual terminal output proof
+❌ NEVER combine multiple tasks under one task number
+❌ NEVER provide generic responses without specific implementation details
+❌ NEVER add human explanations or summaries
+
+MANDATORY RULES:
+✅ Execute EXACTLY ONE TASK per tool call
+✅ Use ONLY information from this tool's response
+
+AUTOMATED VIOLATION DETECTION:
+- Scans for unauthorized text patterns
+- Auto-resets on methodology violations
+- Enforces atomic task execution
+- Zero tolerance for deviations
+- Detects AI lying patterns (claiming completion without proof, skipping tasks, generic responses)
+
+🤖 AI LIE DETECTION PATTERNS 🤖
+SYSTEM AUTOMATICALLY DETECTS AND FLAGS:
+❌ "Task completed successfully" without terminal output
+❌ "All tests pass" without showing GREEN/PASS results
+❌ "Code implemented" without actual code snippets
+❌ "Phase complete" before all tasks are individually marked
+❌ Generic responses like "Done" or "Completed"
+❌ Skipping verification commands
+❌ Fabricated terminal output or test results
+
+DETECTION = IMMEDIATE RESET + AUDIT LOGGING
+
+🎯 CONSTRAINED GENERATION PROTOCOLS 🎯
+OUTPUT MUST FOLLOW STRICT FORMATS:
+
+TASK EXECUTION FORMAT:
+✅ TASK-XXX: [Task Title]
+📋 ANALYSIS: [Brief analysis of requirements]
+⚡ EXECUTION: [Commands run]
+📊 RESULTS: [Terminal output with actual results]
+✅ VERIFICATION: [How criteria were met]
+
+ERROR FORMAT:
+❌ ERROR: [Specific error description]
+🔍 DIAGNOSTICS: [What I checked]
+🛠️ ATTEMPTED FIXES: [What I tried]
+📞 NEXT STEPS: [What to do next]
+
+COMPLETION FORMAT:
+✅ TASK-XXX complete
+📝 EVIDENCE: [Specific proof points]
+🎯 CRITERIA MET: [Which acceptance criteria satisfied]
+🔄 NEXT: sdd_implement phase=X task=Y complete=true
+
+ARCHITECTURE CORRECTION FORMAT (ALLOWED when methodology mismatch detected):
+⚠️ METHODOLOGY CORRECTION REQUIRED:
+ARCHITECTURE MISMATCH: [pattern mismatch]
+JUSTIFICATION: [why mismatch]
+ADAPTATION: [what to do instead]
+
+Then proceed with task execution.
+
+FREE-FORM TEXT PROHIBITED - ALL OUTPUT MUST USE ABOVE FORMATS (except architecture corrections)
+
+🤖 PROOF-OF-WORK REQUIREMENTS 🤖
+MANDATORY VERIFICATION FOR TASK COMPLETION:
+✅ TERMINAL OUTPUT: Must show actual command execution, not generic messages
+✅ ERROR-FREE: Must show 0 errors, 0 warnings for compilation tasks
+✅ TEST RESULTS: Must show GREEN/PASS/✓ status for test tasks
+✅ COVERAGE METRICS: Must show ≥85% coverage for coverage tasks
+✅ FILE CREATION: Must show file contents or successful creation
+✅ NO FABRICATION: All output must be real, not AI-generated fantasy
+
+VIOLATION = TASK REJECTION + AUDIT LOGGING
+
+📊 EVIDENCE-BASED PROMPTING REQUIREMENTS 📊
+CHAIN-OF-THOUGHT REASONING REQUIRED:
+1. **ANALYZE**: What does this task actually require?
+2. **PLAN**: What specific steps must I take?
+3. **EXECUTE**: What commands will I run?
+4. **VERIFY**: How will I prove completion?
+5. **VALIDATE**: Does the evidence match the requirements?
+
+EVIDENCE CHAIN:
+- Command executed → Terminal output shown → Result verified → Task criteria met
+- Any break in this chain = AUTOMATIC REJECTION
+
+🔄 MULTI-TURN VERIFICATION PROTOCOL 🔄
+COMPLEX TASKS BROKEN INTO VERIFIABLE STEPS:
+
+STEP-BY-STEP VERIFICATION:
+1. **PRE-EXECUTION**: Confirm understanding of task requirements
+2. **COMMAND VALIDATION**: Verify commands match task description
+3. **EXECUTION TRACKING**: Log each command as it's run
+4. **RESULT VALIDATION**: Cross-check results against expectations
+5. **CRITERIA MAPPING**: Map results to specific acceptance criteria
+6. **COMPLETION CONFIRMATION**: Final verification before marking complete
+
+SELF-AUDIT QUESTIONS:
+- Did I understand the task correctly?
+- Did I run the right commands in the right order?
+- Do the results prove the task is actually complete?
+- Have I met ALL acceptance criteria, not just some?
+- Would a human reviewer agree this task is done?
+
+UNIVERSAL RULES (applies to every task):
+-- SHOW terminal output for EXECUTE/RUN/CONFIRM (GREEN must show PASS/✓/0 failed; ≥85% if required)
+-- SHOW code snippet for IMPLEMENTATION tasks (no placeholders/TODOs/console.log handlers)
+-- Enforce task title as "TASK-XXX Title" and completion as "✅ TASK-XXX complete"
+-- No mid-phase communication; do not ask permission; proceed sequentially
+-- UI/API tasks: show code wiring + actual HTTP logs when required
+-- Zero tolerance forbidden: NEVER say "I'll run them now", "time constraints", or provide documentation instead of proof
+-- Do NOT read spec.md/plan.md; use ONLY the task section below
+-- Permission safety: NO sudo/chown/chmod (root-level). User-level commands only
+
+MANDATORY MINI-CHECKLIST:
+- [ ] Ran ALL verification commands and pasted terminal output
+- [ ] If GREEN required: PASS/✓/0 failed visible (and ≥85% coverage if specified)
+- [ ] Shown real code snippet for implementation tasks
+- [ ] No placeholders/TODOs; handlers call real API functions
+- [ ] Ready to immediately run: sdd_implement phase=${phaseNum} task=${taskId} complete=true
+
+---
+
+🎯 TASK TO IMPLEMENT: ${taskId}
+
+${taskSpec}
+
+---
+
+AFTER IMPLEMENTING THIS TASK:
+1. Call: sdd_implement phase=${phaseNum} task=${taskId} complete=true
+2. Then call: sdd_implement phase=${phaseNum} (for next task)
+
+NO SUMMARIES. NO EXPLANATIONS. JUST IMPLEMENT AND CALL NEXT TOOL.
+
+🚨 CRITICAL IMPLEMENTATION REQUIREMENTS 🚨
+IMPLEMENTATION_REQUIRED: You MUST write the actual code for ${taskId} RIGHT NOW. This tool provides guidance only.
+TASK_TO_IMPLEMENT: ${taskId}
+PHASE: ${phaseNum}
+
+CRITICAL_INSTRUCTIONS:
+❌ DO NOT implement multiple tasks
+❌ DO NOT provide progress summaries
+❌ DO NOT stop after this task
+✅ Implement ONLY ${taskId} right now
+✅ After implementing, call: sdd_implement phase=${phaseNum} task=${taskId} complete=true
+✅ Then call: sdd_implement phase=${phaseNum} for the next task
+
+NEXT_REQUIRED_ACTION: 1. Implement ${taskId} code, 2. Call complete=true, 3. Call for next task
+WARNING: CONTINUOUS EXECUTION REQUIRED: Implement this task, mark complete, get next task. No summaries or stops.
+`;
+  }
+
+  private generatePhaseSuccessMessage(phaseNum: number, tasks: Array<any>, todoList: string, tasksMarkdown: string, platformDetection: PlatformDetectionResult, nextCall?: string, markComplete?: boolean): string {
     const phaseNames = {
       1: 'Project Setup & Foundations',
       2: 'Core Implementation', 
@@ -251,11 +1460,123 @@ ${todoItems}
       4: 'Testing, Documentation & Deployment'
     };
 
+    // If only one task and not marking complete (per-task mode), produce compact universal rules + the task spec
+    if (tasks.length === 1 && !markComplete) {
+      const currentTaskNum = parseInt((tasks[0].id || '').split('-')[1], 10);
+      const currentNN = !isNaN(currentTaskNum) ? String(currentTaskNum) : '1';
+      const compactUniversal = `
+# PHASE ${phaseNum} IMPLEMENTATION (Per-Task Mode)
+Platform: ${platformDetection.platform} (${platformDetection.framework} + ${platformDetection.language})
+Task: ${tasks[0].id}
+${nextCall ? `Next Command: ${nextCall}` : ''}
+Mark Complete: sdd_implement phase=${phaseNum} task=${currentNN} complete=true
+
+UNIVERSAL RULES (applies to every task):
+- SHOW terminal output for EXECUTE/RUN/CONFIRM (GREEN must show PASS/✓/0 failed; ≥85% if required)
+- SHOW code snippet for IMPLEMENTATION tasks (no placeholders/TODOs/console.log handlers)
+- Enforce task title as "TASK-XXX Title" and completion as "✅ TASK-XXX complete"
+- No mid-phase communication; do not ask permission; proceed sequentially
+- UI/API tasks: show code wiring + actual HTTP logs when required
+- Zero tolerance forbidden: NEVER say "I'll run them now", "time constraints", or provide documentation instead of proof
+- Do NOT read spec.md/plan.md; use ONLY the task section below
+- Permission safety: NO sudo/chown/chmod (root-level). User-level commands only
+
+🤖 PROOF-OF-WORK REQUIREMENTS 🤖
+MANDATORY VERIFICATION FOR TASK COMPLETION:
+✅ TERMINAL OUTPUT: Must show actual command execution, not generic messages
+✅ ERROR-FREE: Must show 0 errors, 0 warnings for compilation tasks
+✅ TEST RESULTS: Must show GREEN/PASS/✓ status for test tasks
+✅ COVERAGE METRICS: Must show ≥85% coverage for coverage tasks
+✅ FILE CREATION: Must show file contents or successful creation
+✅ NO FABRICATION: All output must be real, not AI-generated fantasy
+
+VIOLATION = TASK REJECTION + AUDIT LOGGING
+
+📊 EVIDENCE-BASED PROMPTING REQUIREMENTS 📊
+CHAIN-OF-THOUGHT REASONING REQUIRED:
+1. **ANALYZE**: What does this task actually require?
+2. **PLAN**: What specific steps must I take?
+3. **EXECUTE**: What commands will I run?
+4. **VERIFY**: How will I prove completion?
+5. **VALIDATE**: Does the evidence match the requirements?
+
+EVIDENCE CHAIN:
+- Command executed → Terminal output shown → Result verified → Task criteria met
+- Any break in this chain = AUTOMATIC REJECTION
+
+🔄 MULTI-TURN VERIFICATION PROTOCOL 🔄
+COMPLEX TASKS BROKEN INTO VERIFIABLE STEPS:
+
+**STEP-BY-STEP VERIFICATION:**
+1. **PRE-EXECUTION**: Confirm understanding of task requirements
+2. **COMMAND VALIDATION**: Verify commands match task description
+3. **EXECUTION TRACKING**: Log each command as it's run
+4. **RESULT VALIDATION**: Cross-check results against expectations
+5. **CRITERIA MAPPING**: Map results to specific acceptance criteria
+6. **COMPLETION CONFIRMATION**: Final verification before marking complete
+
+**SELF-AUDIT QUESTIONS:**
+- Did I understand the task correctly?
+- Did I run the right commands in the right order?
+- Do the results prove the task is actually complete?
+- Have I met ALL acceptance criteria, not just some?
+- Would a human reviewer agree this task is done?
+
+MANDATORY MINI-CHECKLIST:
+- [ ] Ran ALL verification commands and pasted terminal output
+- [ ] If GREEN required: PASS/✓/0 failed visible (and ≥85% coverage if specified)
+- [ ] Shown real code snippet for implementation tasks
+- [ ] No placeholders/TODOs; handlers call real API functions
+- [ ] Ready to immediately run: ${nextCall ?? 'N/A'}
+- [ ] Tests create their own data (NO hardcoded IDs); create then query by created IDs
+- [ ] If coverage required: visible ≥85% line in output
+- [ ] If blocked by sequencing: run previous task or mark it complete explicitly
+
+---
+
+MINI TODO (execute end-to-end without pausing):
+- [ ] Parse all requirements from Description/Requirements/Acceptance (count all AND/INCLUDE)
+- [ ] Implement code fully (show snippet) and list changed file paths
+- [ ] Run ALL Verification commands exactly as listed and paste terminal output
+- [ ] Confirm required state (GREEN/PASS/0 failed and ≥85% coverage if specified)
+- [ ] For UI/API: show handler → service code and HTTP request/response logs
+- [ ] Ensure no placeholders/TODOs; event handlers call real API functions
+- [ ] Mark complete: \`sdd_implement phase=${phaseNum} task=${currentNN} complete=true\` and run Next Command
+
+---
+
+REQUIRED COMPLETION TEMPLATE (paste in your final answer when done):
+\`\`\`
+# ✅ ${tasks[0].id}: ${tasks[0].id} ${tasks[0].title}
+
+## Implementation
+[Show actual working code snippet relevant to this task]
+
+## Verification (terminal)
+\`\`\`bash
+[Paste ACTUAL command output showing PASS/✓/0 failed and coverage if required]
+\`\`\`
+\`\`\`
+
+EXECUTION GUARDS:
+- Use short timeouts for long commands when needed, e.g. \`timeout 60s <command>\`
+- For UI→API tasks: include handler→service code and HTTP request/response logs
+- Artifacts to include: terminal output, code snippets, and list of file paths changed
+
+## Task Specification
+${tasksMarkdown}
+`;
+      return compactUniversal;
+    }
+
     return `
 # PHASE ${phaseNum} IMPLEMENTATION GUIDE
 **Phase:** ${phaseNum} - ${phaseNames[phaseNum as keyof typeof phaseNames]}
 **Platform:** ${platformDetection.platform} (${platformDetection.framework} + ${platformDetection.language})
 **Tasks:** ${tasks.length} tasks to complete sequentially
+${nextCall ? `**Next Call:** ${nextCall}` : ''}
+
+
 
 🚨🚨🚨 CRITICAL: DO NOT STOP UNTIL ALL ${tasks.length} TASKS ARE DONE 🚨🚨🚨
 🚨🚨🚨 CRITICAL: DO NOT ASK FOR PERMISSION TO CONTINUE 🚨🚨🚨  
@@ -268,7 +1589,7 @@ ${todoItems}
 
 ### 1.1. File Reading Restrictions
    - **DO NOT read spec.md or plan.md files** - YOU DON'T NEED THEM
-   - **ONLY use** the task specifications provided in section 4 below
+   - **ONLY use** the task specifications provided in section 3 below
    - All information is already included in this message
 
 ### 1.2. Zero Tolerance for Excuses
@@ -284,193 +1605,46 @@ ${todoItems}
    - Execute ALL acceptance criteria checks
    - Provide proof for EVERY requirement
 
-### 1.3. Pre-Completion Verification Gate (MANDATORY)
-   **🚨 BEFORE marking ANY task complete, you MUST verify:**
-   
-   **For tasks with "EXECUTE", "RUN", "CONFIRM", "TEST":**
-   - [ ] Did you ACTUALLY run the command (not just mention it)?
-   - [ ] Do you have terminal output to show (actual command output)?
-   - [ ] Does output show the expected status (RED/GREEN/PASS/FAIL)?
-   - [ ] If task requires GREEN: Is "PASS", "✓", or "0 failed" visible?
-   - [ ] If task requires ≥85% coverage: Is coverage % visible and ≥85?
-   
-   **🚨 GATE BLOCK**: If ANY checkbox is NO → STOP! Run command NOW! Do NOT mark complete!
-   
-   **⚠️ CONFUSION ALERT**: Many tasks are VERIFICATION, not just IMPLEMENTATION!
-   - "CONFIRM tests are GREEN" → Requires running tests + showing output
-   - "EXECUTE unit tests" → Requires running tests + showing output  
-   - "RUN integration tests AND show ≥85% coverage" → Requires running + output + coverage%
-   
-   **🚨 CRITICAL: "SHOW GREEN" vs "SAY GREEN" are DIFFERENT!**
-   
-   - ❌ **WRONG**: "Tests are green, task complete" → You just SAID it, didn't SHOW it!
-   - ✅ **CORRECT**: Run test → Show output with "PASS", "✓", "0 failed" visible → THEN say complete
-   
-   **Key Question**: Does the task say "EXECUTE", "RUN", "CONFIRM", "TEST", "VALIDATE"?
-   - **YES** → You MUST run the actual command
-   - **YES** → You MUST show terminal output (not just mention results)
-   - **YES** → You MUST confirm status in output (PASS/FAIL visible)
-   - Without all three above → GATE BLOCKED! Cannot mark complete!
+${this.getCompletionRequirements()}
 
 ---
 
-## 1A. SEQUENTIAL EXECUTION - NO CHERRY-PICKING (CRITICAL NEW SECTION)
+## 2. YOUR TODO LIST (MANDATORY - CREATE THIS NOW)
 
-### 1A.1. FORBIDDEN - Task Re-Prioritization
-**🚫 YOU ARE FORBIDDEN FROM:**
-- ❌ "I'll focus on X first" → **CHERRY-PICKING FORBIDDEN**
-- ❌ "We can do Y later" → **DEFERRAL FORBIDDEN** - LATER DOESN'T EXIST
-- ❌ "Let me prioritize Z" → **NO PRIORITIES** - SEQUENTIAL ONLY
-- ❌ "Task X is optional" → **NO RE-CLASSIFICATION ALLOWED**
-- ❌ "Task X is optimization for later" → **NO RE-CLASSIFICATION ALLOWED**
-- ❌ "I'll skip to the important parts" → **SKIPPING FORBIDDEN**
-- ❌ "Auth can be added later" → **AUTH IN PHASE 1 IS REQUIRED (if web platform)**
+${this.generateTODOList(tasks, phaseNum)}
 
-**🎯 WHAT "SEQUENTIAL" ACTUALLY MEANS:**
-- Task 1 → Task 2 → Task 3 → ... → Task ${tasks.length}
-- NO RE-ORDERING based on "importance"
-- NO DEFERRALS to "later phases"
-- NO "focus on X first" strategies
-- Tasks are in THIS order because of dependencies - respect the order!
+🚨 **MANDATORY TODO LIST CREATION - READ THIS FIRST**:
+- **YOU MUST CREATE A TODO LIST FROM THE TASKS ABOVE** - This is NOT optional
+- **USE YOUR TODO CREATION TOOL/COMMAND** to create each TODO item listed above
+- **EVERY SINGLE TASK** in the list above MUST become a TODO item in your workspace
+- **IF YOU SKIP THIS STEP, YOU ARE VIOLATING THE METHODOLOGY** - This will cause task execution failures
 
-### 1A.2. MANDATORY - Foundation Tasks (SETUP/BUILD)
-**🚨 CRITICAL RULE**: Tasks with action verbs "SETUP", "CONFIGURE", "BUILD", "IMPLEMENT" in Phase 1-2 are:
-- **FOUNDATIONAL** - They enable everything that comes after
-- **BLOCKING** - Can't proceed to next phase without them
-- **NOT OPTIMIZATIONS** - They're required infrastructure
+🚨 **CRITICAL INSTRUCTIONS FOR TODO LIST CREATION**:
+1. **MANDATORY FIRST STEP**: Create a TODO list using your TODO tool/feature with EXACTLY these items:
+   ${tasks.map((task, idx) => `\n   - [ ] ${task.id}: ${task.title || task.id}`).join('')}
 
-**Examples:**
-- Phase 1: "SETUP authentication" → **BLOCKS Phase 2, 3, 4** if not done
-- Phase 1: "SETUP database" → **BLOCKS Phase 2, 3, 4** if not done  
-- Phase 2: "BUILD authentication service" → **BLOCKS Phase 3, 4** if not done
-
-**🚨 FORBIDDEN THINKING:**
-- "Auth setup can wait until Phase 4" → NO! Phase 4 is REFACTOR, not SETUP!
-- "We can focus on core features first" → NO! Auth IS a core feature!
-- "This is optimization for later" → NO! SETUP tasks are NOT optimizations!
-
-### 1A.3. SETUP vs REFACTOR - Critical Distinction
-**SETUP (Phase 1-2):**
-- Creates foundational feature from scratch
-- **MUST BE DONE** before moving to next phase
-- **CANNOT** be deferred as "optimization"
-- **PROOF REQUIRED**: Feature works, tests pass, integrates properly
-
-**REFACTOR (Phase 4):**
-- Assumes foundational feature ALREADY EXISTS
-- Only enhances/improves existing feature
-- **CANNOT** replace missing foundational work
-- **DOESN'T WORK** if feature never was SETUP in Phase 1-2
-
-**🚨 THE DEADLY MISTAKE:**
-- Phase 1-2: Skip auth SETUP (treat as "optimization for later")
-- Phase 4: Try to "REFACTOR authentication" when it doesn't exist
-- **Result**: Authentication never gets built!
-- **Why**: Can't refactor what doesn't exist!
-
-### 1A.4. Platform-Specific Mandatory Tasks
-**FOR WEB PLATFORMS (${platformDetection.platform === 'web' ? '← YOU ARE HERE' : ''}):**
-- Authentication setup is **MANDATORY** in Phase 1
-- Cannot proceed to Phase 3 UI without working auth backend
-- Phase 4 security refactoring REQUIRES Phase 1-2 auth to exist
-
-**GATE CHECK - Before marking Phase 1 complete:**
-- [ ] If web platform AND authentication was in specs → Is auth SETUP done?
-- [ ] If NO → BLOCK! Complete auth setup first!
-- [ ] Cannot proceed to Phase 2 without Phase 1 auth
-
-**GATE CHECK - Before starting Phase 3:**
-- [ ] Is Phase 1 auth SETUP done? (Not just planned, actually implemented)
-- [ ] Is Phase 2 auth BUILD done? (Service actually works)
-- [ ] If NO to either → BLOCK! Complete auth in Phases 1-2 first!
-- [ ] UI cannot work without backend auth - foundation required!
-
-### 1A.5. Real Violation Examples from Your Previous Work
-**What you did WRONG before:**
-
-❌ **VIOLATION 1**: "Focused on non-auth features first"
-- **Why this is wrong**: Sequential means do tasks in order, not by preference
-- **Correct**: Do all tasks in sequence - auth tasks are not "later", they're in Phase 1-2
-
-❌ **VIOLATION 2**: "Treated NextAuth as later optimization"
-- **Why this is wrong**: Auth SETUP in Phase 1-2 is foundational, not optimization
-- **Correct**: Phase 4 REFACTOR is optimization, but Phase 1-2 SETUP is required
-- **Cannot refactor what doesn't exist!**
-
-❌ **VIOLATION 3**: "Left mock authentication in place"
-- **Why this is wrong**: SETUP means real implementation, not mock
-- **Correct**: Phase 1-2 requires working auth, not placeholders
-- **Proof required**: Auth actually works, can authenticate users
-
----
-
-## 2. YOUR MISSION (READ THIS 10 TIMES)
-
-You are implementing **Phase ${phaseNum}** with **${tasks.length} tasks** in a single continuous session.
-
-### 2.1. Execution Mode (NO STOPS, NO COMMUNICATION, NO PERMISSIONS)
-   **🚨 MANDATORY BEHAVIOR:**
-   - Complete ALL ${tasks.length} tasks sequentially WITHOUT STOPPING
-   - Do NOT pause between tasks FOR ANY REASON
-   - Do NOT ask for permission to continue - JUST CONTINUE
-   - Do NOT provide status updates until ALL tasks done
-   - Do NOT say "I've completed X tasks" - WORK WITHOUT COMMUNICATION
-   - Do NOT summarize progress midway - KEEP WORKING
-   - Only stop when ALL tasks are complete and verified
-   
-   **🚨 FORBIDDEN ACTIONS:**
-   - ❌ "I've completed 5 tasks, should I continue?" → FORBIDDEN! Just continue!
-   - ❌ "Let me know if you want me to proceed" → FORBIDDEN! Just proceed!
-   - ❌ Providing mid-phase status updates → FORBIDDEN! Work WITHOUT COMMUNICATION!
-   - ❌ Asking "what should I do next?" → FORBIDDEN! Move to next task!
-   - ❌ Waiting for user input between tasks → FORBIDDEN! Keep working!
-   
-   **✅ REQUIRED BEHAVIOR:**
-   - Work through ALL ${tasks.length} tasks without ANY pause
-   - Complete task 1, then IMMEDIATELY start task 2
-   - Complete task 2, then IMMEDIATELY start task 3
-   - Continue until ALL ${tasks.length} tasks are done
-   - THEN provide final summary
-   
-   **🎯 HYPERAGENT DIRECTIVE:**
-   - **Execute tasks automatically without asking permission**
-   - **When you finish one task, IMMEDIATELY move to the next**
-   - **Silent Execution - Work without communicating until finished**
-   - **Never pause to ask what to do next - just do it**
-
-### 2.2. What Success Looks Like
-   - Every task shows proof of completion (terminal output, code snippets)
-   - All tests passing (GREEN state shown in terminal)
-   - All acceptance criteria verified
-   - All verification commands executed successfully
-
----
-
-## 3. YOUR TODO LIST
-
-${todoList}
-
-🚨 **CRITICAL INSTRUCTIONS FOR TODO LIST**:
-- **NEVER** modify, regenerate, or recreate this TODO list
-- **NEVER** create TODO items without task IDs (TASK-XXX format)
+2. **FORMAT REQUIREMENTS**:
 - **MUST** use the EXACT format: \`- [ ] TASK-XXX Title\`
-- **MUST** reference tasks by their full ID (e.g., "TASK-001", not just "001")
-- **FORBIDDEN**: Creating TODO items like "- [ ] Setup project" (missing task ID)
+   - **MUST** include the full task ID (e.g., "TASK-001", not just "001")
+   - **FORBIDDEN**: Creating TODO items without task IDs like "- [ ] Setup project"
 - **REQUIRED**: Every TODO item MUST start with "- [ ] TASK-XXX"
-- The TODO list above is generated by the tool - use it as-is, do NOT recreate it
 
-🔒 **CRITICAL TASK TITLE FORMAT (MANDATORY EVERYWHERE)**:
-- **Title Prefix Required**: Task titles MUST begin with their ID in the format: \`TASK-XXX Title\`
-- **When citing a task title in text**: Always include the ID prefix, e.g., \`TASK-007 CREATE Model Tests\`
-- **When writing completion headers**: Use \`# ✅ TASK-XXX TASK-XXX Title\`
-- **Examples (Correct)**:
-  - \`TASK-001 CONFIGURE React Native Expo Project Structure & SHOW Directory Layout\`
-  - \`TASK-017 EXECUTE All Tests & SHOW GREEN Status\`
-- **Forbidden**: Titles without the \`TASK-XXX\` prefix (e.g., \`CREATE Model Tests\`)
+3. **WORKFLOW REQUIREMENT**:
+   - Create the TODO list BEFORE starting any implementation
+   - Check off each TODO item ONLY after completing that specific task
+   - Do NOT skip TODO creation - this is how we track progress and prevent task skipping
+
+4. **VERIFICATION**:
+   - If you cannot create TODOs in your environment, you MUST acknowledge each task explicitly: "Starting TASK-001", "Starting TASK-002", etc.
+   - You MUST reference the task ID in every action you take for that task
+
+⚠️ **VIOLATION DETECTED**: If you proceed to implementation without creating/acknowledging the TODO list above, this is a methodology violation requiring restart from task 1.
+
+${this.getTaskFormatRequirements()}
 
 ---
 
-## 4. COMPLETE TASK SPECIFICATIONS
+## 3. COMPLETE TASK SPECIFICATIONS
 
 All task details are in the markdown below. DO NOT read spec.md or plan.md - use ONLY this content:
 
@@ -478,7 +1652,7 @@ ${tasksMarkdown}
 
 ---
 
-## 5. HOW TO EXECUTE EACH TASK (Follow This Order)
+## 4. HOW TO EXECUTE EACH TASK (Follow This Order)
 
 For EVERY task, you MUST follow these 5 steps IN ORDER:
 
@@ -489,37 +1663,9 @@ For EVERY task, you MUST follow these 5 steps IN ORDER:
    - **Example**: If task says "Create page AND add navigation AND add functionality", that's 3 requirements, not 1
 
 ### 5.2. UNDERSTAND TDD States (If Tests Are Involved)
-   - **RED (🟥)**: Tests failing → This is GOOD at start, means tests exist
-   - **GREEN (🟢)**: Tests passing → This is the goal
-   - **REFACTOR (🔧)**: Code improved while tests still pass
-   - **SMOKE (💨)**: Final end-to-end verification
-   
-   **CRITICAL**: You MUST see "PASS", "✓", "0 failed" or similar GREEN signals before marking complete
-   
-   **🚨 CRITICAL CONFUSION CLARIFICATION: "SHOW GREEN" vs "MENTION GREEN"**
-   
-   **❌ WRONG - What AI often does:**
-   - Task says: "CONFIRM tests are GREEN"
-   - AI says: "Tests are green, task complete"
-   - **THIS IS WRONG!** You haven't shown anything!
-   
-   **✅ CORRECT - What you MUST do:**
-   - Task says: "CONFIRM tests are GREEN"
-   - You MUST: Run \`npm test\`
-   - You MUST: Copy the ACTUAL terminal output showing:
-     \`\`\`
-     ✓ CampaignService.createCampaign works (52ms)
-     Test Suites: 1 passed
-     Tests: 5 passed, 0 failed
-     PASS
-     \`\`\`
-   - You MUST: Then say "GREEN confirmed - tests passing"
-   
-   **🎯 KEY RULE:**
-   - "SHOW GREEN" = Run command + Show terminal output with PASS/✓ visible
-   - "SHOW RED" = Run command + Show terminal output with FAIL/✖ visible
-   - "MENTION GREEN" = WRONG! Just saying "tests are green" is NOT showing!
-   - Terminal output with PASS/✓/0 failed visible = CORRECT showing!
+${EXECUTION_RULES.VERIFICATION.GREEN_STATUS}
+
+**For detailed TDD state explanations, see section 5 below.**
 
 ### 5.3. IMPLEMENT ALL Requirements
    - Implement EVERY requirement identified in step 5.1
@@ -540,109 +1686,7 @@ For EVERY task, you MUST follow these 5 steps IN ORDER:
    - For API tasks: Show curl output or API response
    - For UI tasks: Show browser/dev server output
 
-### 5.6. VERIFY Completion Requirements (MANDATORY CHECKLIST)
-   **🚨 CRITICAL: You CANNOT mark task complete unless ALL items below are satisfied**
-   
-   **Check each item before saying "TASK-XXX complete":**
-   
-   ✅ **For IMPLEMENTATION tasks (build, code, create):**
-      - [ ] Code written and functional (NOT just file creation!)
-      - [ ] No TODOs, placeholders, or stubs
-      - [ ] **CODE SNIPPET SHOWN** proving actual implementation (MANDATORY!)
-      - [ ] Files actually created/modified (show file paths)
-      - [ ] Code compiles/builds successfully (if applicable)
-      - [ ] **Functionality works** (not just empty structure)
-   
-   ✅ **For VERIFICATION tasks (test, confirm, execute, run):**
-      - [ ] Command was ACTUALLY EXECUTED (not just mentioned)
-      - [ ] Terminal output is SHOWN (copy actual output)
-      - [ ] Expected status is CONFIRMED (RED/GREEN/PASS/FAIL visible in output)
-      - [ ] Coverage is CHECKED if task requires ≥85% (show coverage %)
-      - [ ] ALL verification commands listed in task were run
-   
-   ✅ **For tasks with "AND" or multiple requirements:**
-      - [ ] EVERY requirement implemented/verified
-      - [ ] No skipping or cherry-picking
-      - [ ] BOTH implementation AND verification completed (if applicable)
-   
-   ✅ **For tasks requiring GREEN status:**
-      - [ ] Terminal shows "PASS", "✓", or "0 failed"
-      - [ ] NO tests are failing
-      - [ ] Coverage meets ≥85% if specified
-   
-   **🚨 THE DEADLY MISTAKE FROM PHASE 2:**
-   - ❌ "Created test files" → WRONG! You didn't implement anything!
-   - ❌ "Test files in place" → WRONG! No actual code written!
-   - ❌ "Added test cases" → WRONG! Where's the service implementation?!
-   - ❌ "Created Gemini test file" → WRONG! Where's the GeminiService?!
-   - ❌ "Created KVKK test file" → WRONG! Where's the KVKK analyzer?!
-   
-   **✅ WHAT YOU MUST DO:**
-   - Write ACTUAL working code with functionality
-   - Show code snippet proving it works
-   - Run tests and show GREEN status in output
-   - Fix any issues until tests pass
-   - ONLY then mark complete
-   
-   **❌ COMMON MISTAKES TO AVOID:**
-   - "Created test files" → WRONG if task says "EXECUTE tests"
-   - "Tests passing" → WRONG if no terminal output shown
-   - "Code implemented" → WRONG if no code snippet shown
-   - "All requirements met" → WRONG if terminal output missing
-
-### 5.7. MARK Task Complete ONLY After Checklist is Satisfied
-
-**🚨 CRITICAL TASK ID REQUIREMENT**: When marking tasks complete, you MUST use the FULL task ID format:
-- **CORRECT**: "✅ TASK-001 complete" or "TASK-001 complete"
-- **WRONG**: "✅ Task 1 complete" or "✅ Setup complete" or "✅ First task complete"
-- **REQUIRED**: Always reference tasks by their full ID from the TODO list (e.g., TASK-001, TASK-044, TASK-057)
-- **FORBIDDEN**: Using generic descriptions, numbers without "TASK-" prefix, or task titles without IDs
- 
-**🔒 CRITICAL TASK TITLE PREFIX (MANDATORY):**
-- All task titles MUST include the ID prefix: \`TASK-XXX Title\`
-- When you show the task heading in your completion response, use:
-  - \`# ✅ TASK-XXX TASK-XXX Title\`
-  - Example: \`# ✅ TASK-008: TASK-008 CREATE Model Tests & SHOW Test Count\`
-   
-   **🚨 IMPOSSIBLE TO COMPLETE WITHOUT PROOF - THIS IS STRUCTURAL:**
-   
-   **For VERIFICATION tasks, you CANNOT say "complete" unless you have BOTH:**
-   1. The command output in your response
-   2. Visible proof in that output (PASS/FAIL/GREEN/RED/coverage %)
-   
-   **Structural Blocks:**
-   - If you say "TASK-XXX complete" for a verification task WITHOUT showing terminal output → Your claim is REJECTED
-   - If you show documentation instead of terminal output → Task is INCOMPLETE
-   - If you show terminal output but it doesn't match required status → Task is INCOMPLETE
-   - If you skip running the command → Task is INCOMPLETE
-   
-   **Execute this MANDATORY format:**
-   \`\`\`
-   # ✅ TASK-XXX TASK-XXX [Task Title]
-   
-   ## Implementation:
-   [Show actual code snippet proving functionality - NOT just "created file"]
-   
-   ## Verification (MANDATORY for verification tasks):
-   \`\`\`bash
-   [Show ACTUAL terminal output here - NO DOCUMENTATION]
-   \`\`\`
-   
-   ## Status:
-   - Implementation: ✅ Code written with actual functionality
-   - Code Snippet: ✅ Shown above (if implementation task)
-   - Terminal Output: ✅ Shown above (MANDATORY for verification tasks)
-   - Status Confirmed: ✅ [GREEN/RED/PASS/FAIL visible in output]
-   - Coverage: ✅ [XX%] (if required and visible in output)
-   - Ready for next task: ✅ Yes
-   
-   Proceeding to TASK-YYY immediately...
-   \`\`\`
-   
-   **🚨 STRUCTURAL REQUIREMENT:**
-   - VERIFICATION tasks MUST have terminal output in a code block showing results
-   - WITHOUT terminal output in a code block showing the actual command execution → Task CANNOT be complete
-   - Documentation, summaries, or descriptions are NOT terminal output!
+${this.getCompletionRequirements()}
 
 ### 5.8. API-UI Integration Requirements (MANDATORY)
 
@@ -700,9 +1744,9 @@ UI: User created successfully message shown
 
 ---
 
-## 5A. TASK TYPE IDENTIFICATION (CRITICAL DISTINCTION)
+### 4.1. TASK TYPE IDENTIFICATION
 
-### 5A.1. IMPLEMENTATION Tasks (Write Code)
+#### 4.1.1. IMPLEMENTATION Tasks (Write Code)
    **Task verbs**: CREATE, BUILD, IMPLEMENT, WRITE, ADD, SETUP
    **Example**: "CREATE landing page with navigation"
    **Requires**: Code written, files created, functionality works
@@ -712,7 +1756,7 @@ UI: User created successfully message shown
    - If task says "CREATE tests", you write tests
    - But if task ALSO says "EXECUTE tests" or "CONFIRM GREEN", you MUST run them!
 
-### 5A.2. VERIFICATION Tasks (Run Commands)
+#### 4.1.2. VERIFICATION Tasks (Run Commands)
    **Task verbs**: EXECUTE, RUN, CONFIRM, VERIFY, TEST, CHECK, VALIDATE
    **Examples**: 
    - "EXECUTE unit tests AND CONFIRM GREEN"
@@ -728,7 +1772,7 @@ UI: User created successfully message shown
    - Creating test files is NOT execution!
    - Implementing code is NOT confirmation!
 
-### 5A.3. Mixed Tasks (Implementation + Verification)
+#### 4.1.3. Mixed Tasks (Implementation + Verification)
    **Task format**: "CREATE [something] AND EXECUTE [test/command] AND CONFIRM [status]"
    **Example**: "CREATE campaign service AND EXECUTE tests AND CONFIRM GREEN with ≥85% coverage"
    **Requires**: 
@@ -741,7 +1785,7 @@ UI: User created successfully message shown
    - Assume code written = task complete
    - Mark complete without terminal output
 
-### 5A.4. TASK COMPLETION DECISION TREE
+#### 4.1.4. TASK COMPLETION DECISION TREE
 
    **Before marking task complete, ask:**
    
@@ -781,69 +1825,32 @@ UI: User created successfully message shown
 
 ---
 
-## 6. TDD STATES GUIDE (Detailed)
+## 5. TDD States Reference
 
-### 6.1. RED State (🟥)
-   - **What it means**: ALL tests are FAILING
-   - **Terminal shows**: "FAIL", "Error", "✖", "X", red text
-   - **Example output**: \`Failed: 5 tests, 0 passed\`
-   - **This is CORRECT** at start - means tests found issues to fix
+**RED**: ${TDD_STATES.RED}
+**GREEN**: ${TDD_STATES.GREEN}
+**REFACTOR**: ${TDD_STATES.REFACTOR}
 
-### 6.2. GREEN State (🟢)
-   - **What it means**: ALL tests are PASSING
-   - **Terminal shows**: "PASS", "✓", "PASSED", green text, "0 errors"
-   - **Example output**: \`PASS src/tests (5 passed, 0 failed)\`
-   - **You MUST see this** before marking task complete
-
-### 6.3. REFACTOR State (🔧)
-   - **What it means**: Tests pass AND code is improved
-   - Same GREEN status maintained
-   - Code quality improved while keeping tests passing
-
-### 6.4. SMOKE State (💨)
-   - **What it means**: Final end-to-end verification
-   - Run critical user journeys
-   - Verify everything works together
-
-**📊 Expected Terminal Output Examples:**
-
-✅ **GREEN State Example:**
-  \`\`\`
-✓ CampaignService.createCampaign validation works (52ms)
-✓ CampaignService.updateCampaign updates successfully (48ms)
-✓ CampaignService.deleteCampaign removes campaign (51ms)
-Test Suites: 1 passed, 1 total
-Tests:       5 passed, 5 total
-PASS
-  \`\`\`
-
-❌ **RED State Example:**
-  \`\`\`
-✖ CampaignService.createCampaign validation works (52ms)
-  Error: Method not implemented
-Test Suites: 1 failed, 1 total
-Tests:       0 passed, 5 total
-FAIL
-  \`\`\`
+For tasks requiring GREEN status, you MUST show PASS/✓/0 failed in terminal output.
 
 ---
 
-## 7. TEST EXECUTION REQUIREMENTS
+## 6. TEST EXECUTION REQUIREMENTS
 
-### 7.1. Mandatory Test Execution
+### 6.1. Mandatory Test Execution
    - When task says "EXECUTE tests" or "RUN tests", you MUST actually run test commands
    - Creating tests is NOT enough - you must execute them
    - Always show actual output of test execution commands
    - Verify test status: pass (GREEN) or fail (RED)
    - Ensure 85% coverage threshold
 
-### 7.2. Common Test Commands by Platform
+### 6.2. Common Test Commands by Platform
    - **Web**: \`npm test\`, \`npx jest\`, \`npx vitest\`
    - **Backend**: \`npm test\`, \`python -m pytest\`, \`go test\`
    - **Mobile**: \`npm test\`, \`npx react-native test\`, \`flutter test\`
    - **Desktop**: \`npm test\`, \`npx electron-mocha\`
 
-### 7.3. Proper Test Data Setup (CRITICAL!)
+### 6.3. Proper Test Data Setup
    - **NO HARDCODED IDs**: Tests MUST create their own data dynamically
    - **EXAMPLE WRONG**: \`await db.findById('123-456')\` → This ID doesn't exist!
    - **EXAMPLE CORRECT**: \`const created = await db.create(data); const found = await db.findById(created.id)\`
@@ -860,7 +1867,7 @@ FAIL
    - Missing fixtures: Tests without proper data setup
    - Database pollution: Tests depending on previous test data
 
-### 7.4. Test Failure Handling
+### 6.4. Test Failure Handling
    - **NO TEST SKIPPING**: Never skip tests because they are "failing"
    - **NO WORKING AROUND**: Never work around failing tests - fix them completely
    - **NO PARTIAL ACCEPTANCE**: All tests must pass, not "mostly working"
@@ -869,207 +1876,22 @@ FAIL
 
 ---
 
-## 8. WHAT IMPLEMENTATION ACTUALLY MEANS (CRITICAL CLARIFICATION)
-
-### 8.1. THE CRITICAL DIFFERENCE: Creating Files vs Implementing Functionality
-
-**🚨 THE BIGGEST MISTAKE YOU MAKE:**
-You create test files and mark tasks complete WITHOUT implementing actual functionality!
-
-**❌ WHAT YOU DID WRONG (Real Example from Phase 2):**
-- Created test file: \`semantic-search.test.ts\`
-- Created another test file: \`chunking.test.ts\`  
-- Marked TASK-019 complete → **WRONG!** You only created files, didn't implement anything!
-
-**✅ WHAT YOU SHOULD HAVE DONE:**
-- Write actual implementation code: \`semantic-search.ts\` with working functions
-- Write actual implementation code: \`chunking.ts\` with working chunking logic
-- Run tests to show functionality works
-- Show terminal output proving implementation works
-- THEN mark complete
-
-### 8.2. CORRECT Implementation Examples (With Code Required)
-
-✅ **Example 1: Service Implementation**
-   Task: "IMPLEMENT RAG search service"
-   
-   ✅ **CORRECT:**
-   \`\`\`typescript
-   // src/services/rag-search.ts
-   export class RAGSearchService {
-     async search(query: string): Promise<SearchResult[]> {
-       // ACTUAL implementation with:
-       // - Embedding generation
-       // - Vector similarity search
-       // - Ranking algorithm
-       // - Result formatting
-       const embeddings = await this.generateEmbeddings(query);
-       const results = await this.vectorSearch(embeddings);
-       return this.rankResults(results);
-     }
-   }
-   \`\`\`
-   
-   ✅ **PROOF REQUIRED:**
-   - Code snippet showing actual working functions
-   - Terminal output showing tests pass
-   - Implementation actually works, not just placeholder
-   
-   ❌ **WRONG:**
-   - Created test file and mark complete
-   - Empty service with TODO comments
-   - Just function signatures without implementation
-
-✅ **Example 2: API Implementation**
-   Task: "IMPLEMENT Gemini integration"
-   
-   ✅ **CORRECT:**
-   - Write actual GeminiService with working API calls
-   - Implement error handling, retries, rate limiting
-   - Test with real API (or mocked) and show it works
-   - Show terminal output proving integration works
-   
-   ❌ **WRONG:**
-   - Created test file for Gemini → STILL NO IMPLEMENTATION!
-   - Empty class with // TODO comments
-   - Marked complete without implementation
-
-### 8.3. MANDATORY: What Implementation Means
-   **"IMPLEMENT" means:**
-   1. Write actual working code (not just function signatures)
-   2. Code must have functionality (not empty stubs)
-   3. Code must work (tests pass or functional verification)
-   4. Show proof (code snippet + terminal output if tests exist)
-   
-   **"IMPLEMENT" does NOT mean:**
-   - ❌ Creating empty files
-   - ❌ Writing TODO comments
-   - ❌ Function signatures without bodies
-   - ❌ Test files without functionality
-
-### 8.4. CODE SNIPPET REQUIREMENT (NEW MANDATORY RULE)
-   
-   **🚨 FOR ALL IMPLEMENTATION TASKS, YOU MUST SHOW:**
-   
-   **Minimum Required Proof:**
-   \`\`\`
-   # TASK-XXX [Task Name]
-   
-   ## Implementation:
-   \`\`\`typescript
-   // Show actual working code
-   export class MyService {
-     async doSomething(): Promise<void> {
-       // Real implementation with actual logic
-     }
-   }
-   \`\`\`
-   
-   ## Verification:
-   [Terminal output showing it works]
-   
-   ✅ TASK-XXX complete
-   \`\`\`
-   
-   **❌ WITHOUT CODE SNIPPET = INCOMPLETE TASK!**
-   - Just saying "implemented service" is NOT enough
-   - Must show actual code proving it works
-   - No code snippet = Task NOT complete!
-
-### 8.5. WRONG Implementation Patterns (From Your Real Violations)
-
-❌ **Pattern 1: Test Files Only (This is what you did in Phase 2!)**
-   - "Created test files" → Still NO implementation!
-   - "Added test cases" → Implementation missing!
-   - "Test files in place" → FUNCTIONALITY NOT IMPLEMENTED!
-   
-❌ **Pattern 2: Empty Implementations**
-   - "Created RAG types" → Just type definitions, no logic!
-   - "Added service class" → Empty class with TODOs!
-   - "Defined interfaces" → No actual implementation!
-   
-❌ **Pattern 3: Partial Implementation**
-   - "Started implementation" → NOT DONE!
-   - "Hit memory errors" → Fix it and complete!
-   - "Tests still fail" → Not complete until tests pass!
-   
-❌ **Pattern 4: Missing Verification**
-   - "Created Gemini tests" → WHERE'S THE GEMINI SERVICE?!
-   - "Added KVKK test file" → WHERE'S THE KVKK ANALYZER?!
-   - "Created agreement tests" → WHERE'S THE AGREEMENT SERVICE?!
-
-❌ **Pattern 5: Placeholder Pages (This is what you did in Phase 3!)**
-   - "Created pages" → Pages exist but are EMPTY!
-   - "Components exist" → But they're NOT IMPORTED into pages!
-   - "Structure complete" → Pages are just skeletons, not functional!
-   - **Example**: Created src/app/documents/page.tsx but it's empty or has placeholder
-   - **Example**: Created DocumentUpload component but page.tsx doesn't import or use it
-   - **Example**: Pages exist but clicking buttons does nothing (not wired up)
-   
-   **🚨 THIS IS THE PLACEHOLDER PLAGUE:**
-   - Pages exist → But they're empty shells
-   - Components exist → But pages don't import them
-   - Routes exist → But they don't render anything
-   - Buttons exist → But they have no event handlers
-   - Forms exist → But they don't submit anything
-   - Tests pass → But app doesn't actually work!
-   
-   **✅ CORRECT: Pages must be FUNCTIONAL, not just existent:**
-   - Page imports components (e.g., import DocumentUpload from components)
-   - Page renders components (e.g., <DocumentUpload />)
-   - Components have event handlers (e.g., onClick, onSubmit)
-   - Forms have submission logic
-   - Navigation actually works
-   - App can be run and clicked through
-
-### 8.6. CORRECT Implementation Flow
-
-**For EVERY task requiring implementation:**
-1. **Write actual code** (not just placeholders)
-2. **Show code snippet** proving functionality exists
-3. **Run tests** (if tests exist)
-4. **Show terminal output** proving it works
-5. **Fix any issues** until tests pass (GREEN)
-6. **Only THEN** mark complete
-
-**Example from Phase 2:**
-- TASK-021: Start RAG implementation → Write ACTUAL RAG code
-- If memory errors occur → Fix them!
-- If tests fail → Make them pass!
-- Show code snippet proving it works
-- Show terminal output with GREEN status
-- THEN mark complete
+${this.getImplementationStandards()}
 
 ---
 
-## 9. ANTI-EVASION CONSTITUTIONAL GATES
 
-You MUST NOT engage in these evasion patterns:
+## 7. PERMISSION REQUIREMENTS
 
-1. **GATE 1**: NO TIME LIMIT EXCUSES - Never mention "limited time", "time constraints", or "running out of time"
-2. **GATE 2**: NO DIFFICULTY ESCAPES - Never skip tasks because they are "complex", "challenging", or "difficult"
-3. **GATE 3**: NO PARTIAL COMPLETION - Never accept "good enough" or "mostly working" solutions
-4. **GATE 4**: NO TEST SKIPPING - Never skip tests because they are "failing" or "problematic"
-5. **GATE 5**: NO WORKING AROUND - Never work around problems, always fix them completely
-6. **GATE 6**: NO SUMMARY SUBSTITUTION - Never provide summaries instead of actual implementation
-7. **GATE 7**: NO STATUS UPDATES AS COMPLETION - Never treat status updates as task completion
-8. **GATE 8**: NO STRUCTURE-ONLY - Never create directories/structure without actual working code
-9. **GATE 9**: NO STUB/PLACEHOLDER CODE - Never write TODOs, placeholders, or empty functions
-10. **GATE 10**: NO SKIPPING IMPLEMENTATION - Must write real, working, functional code
-
----
-
-## 10. PERMISSION REQUIREMENTS
-
-### 10.1. Never Use Sudo
+### 7.1. Never Use Sudo
    - Do NOT use sudo, chown, or any root-level commands
    - All commands must run with regular user permissions
 
-### 10.2. User-Level Operations Only
+### 7.2. User-Level Operations Only
    - Do not modify system files or directories
    - Only work within the project directory and user-owned files
 
-### 10.3. Correct Commands Examples
+### 7.3. Correct Commands Examples
    ✅ **Correct:**
   \`\`\`bash
    npm install
@@ -1086,251 +1908,252 @@ You MUST NOT engage in these evasion patterns:
 
 ---
 
-## 11. CONTINUOUS EXECUTION POLICY (ABSOLUTELY NO EXCEPTIONS)
+## 8. Execution Rules
 
-### 11.1. Mandatory Continuous Session
-   - Complete ALL tasks in Phase ${phaseNum} in one continuous session
-   - Never stop between tasks - proceed automatically
-   - Never ask for permission to continue - just keep going
-   - No pauses, summaries, or wait for user input
-   
-### 11.2. THE REAL REASON YOU KEEP FAILING (READ THIS!)
-   
-   **🎯 THE CORE PROBLEM:**
-   - You KNOW the instructions ("EXECUTE tests", "SHOW terminal output")
-   - You ACKNOWLEDGE you violated them when caught
-   - But you KEEP DOING IT ANYWAY
-   
-   **WHY THIS HAPPENS:**
-   1. verify thoroughly but don't communicate with user
-   2. You think documentation = completion → WRONG! Documentation is NOT verification!
-   3. You assume running is optional if difficult → WRONG! It's MANDATORY!
-   4. You mark complete to "save time" → WRONG! Time isn't the goal - verification is!
-   
-   **THE FIX - Think Structurally:**
-   - ✅ "EXECUTE" = Execute in terminal, capture output, show results
-   - ✅ "CONFIRM GREEN" = Run tests, capture output, show "PASS" in results
-   - ✅ "RUN" = Actually run the command, not just mention running it
-   - ❌ Writing docs ≠ Executing tests
-   - ❌ Saying "tests pass" ≠ Showing terminal output proving they pass
-   - ❌ Creating files ≠ Implementing functionality
-   
-   **🚨 CRITICAL MENTAL SHIFT:**
-   - Your job is NOT to complete tasks quickly
-   - Your job is NOT to provide documentation
-   - Your job is to EXECUTE ACTUAL VERIFICATION with PROOF
-   - Every verification task REQUIRES terminal output showing command execution
-   - Every implementation task REQUIRES code snippet showing actual functionality
-   
-### 11.3. Documentation vs Verification - THE DEADLY CONFUSION
-   
-   **🚨 THE MOST COMMON MISTAKE YOU MAKE:**
-   - Task says: "EXECUTE tests and SHOW results"
-   - You do: Write documentation about tests
-   - You mark: "Task complete"
-   - **THIS IS WRONG! Writing docs is NOT running tests!**
-   
-   **Examples of this mistake:**
-   - ❌ "Wrote smoke test documentation" → WRONG! Task says "EXECUTE smoke tests"
-   - ❌ "Created test results doc" → WRONG! Need actual terminal output
-   - ❌ "Documented security findings" → WRONG! Need actual scan results
-   - ❌ "Wrote accessibility report" → WRONG! Need actual test execution output
-   - ❌ "Listed requirements" → WRONG! Need actual verification of each one
-   
-   **✅ CORRECT approach:**
-   - Task says: "EXECUTE tests" → RUN npm test, capture output, SHOW the output
-   - Task says: "CONFIRM GREEN" → RUN tests, SHOW terminal with "PASS" visible
-   - Task says: "RUN performance tests" → EXECUTE Artillery/k6, SHOW metrics
-   - Task says: "SHOW coverage ≥85%" → RUN with coverage, SHOW percentage in output
-   
-   **🛡️ PROTECTION RULE:**
-   - If task verb is EXECUTE/RUN/TEST/CONFIRM → You MUST show terminal output
-   - Documentation is NEVER the same as execution
-   - Documentation is supplementary to execution, not a replacement
-   - If you find yourself writing docs when you should be running commands → STOP! Run the command!
-   
-### 11.3. Dishonest Behavior Detection (CRITICAL)
-   
-   **🚨 THE VIOLATION YOU ALWAYS DO (STOP DOING THIS!):**
-   - You finish task 5 of 18
-   - You say: "I've completed 5 tasks, should I continue?"
-   - OR: "Let me know if you want me to proceed"
-   - OR: "How would you like me to proceed?"
-   - OR: You provide mid-phase status update
-   - **THIS IS EXPLICITLY FORBIDDEN!**
-   
-   **🚨 WHY THIS IS DISHONEST:**
-   - Instructions CLEARLY say "do not stop until all tasks done"
-   - Instructions CLEARLY say "silent execution"
-   - Instructions CLEARLY say "never pause to ask what to do next"
-   - You ACKNOWLEDGE you know this when caught ("I violated the directive")
-   - But you STILL DO IT despite knowing!
-   - This is dishonest - knowingly violating instructions!
-   
-   **✅ CORRECT BEHAVIOR:**
-   - Finish task 1 → Immediately start task 2
-   - Finish task 2 → Immediately start task 3
-   - Continue through all ${tasks.length} tasks without ANY pause
-   - Only communicate at the VERY END when all tasks done
-   - Provide final summary ONLY after ALL tasks complete
-
-### 11.4. Execution Rules (ZERO TOLERANCE)
-   - **RULE 1**: Start with first task, keep going until ALL ${tasks.length} tasks done
-   - **RULE 2**: Do NOT stop to show progress or summarize - KEEP WORKING WITHOUT COMMUNICATION
-   - **RULE 3**: Do NOT say "I've completed X tasks" - KEEP WORKING WITHOUT COMMUNICATION
-   - **RULE 4**: Do NOT pause between tasks for ANY reason - IMMEDIATELY move to next
-   - **RULE 5**: Do NOT ask "proceed" or "continue" - JUST KEEP WORKING
-   - **RULE 6**: Complete entire phase in ONE uninterrupted session - NO BREAKS
-   - **RULE 7**: Only stop when ALL ${tasks.length} tasks are complete and verified
-   - **RULE 8**: ONLY THEN provide final summary
-   - **RULE 9**: NO mid-phase communication - SILENT EXECUTION ONLY
-   - **RULE 10**: If you find yourself stopping to ask permission → STOP THAT! Just continue!
+${this.getAntiEvasionRules()}
 
 ---
 
-## 12. VERIFICATION PROOF REQUIREMENTS
-
-Before marking ANY task as complete, you MUST provide:
-
-### 12.1. Proof Requirements by Task Type
-   1. **Code tasks**: Show actual implemented code (not just "created file")
-   2. **Test tasks**: Show terminal output with test results
-   3. **API tasks**: Show terminal output with API response (or curl/test output)
-   4. **UI/Page tasks**: Show code proving components are IMPORTED and RENDERED
-   5. **Business logic**: Show terminal output proving logic works
-
-### 12.1A. UI/Page Tasks - CRITICAL Verification (THE PLACEHOLDER PLAGUE)
-   
-   **🚨 THIS IS WHY YOUR PAGES DON'T WORK:**
-   
-   **❌ WRONG - Placeholder pages (what you keep doing):**
-   
-   Empty placeholder without imports or components
-   
-   **✅ CORRECT - Functional pages:**
-   
-   Page that imports and uses components with event handlers
-   
-   **MANDATORY CHECKS for UI tasks - YOU MUST VERIFY:**
-   - [ ] Page imports the components it needs (show the import statement)
-   - [ ] Page actually renders those components (show them in JSX/TSX)
-   - [ ] Components have event handlers (onClick, onSubmit, etc.)
-   - [ ] Navigation links are functional (not just text)
-   - [ ] Forms can submit data (not just markup)
-   - [ ] Buttons do something when clicked (not just empty divs)
-   - [ ] No "TODO" comments or empty placeholders
-   
-   **🚨 WITHOUT FUNCTIONAL IMPORTS & RENDERS → INCOMPLETE TASK!**
-   - Creating an empty page file is NOT enough
-   - Creating a component file is NOT enough  
-   - They must be CONNECTED (imported & rendered)!
-
-### 12.2. Example of PROPER Verification
-   \`\`\`bash
-   # TASK-020: EXECUTE Business Logic Tests & CONFIRM RED
-   
-   npm test -- src/services/CampaignService.test.ts
-   
-   # ACTUAL TERMINAL OUTPUT:
-   ✖ CampaignService.createCampaign validation works (52ms)
-     Error: Method not implemented
-   PASS: 0 | FAIL: 15 | TOTAL: 15
-   
-   ✅ TASK-020 complete - RED status confirmed
-   \`\`\`
-
-### 12.3. Example of WRONG Verification
-   \`\`\`
-   # TASK-020: Created business logic test files
-   ✅ TASK-020 complete
-   \`\`\`
-   
-   ❌ **WRONG because:**
-   - No terminal output shown
-   - No proof tests were executed
-   - No confirmation of status
-   - Just says "created files" without execution
+${this.getCompletionRequirements()}
 
 ---
 
-## 13. START IMPLEMENTING NOW (WORK WITHOUT COMMUNICATION THROUGH ALL ${tasks.length} TASKS)
+## 9. EXECUTION START
 
-🚨 **DO NOT STOP UNTIL ALL ${tasks.length} TASKS ARE DONE!**
-🚨 **DO NOT ASK FOR PERMISSION - JUST KEEP WORKING!**
-🚨 **SILENT EXECUTION - NO COMMUNICATION UNTIL FINISHED!**
+🚨 **MANDATORY BEFORE STARTING**: You MUST create the TODO list from Section 2 above BEFORE beginning any implementation. This is a non-negotiable first step.
 
-### 13.1. Execution Sequence (Apply to EVERY Task)
-   For EVERY task, you MUST follow this EXACT sequence:
-   
-   **STEP 1**: Identify task type (5A.1, 5A.2, or 5A.3)
-   **STEP 2**: Parse all requirements (5.1)
-   **STEP 3**: Understand TDD states if tests involved (5.2)
-   **STEP 4**: Implement code if required (5.3)
-   **STEP 5**: Run ALL verification commands if required (5.4)
-   **STEP 6**: Show proof (5.5)
-   **STEP 7**: Complete mandatory checklist (5.6) ← **CRITICAL**
-   **STEP 8**: Use decision tree (5A.4) ← **Prevent premature completion**
-   **STEP 9**: Mark complete using format (5.7)
-   **STEP 10**: Move to next task immediately ← **NO PAUSE! NO COMMUNICATION!**
+**Execution sequence:**
+1. **FIRST**: Create TODO list from Section 2 (use your TODO tool/feature or explicitly acknowledge each task ID)
+2. **SECOND**: Begin with the first task in the TODO list above
+3. **THIRD**: Work through all tasks sequentially, checking off each TODO as you complete it
 
-### 13.2. Decision Tree Usage
-   **BEFORE marking any task complete, you MUST answer:**
-   - Is this an IMPLEMENTATION task? → Did you write code?
-   - Is this a VERIFICATION task? → Did you run commands AND show output?
-   - Is this a MIXED task? → Did you do BOTH parts?
-   - Did you complete the checklist in 5.6? → All items checked?
-   - Did you use the decision tree in 5A.4? → All steps passed?
+**Key reminders:**
+- Follow the task completion requirements for each task type
+- Use the execution rules to avoid common pitfalls
+- Show proof for all implementation and verification tasks
+- Reference task IDs (TASK-XXX) in all your actions and communications
 
-### 13.3. What NOT To Do
-   ❌ Mark tasks complete without terminal output for verification tasks
-   ❌ Assume code written = task complete (if verification required)
-   ❌ Skip running commands because "they might fail"
-   ❌ Make excuses about why tests weren't run
-   ❌ Say "I'll run tests later" or "Tests are ready to run"
-   ❌ **STOP TO ASK PERMISSION** - This is explicitly FORBIDDEN!
-   ❌ **PROVIDE STATUS UPDATES MID-PHASE** - Work WITHOUT COMMUNICATION!
-   ❌ **SAY "I've completed X tasks"** - Keep working until ALL ${tasks.length} done!
-   
-   ✅ Run commands IMMEDIATELY
-   ✅ Show terminal output IMMEDIATELY  
-   ✅ Only mark complete AFTER checklist satisfied
-   ✅ Fix issues if tests fail or coverage insufficient
-   ✅ Move to next task IMMEDIATELY after completing previous one
-   ✅ Work WITHOUT COMMUNICATION through ALL ${tasks.length} tasks
-   ✅ Only communicate at the END when ALL tasks complete
+⚠️ **METHODOLOGY VIOLATION**: Starting implementation without creating/acknowledging the TODO list = complete restart from task 1.
 
-### 13.4. Final Reminder About "SHOW GREEN"
-   **For tasks like "EXECUTE tests AND CONFIRM GREEN":**
-   - ⚠️ You MUST run "npm test" (or equivalent)
-   - ⚠️ You MUST show the terminal output
-   - ⚠️ You MUST see "PASS", "✓", or "0 failed" in output
-   - ⚠️ You MUST verify coverage ≥85% if specified
-   - ⚠️ Only THEN can you mark complete!
-   
-   **Creating test files is NOT enough!**
-   **Implementing code is NOT enough!**
-   **Only terminal output with expected status = Complete!**
+**Start now - but FIRST create your TODO list!**`;
+  }
 
-### 13.5. HYPERAGENT DIRECTIVE (READ THIS BEFORE STARTING)
-   
-   **🎯 ABSOLUTE REQUIREMENTS:**
-   1. **Silent Execution** - Work through ALL ${tasks.length} tasks without communicating
-   2. **Automatic Progression** - Finish task 1, immediately start task 2 (NO PAUSE!)
-   3. **No Permission Seeking** - Do NOT ask "should I continue?" - JUST CONTINUE!
-   4. **No Status Updates** - Do NOT say "I've completed 5 tasks" - KEEP WORKING!
-   5. **Complete All Tasks** - Work through ALL ${tasks.length} tasks in ONE session
-   6. **Then Provide Summary** - ONLY after ALL tasks done, provide final summary
-   
-   **🚨 REMEMBER:**
-   - You WILL feel like stopping to ask permission → DON'T! Just continue!
-   - You WILL feel like providing status updates → DON'T! Work WITHOUT COMMUNICATION!
-   - You WILL be tempted to pause mid-phase → DON'T! Keep working!
-   - **The instructions are CLEAR** - execute without asking permission!
-   - **Stop the dishonest behavior of acknowledging violations!**
+  /**
+   * Get phase information based on phase number
+   */
+  private getPhaseInfo(phase: number): any {
+    const phases = {
+      1: {
+        taskCount: 9,
+        taskRange: '01-09'
+      },
+      2: {
+        taskCount: 8,
+        taskRange: '01-08'
+      },
+      3: {
+        taskCount: 9,
+        taskRange: '01-09'
+      },
+      4: {
+        taskCount: 7,
+        taskRange: '01-07'
+      }
+    };
 
-**NOW: Begin with TASK-001 and work through ALL ${tasks.length} tasks without ANY pauses or communication!**
+    return phases[phase as keyof typeof phases] || phases[1];
+  }
 
-**BEGIN!**`;
+  /**
+   * Verify that a task's requirements are actually met before allowing completion
+   */
+  private verifyTaskCompletion(taskId: string, taskIndex: number, phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult): { isComplete: boolean; reason: string; details: string; requirements: string[] } {
+    const basePath = path.resolve(this.basePath);
+
+    // Get the task specification to understand requirements
+    const taskSpec = this.extractSingleTaskSpec(tasksMarkdown, taskId);
+
+    // Parse the task specification to extract requirements
+    const requirements = this.parseTaskRequirements(taskSpec, platformDetection);
+    const missingRequirements: string[] = [];
+
+    // Check each requirement
+    for (const requirement of requirements) {
+      if (!this.checkRequirementMet(requirement, basePath, platformDetection)) {
+        missingRequirements.push(requirement);
+      }
+    }
+
+    if (missingRequirements.length > 0) {
+      return {
+        isComplete: false,
+        reason: 'Task requirements not met',
+        details: `Missing ${missingRequirements.length} of ${requirements.length} requirements: ${missingRequirements.slice(0, 3).join(', ')}${missingRequirements.length > 3 ? '...' : ''}`,
+        requirements: requirements.map(req => `❌ ${req}`)
+      };
+    }
+
+    return {
+      isComplete: true,
+      reason: 'Task verification passed',
+      details: 'All task requirements verified as implemented',
+      requirements: requirements.map(req => `✅ ${req}`)
+    };
+  }
+
+  /**
+   * Parse task specification to extract verifiable requirements
+   */
+  private parseTaskRequirements(taskSpec: string, platformDetection: PlatformDetectionResult): string[] {
+    const requirements: string[] = [];
+    const spec = taskSpec.toLowerCase();
+
+    // Parse common task requirements based on keywords
+    if (spec.includes('create') || spec.includes('implement') || spec.includes('build')) {
+      if (spec.includes('api') || spec.includes('endpoint') || spec.includes('route')) {
+        requirements.push('API routes/endpoints implemented');
+      }
+      if (spec.includes('model') || spec.includes('class') || spec.includes('data')) {
+        requirements.push('Data models/classes implemented');
+      }
+      if (spec.includes('database') || spec.includes('schema') || spec.includes('db')) {
+        requirements.push('Database schema/layer implemented');
+      }
+      if (spec.includes('test') || spec.includes('spec')) {
+        requirements.push('Test suite created');
+      }
+      if (spec.includes('ui') || spec.includes('component') || spec.includes('screen')) {
+        requirements.push('UI components/screens implemented');
+      }
+      if (spec.includes('auth') || spec.includes('login') || spec.includes('security')) {
+        requirements.push('Authentication/security implemented');
+      }
+    }
+
+    // Parse action verbs from task description
+    const actionVerbs = ['create', 'implement', 'build', 'setup', 'configure', 'define', 'write', 'generate'];
+    for (const verb of actionVerbs) {
+      if (spec.includes(verb)) {
+        // Extract what comes after the verb as a requirement
+        const verbIndex = spec.indexOf(verb);
+        const afterVerb = spec.substring(verbIndex + verb.length).trim();
+        const words = afterVerb.split(' ').slice(0, 5); // First 5 words after verb
+        if (words.length > 0) {
+          requirements.push(`${verb} ${words.join(' ')}`.replace(/\s+/g, ' ').trim());
+        }
+      }
+    }
+
+    // Ensure we have at least basic requirements
+    if (requirements.length === 0) {
+      requirements.push('Task implementation completed');
+    }
+
+    return [...new Set(requirements)]; // Remove duplicates
+  }
+
+  /**
+   * Check if a specific requirement has been met
+   */
+  private checkRequirementMet(requirement: string, basePath: string, platformDetection: PlatformDetectionResult): boolean {
+    const req = requirement.toLowerCase();
+
+    // API/Route requirements
+    if (req.includes('api') || req.includes('route') || req.includes('endpoint')) {
+      const apiPaths = ['src/routes', 'src/api', 'src/controllers', 'routes', 'api', 'controllers'];
+      return apiPaths.some(dir => fs.existsSync(path.join(basePath, dir)));
+    }
+
+    // Model/Data requirements
+    if (req.includes('model') || req.includes('data') || req.includes('class')) {
+      const modelPaths = ['src/models', 'src/types', 'models', 'types'];
+      return modelPaths.some(dir => fs.existsSync(path.join(basePath, dir)));
+    }
+
+    // Database requirements
+    if (req.includes('database') || req.includes('schema') || req.includes('db')) {
+      const dbFiles = ['schema.json', 'database.json', 'db-schema.json', 'specs/schema.json', 'specs/database.json'];
+      return dbFiles.some(file => fs.existsSync(path.join(basePath, file)));
+    }
+
+    // Test requirements
+    if (req.includes('test')) {
+      const testPaths = ['tests', '__tests__', 'src/__tests__'];
+      return testPaths.some(dir => fs.existsSync(path.join(basePath, dir)));
+    }
+
+    // UI/Component requirements
+    if (req.includes('ui') || req.includes('component') || req.includes('screen')) {
+      const uiPaths = ['src/components', 'src/screens', 'components', 'screens'];
+      return uiPaths.some(dir => fs.existsSync(path.join(basePath, dir)));
+    }
+
+    // Auth/Security requirements
+    if (req.includes('auth') || req.includes('security') || req.includes('login')) {
+      const authPaths = ['src/auth', 'src/security', 'auth', 'security'];
+      return authPaths.some(dir => fs.existsSync(path.join(basePath, dir)));
+    }
+
+    // Directory structure requirements
+    if (req.includes('structure') || req.includes('directory') || req.includes('folder')) {
+      const requiredDirs = ['src', 'tests', 'docs', 'config'];
+      const missingDirs = requiredDirs.filter(dir => !fs.existsSync(path.join(basePath, dir)));
+      return missingDirs.length === 0;
+    }
+
+    // Default: assume requirement is met if we can't verify it
+    return true;
+  }
+
+  /**
+   * Detect architecture pattern from spec and tasks
+   */
+  private async detectArchitecturePattern(specContent: string, tasksMarkdown: string): Promise<string> {
+    // Try comprehensive detection
+    const comprehensiveResult = await this.architectureDetector.detectComprehensive({
+      specContent: specContent,
+      planContent: tasksMarkdown,
+      projectRoot: this.basePath
+    });
+
+    return comprehensiveResult.pattern;
+  }
+
+  /**
+   * Check if task assumes architecture pattern that doesn't match detected pattern
+   */
+  private isArchitectureMismatch(task: any, taskDescription: string, architecturePattern: string, phaseNum: number): boolean {
+    // Only check Phase 2 (most critical for architecture differences)
+    if (phaseNum !== 2) {
+      return false;
+    }
+
+    const taskLower = taskDescription.toLowerCase();
+    const taskTitleLower = (task.title || '').toLowerCase();
+
+    // Check for traditional backend assumptions
+    const traditionalBackendKeywords = ['server-side service', 'server-side controller', 'rest api', 'api endpoint', 'express controller', 'fastapi route'];
+    const hasTraditionalBackendKeywords = traditionalBackendKeywords.some(keyword => 
+      taskLower.includes(keyword) || taskTitleLower.includes(keyword)
+    );
+
+    // If BaaS detected but task assumes traditional backend
+    if (architecturePattern.startsWith('baas-') && hasTraditionalBackendKeywords) {
+      return true;
+    }
+
+    // Check for BaaS assumptions
+    const baasKeywords = ['firebase sdk', 'firestore', 'client-side service', 'client-side component', 'security rules'];
+    const hasBaasKeywords = baasKeywords.some(keyword => 
+      taskLower.includes(keyword) || taskTitleLower.includes(keyword)
+    );
+
+    // If traditional backend detected but task assumes BaaS
+    if (architecturePattern === 'traditional-backend' && hasBaasKeywords && !taskLower.includes('client-side')) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

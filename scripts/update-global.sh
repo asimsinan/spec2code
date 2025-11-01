@@ -38,7 +38,7 @@ if [ $? -eq 0 ]; then
     echo "📋 What's included:"
     echo "   • Structure-first development enforcement"
     echo "   • No empty folders requirement"
-    echo "   • Numbered platform-specific tasks (29 total)"
+    echo "   • Atomic task-based SDD with 4 phases (33 total tasks)"
     echo "   • Enhanced TDD enforcement"
     echo "   • Professional development standards"
 else

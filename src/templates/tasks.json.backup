@@ -52,7 +52,6 @@
       "commandPlaceholders": {
         "description": "Platform-agnostic command placeholders that AI must replace with platform-specific commands based on detected platform and framework",
         "placeholders": {
-          "{{CREATE_APP_COMMAND}}": "Platform-specific app/framework creation command (e.g., 'npx create-expo-app@latest . --template blank --yes' for mobile, 'npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes' for web)",
           "{{BUILD_COMMAND}}": "Platform-specific build/compile command (e.g., 'npm run build', 'python -m py_compile src/**/*.py', 'mvn compile', 'dotnet build')",
           "{{TEST_COMMAND}}": "Platform-specific test execution command (e.g., 'npm test', 'python -m pytest tests/', 'mvn test', 'dotnet test')",
           "{{TEST_COVERAGE_COMMAND}}": "Platform-specific test coverage command (e.g., 'npm run test:coverage', 'pytest --cov=src tests/')",
@@ -123,8 +122,8 @@
             "tddPhase": "Setup",
             "subPhase": "Foundation_Configuration",
             "dependencies": [],
-            "description": "CREATE initial application framework for the detected platform AND CONFIGURE project directory structure with proper organization AND SETUP development environment with all necessary tools, frameworks, and dependencies AND CONFIGURE environment variables for development, testing, and production environments AND CREATE OpenAPI 3.0 specification file with complete API definition AND CHOOSE and SETUP database engine AND DEFINE complete database schema. SHOW complete directory tree, successful app creation, successful dependency installation, API spec validation, and database schema creation. MANDATORY: Complete ALL 7 components - app creation, structure, environment, configuration, API contracts, database engine, and schema!",
-            "acceptanceCriteria": "Initial application framework created + project structure created + development environment configured + environment variables set + all tools/frameworks/dependencies installed + OpenAPI specification created + validation passes + database engine chosen + schema defined with all tables/relationships/constraints + API definition complete. Verify ALL 10 requirements before marking complete!",
+            "description": "CONFIGURE project directory structure with proper organization AND SETUP development environment with all necessary tools, frameworks, and dependencies AND CONFIGURE environment variables for development, testing, and production environments AND CREATE OpenAPI 3.0 specification file with complete API definition AND CHOOSE and SETUP database engine AND DEFINE complete database schema. SHOW complete directory tree, successful dependency installation, API spec validation, and database schema creation. MANDATORY: Complete ALL 6 components - structure, environment, configuration, API contracts, database engine, and schema!",
+            "acceptanceCriteria": "Project structure created + development environment configured + environment variables set + all tools/frameworks/dependencies installed + OpenAPI specification created + validation passes + database engine chosen + schema defined with all tables/relationships/constraints + API definition complete. Verify ALL 9 requirements before marking complete!",
             "estimatedLOC": "320-650",
             "estimatedDuration": "135min",
             "verification": {
@@ -132,7 +131,6 @@
               "mandatory": true,
               "action": "SHOW",
               "commands": [
-                "{{CREATE_APP_COMMAND}}",
                 "{{DIRECTORY_LIST_COMMAND}}",
                 "{{FILE_STRUCTURE_COMMAND}}",
                 "{{PLATFORM_VERSION_COMMAND}}",
@@ -146,13 +144,10 @@
                 "list all tables and relationships",
                 "CRITICAL: Verify ALL requirements from description are implemented (structure + environment + configuration + API + database design)"
               ],
-              "expectedState": "Application framework created and project foundation complete with structure, environment, configuration, API contracts, and database schema all operational. MANDATORY: All requirements from description must be verified.",
+              "expectedState": "Project foundation and design complete with structure, environment, configuration, API contracts, and database schema all operational. MANDATORY: All requirements from description must be verified.",
               "proofRequired": {
                 "format": "terminal_output_and_files",
                 "mustInclude": [
-                  "app",
-                  "framework",
-                  "created",
                   "src",
                   "tests",
                   "docs",
@@ -2217,80 +2212,6 @@
             "parallelizable": false
           }
         ]
-      }
-    },
-    "architectureMapping": {
-      "description": "Architecture-specific task adaptations. Used by task generation tools to transform tasks based on detected architecture pattern.",
-      "baas-firebase": {
-        "phase2": {
-          "description": "Firebase BaaS Phase 2 adaptations: Transform server-side layers to client-side SDK-based implementation",
-          "taskAdaptations": {
-            "TASK-001": {
-              "titleOverride": "[TASK-001] INTEGRATE Firebase SDK: Configuration + Connection + Verification",
-              "descriptionOverride": "INSTALL Firebase SDK dependencies AND CONFIGURE Firebase project connection AND SETUP Firebase initialization AND VERIFY Firebase connection",
-              "acceptanceCriteriaOverride": "Firebase SDK installed + Firebase config created + Firebase initialized + connection verified",
-              "verificationCommandsOverride": [
-                "npm list firebase",
-                "show Firebase config file",
-                "show Firebase initialization code",
-                "verify Firebase connection"
-              ]
-            },
-            "TASK-002": {
-              "titleOverride": "[TASK-002] IMPLEMENT Client-Side Service Layer: Firebase SDK Integration",
-              "descriptionOverride": "CREATE client-side service layer using Firebase SDK including Firestore operations, Authentication, and Storage",
-              "acceptanceCriteriaOverride": "Client-side services created + Firestore operations working + Authentication functional + Storage operational",
-              "verificationCommandsOverride": [
-                "show client-side service files",
-                "verify Firebase SDK usage",
-                "test Firestore operations",
-                "test Authentication methods"
-              ]
-            },
-            "TASK-003": {
-              "titleOverride": "[TASK-003] IMPLEMENT Client-Side Controllers: React Native Components with Firebase Hooks",
-              "descriptionOverride": "CREATE React Native components that act as controllers using Firebase hooks for data fetching and state management",
-              "acceptanceCriteriaOverride": "Components created + Firebase hooks integrated + data fetching working + state management functional",
-              "verificationCommandsOverride": [
-                "show component files",
-                "verify Firebase hooks usage",
-                "test component rendering",
-                "test data flow"
-              ]
-            }
-          },
-          "additionalTasks": [],
-          "skipTasks": []
-        }
-      },
-      "baas-supabase": {
-        "phase2": {
-          "description": "Supabase BaaS Phase 2 adaptations",
-          "taskAdaptations": {
-            "TASK-001": {
-              "titleOverride": "[TASK-001] INTEGRATE Supabase Client: Configuration + Connection + Verification",
-              "descriptionOverride": "INSTALL Supabase client AND CONFIGURE Supabase project connection AND VERIFY connection"
-            },
-            "TASK-002": {
-              "titleOverride": "[TASK-002] IMPLEMENT Client-Side Service Layer: Supabase Client Integration"
-            },
-            "TASK-003": {
-              "titleOverride": "[TASK-003] IMPLEMENT Client-Side Controllers: Components with Supabase Hooks"
-            }
-          }
-        }
-      },
-      "traditional-backend": {
-        "description": "Traditional backend uses default tasks (no adaptations needed)",
-        "phase2": {
-          "taskAdaptations": {}
-        }
-      },
-      "serverless": {
-        "description": "Serverless architecture adaptations",
-        "phase2": {
-          "taskAdaptations": {}
-        }
       }
     }
   }

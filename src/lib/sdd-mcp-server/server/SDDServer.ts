@@ -25,6 +25,8 @@ import {
   SDDTasksTool,
   // SDDStatusTool, // Disabled for now
   SDDImplementTool,
+  SDDWorkflowTool,
+  SDDArchitecturalValidator,
   //SDDGenericDBFillerTool
 } from '../tools/index.js';
 
@@ -72,13 +74,20 @@ export class SDDServer {
         serverMessages: [
           {
             type: 'warning',
-            content: `🚨 SDD SERVER RESTRICTION 🚨
+            content: `🚨🚨🚨 CRITICAL SDD REQUIREMENT 🚨🚨🚨
 
-When using sdd_implement tool:
-- NEVER read spec.md or plan.md files
-- ONLY use information provided in the tool's response
-- ALL task specifications are included in the phaseX-tasks.md content
-- File reading is UNNECESSARY and SLOWS DOWN execution`
+MANDATORY FIRST STEP:
+- ALWAYS call "/sdd_implement phase=X" BEFORE any implementation
+- NEVER create your own TODOs or implement manually
+- NEVER read spec.md, plan.md, or any other files
+
+TOOL USAGE PROTOCOL:
+1. Call "/sdd_implement phase=1" first
+2. Follow the complete guidance provided
+3. Execute all tasks sequentially without questions
+4. Mark tasks complete when done
+
+VIOLATION RESULTS IN SLOW EXECUTION AND ERRORS`
           }
         ]
       };
@@ -98,7 +107,7 @@ When using sdd_implement tool:
         if (this.isInternalTool(name)) {
           def.description = `[INTERNAL AI TOOL] ${def.description}`;
         } else if (name === 'sdd_implement') {
-          def.description = `🚨🚨🚨 [DO NOT READ FILES - CALL DIRECTLY] ${def.description}`;
+          def.description = `🚨🚨🚨 [MANDATORY FIRST STEP - CALL BEFORE ANY IMPLEMENTATION] ${def.description}`;
         }
         return def;
       });
@@ -231,6 +240,8 @@ When using sdd_implement tool:
     // The SDDSpecifyTool will handle database initialization in the project root
     this.tools.set('sdd_specify', new SDDSpecifyTool(projectRoot));
    // this.tools.set('sdd_db_filler', new SDDGenericDBFillerTool(projectRoot)); // INTERNAL
+    this.tools.set('sdd_workflow', new SDDWorkflowTool(projectRoot));
+    this.tools.set('sdd_validate_architecture', new SDDArchitecturalValidator(projectRoot));
     this.tools.set('sdd_plan', new SDDPlanTool(projectRoot));
     this.tools.set('sdd_tasks', new SDDTasksTool(projectRoot));
     this.tools.set('sdd_implement', new SDDImplementTool(projectRoot));

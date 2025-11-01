@@ -1,6 +1,6 @@
 {
   "name": "ai-sdd-mcp",
-  "version": "3.1.4",
+  "version": "3.1.6",
   "description": "Specification-Driven Development MCP Server with AI-Powered Intelligence",
   "type": "module",
   "main": "dist/index.js",
@@ -23,7 +23,8 @@
     "lint": "eslint src/",
     "postversion": "node -e \"const pkg = require('./package.json'); const version = pkg.version; const fs = require('fs'); const files = ['src/templates/spec.json', 'src/templates/plan.json', 'src/templates/status.json', 'src/templates/tasks.json', 'src/templates/clarify.json', 'src/templates/implement.json']; files.forEach(file => { if (fs.existsSync(file)) { const content = fs.readFileSync(file, 'utf8'); const updated = content.replace(/\\\"version\\\": \\\"[\\d.]+\\\"/g, `\\\"version\\\": \\\"${version}\\\"`); fs.writeFileSync(file, updated); console.log(`Updated ${file} to version ${version}`); } }); console.log('Version updated! Run npm run reinstall:global to install the new version globally.');\"",
     "clean": "shx rm -rf dist/ .next/",
-    "setup:private": "node scripts/setup-private-publish.js"
+    "setup:private": "node scripts/setup-private-publish.js",
+    "autopilot:phase": "node scripts/autopilot-phase.js --phase=1"
   },
   "keywords": [
     "mcp",
@@ -65,7 +66,6 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.0",
-    "jsonrepair": "^3.13.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

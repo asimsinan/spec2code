@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { ArchitecturePatternDetector } from '../utils/ArchitecturePatternDetector.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,16 +17,18 @@ const __dirname = dirname(__filename);
 
 export class SDDSpecifyTool {
   private basePath: string;
+  private architectureDetector: ArchitecturePatternDetector;
 
   constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
+    this.architectureDetector = new ArchitecturePatternDetector();
   }
 
 
   getToolDefinition(): Tool {
     return {
       name: 'sdd_specify',
-      description: 'Analyze feature description and generate comprehensive specification template. Returns AI instructions to create specs/spec.md file following SDD methodology.',
+      description: '📋 STANDALONE SPECIFICATION: Analyze feature description and generate comprehensive specification template. Returns AI instructions to create specs/spec.md file following SDD methodology. This tool operates independently and does NOT trigger any other tools.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -176,23 +179,36 @@ ${constitutionalGatesList}
    3.3. **DEFINE USER SCENARIOS**: Create comprehensive user stories and acceptance criteria
    3.4. **IDENTIFY EDGE CASES**: Consider boundary conditions and error scenarios
    3.5. **TECH STACK ANALYSIS**: Extract and categorize all mentioned technologies
-   3.6. **CONSTITUTIONAL COMPLIANCE**: Ensure all applicable gates are addressed
+   3.6. **ARCHITECTURE PATTERN DETECTION (MANDATORY)**: Detect and document backend architecture pattern
+   3.7. **CONSTITUTIONAL COMPLIANCE**: Ensure all applicable gates are addressed
 
 🎯 MANDATORY SPECIFICATION STRUCTURE:
-   3.7. **Feature Specification Header**: Clear, descriptive title
-   3.8. **User Scenarios & Testing**: Primary user story, acceptance scenarios, edge cases
-   3.9. **Requirements Section**: Functional requirements (FR-001, FR-002, etc.), key entities, database requirements
-   3.10. **Technical Context**: Complete technology stack, platform requirements, performance goals
-   3.11. **Review & Acceptance**: Clear criteria for specification approval
-   3.12. **Execution Status**: Auto-maintained during specification process
+   3.8. **Feature Specification Header**: Clear, descriptive title
+   3.9. **User Scenarios & Testing**: Primary user story, acceptance scenarios, edge cases
+   3.10. **Requirements Section**: Functional requirements (FR-001, FR-002, etc.), key entities, database requirements
+   3.11. **Technical Context**: Complete technology stack, platform requirements, performance goals
+   3.12. **Architecture Section**: Backend architecture pattern, implications, and indicators
+   3.13. **Review & Acceptance**: Clear criteria for specification approval
+   3.14. **Execution Status**: Auto-maintained during specification process
 
 🔧 CRITICAL REQUIREMENTS EXTRACTION:
-   3.13. **TECH STACK EXTRACTION (MANDATORY)**:
+   3.15. **TECH STACK EXTRACTION (MANDATORY)**:
        - Extract ALL technologies mentioned in user input
        - Categorize by type: frontend, backend, database, styling, testing, deployment
        - Include version numbers and specific configurations when mentioned
        - Ensure NO technologies are added that weren't mentioned
        - Ensure NO technologies are omitted that were mentioned
+   3.16. **ARCHITECTURE PATTERN EXTRACTION (MANDATORY)**:
+       - Detect backend architecture pattern from tech stack and user input:
+         * **BaaS (Firebase)**: Client-side SDKs, Security Rules, no server-side controllers
+         * **BaaS (Supabase)**: Client-side PostgREST, RLS policies, no server-side controllers
+         * **BaaS (AWS Amplify)**: Client-side AppSync, IAM policies
+         * **Traditional Backend**: Express/FastAPI controllers, service layers, REST APIs
+         * **Serverless**: Lambda functions, Cloud Functions, Vercel Functions
+         * **Hybrid**: Mixed patterns (e.g., Firebase + custom API endpoints)
+       - Extract indicators: Keywords ("Firebase", "Supabase", "serverless", "Lambda"), dependencies, architecture description
+       - Store pattern in metadata.architecturePattern field
+       - Document implications: clientSideServices, serverSideLayers, securityRules, apiLayerRequired
    3.14. **UI/DESIGN SYSTEM REQUIREMENTS (MANDATORY)**:
        - **DESIGN SYSTEM MANDATE**: Extract and specify comprehensive design system requirements
        - **MODERN UI MANDATE**: Require modern, sophisticated UI design (NO basic/plain designs)
@@ -218,6 +234,39 @@ ${qualityGatesList}
 ${sddPrinciplesList}
    4.11. Use the detailed Cursor AI instructions provided in the template data
    4.12. Create specs/spec.md file with all content filled from the template below
+
+🤖 AI HONESTY CONTRACT 🤖
+I, the AI assistant, hereby commit to:
+1. Creating accurate, complete specifications without fabrication
+2. Following all constitutional gates and quality requirements
+3. Not skipping or simplifying specification sections
+4. Providing realistic, implementable requirements
+5. Being transparent about any platform limitations or complexities
+
+VIOLATION OF THIS CONTRACT = SPECIFICATION REGENERATION REQUIRED
+
+🧠 ADVANCED SPECIFICATION SAFETY PROTOCOLS 🧠
+
+TRUTH-SEEKING SPECIFICATION PROMPT:
+"I am an AI committed to specification accuracy and completeness. I will:
+- Extract requirements from actual user input, not assumptions
+- Create implementable specifications, not vague descriptions
+- Admit when requirements are unclear or need clarification
+- Never fabricate features or technical details
+- Always base specifications on the provided input"
+
+HALLUCINATION PREVENTION FOR SPECS:
+- I will only specify features explicitly mentioned or clearly implied
+- I will flag any assumptions with [ASSUMPTION] markers
+- I will never add 'nice-to-have' features not requested
+- I will use [CLARIFICATION NEEDED] for ambiguous requirements
+
+SELF-VERIFICATION FOR SPECIFICATIONS:
+□ Did I include ALL requirements from the input?
+□ Are my specifications realistic for the platform?
+□ Have I avoided over-engineering or gold-plating?
+□ Do my FR-XXX IDs follow the exact format required?
+□ Would a developer be able to implement this specification?
 
 5. TEMPLATE DATA FOR AI PROCESSING:
 ${JSON.stringify(templateData, null, 2)}
@@ -276,6 +325,22 @@ ${JSON.stringify(templateData, null, 2)}
    
    ### Technology Stack Requirements
    [template_data.requirements.technologyStack.content]
+   
+   ## Architecture
+   ### Pattern
+   [template_data.architecture.pattern]
+   
+   ### Description
+   [template_data.architecture.description]
+   
+   ### Indicators
+   [Convert template_data.architecture.indicators to markdown list]
+   
+   ### Implications
+   - **Client-Side Services**: [template_data.architecture.implications.clientSideServices]
+   - **Server-Side Layers**: [template_data.architecture.implications.serverSideLayers]
+   - **Security Rules**: [template_data.architecture.implications.securityRules]
+   - **API Layer Required**: [template_data.architecture.implications.apiLayerRequired]
    
    ## API Specification (API-First Approach)
    ### API Endpoints
@@ -358,16 +423,22 @@ ${JSON.stringify(templateData, null, 2)}
    - **SDD Principles**: Format as "- **[Principle Name]**: [Principle description]"
    - DO NOT create sections: Executive Summary, Project Overview, Data Model, User Interface Mockups, Implementation Phases, Non-Functional Requirements, Success Criteria, Risk & Mitigation
 
-🚨 KEEP RESPONSES BRIEF: After completion, respond with only one sentence confirmation.
+🚨 CRITICAL: This tool ONLY creates specs/spec.md - it does NOT trigger or call any other tools. After completion, STOP and wait for user to manually call next tool if needed.
 `;
 
-      // Return template data in a structured format
-      const outputData = {
+      // Return template data in the message that AI can see
+      return {
         success: true,
-        nextStep: successMessage,
-        templateData: templateData // Return template data for potential use
+        nextStep: `${successMessage}
+
+📋 CRITICAL TEMPLATE DATA FOR SPECIFICATION CREATION:
+${JSON.stringify(templateData, null, 2)}
+
+⚠️ AI MUST USE THIS TEMPLATE DATA to create specs/spec.md
+⚠️ ALL placeholders {{...}} must be replaced with actual content
+⚠️ Follow the EXACT structure from the template data above
+⚠️ Do NOT add sections that don't exist in the template`
       };
-      return outputData;
     } catch (error) {
       // Return error response
       const errorOutput = SpecifyErrorSchema.parse({
@@ -409,12 +480,10 @@ ${JSON.stringify(templateData, null, 2)}
     const filledTemplate = JSON.parse(JSON.stringify(template)); // Deep copy
     
     // Extract feature name from user input
-    const featureName = this.extractFeatureNameFromInput(options.userInput);
+    const featureName = this.generateFeatureNameExtractionRules();
     
     // Fill basic placeholders
-    if (filledTemplate.title) {
-      filledTemplate.title = filledTemplate.title.replace('{{FEATURE_NAME}}', featureName);
-    }
+
     
     if (filledTemplate.metadata) {
       filledTemplate.metadata.input = options.userInput;
@@ -427,11 +496,21 @@ ${JSON.stringify(templateData, null, 2)}
     const cliDetection = this.detectCLIRequirements(options.userInput);
     const libraryDetection = this.detectLibraryRequirements(options.userInput);
     
+    // Detect architecture pattern from user input
+    const architecturePattern = this.architectureDetector.detectFromInput(options.userInput);
+    
     if (filledTemplate.metadata) {
       filledTemplate.metadata.cliDetection = cliDetection;
       filledTemplate.metadata.libraryDetection = libraryDetection;
+      filledTemplate.metadata.architecturePattern = architecturePattern.pattern;
+      filledTemplate.metadata.architectureConfidence = architecturePattern.confidence;
+      filledTemplate.metadata.architectureIndicators = architecturePattern.indicators;
+      filledTemplate.metadata.architectureDetectedFrom = architecturePattern.detectedFrom;
     }
     
+    // Apply format-specific processing
+    this.applyTemplateFormatting(filledTemplate);
+
     // Add Cursor AI instructions
     filledTemplate._cursor_ai_instructions = {
       userInput: options.userInput,
@@ -442,8 +521,79 @@ ${JSON.stringify(templateData, null, 2)}
       instructions: this.getPlatformSpecificInstructions(options.userInput, featureName, options.platform, cliDetection, libraryDetection).instructions,
       placeholders: this.getPlatformSpecificInstructions(options.userInput, featureName, options.platform, cliDetection, libraryDetection).placeholders
     };
-    
+
     return filledTemplate;
+  }
+
+  /**
+   * Apply template-specific formatting based on format field
+   */
+  private applyTemplateFormatting(filledTemplate: any): void {
+    // Apply formatting to functional requirements
+    if (filledTemplate.requirements?.functionalRequirements?.format === 'numbered_list_with_ids') {
+      const content = filledTemplate.requirements.functionalRequirements.content;
+      if (content && content !== '{{FUNCTIONAL_REQUIREMENTS}}') {
+        filledTemplate.requirements.functionalRequirements.content = this.formatFunctionalRequirements(content);
+      }
+    }
+
+    // Apply formatting to user stories if needed
+    if (filledTemplate.userScenarios?.comprehensiveUserStories?.format === 'numbered_list_with_personas') {
+      const content = filledTemplate.userScenarios.comprehensiveUserStories.content;
+      if (content && content !== '{{COMPREHENSIVE_USER_STORIES}}') {
+        filledTemplate.userScenarios.comprehensiveUserStories.content = this.formatUserStoriesAsList(content);
+      }
+    }
+
+    // Apply formatting to acceptance scenarios if needed
+    if (filledTemplate.userScenarios?.acceptanceScenarios?.format === 'given_when_then_scenarios') {
+      const content = filledTemplate.userScenarios.acceptanceScenarios.content;
+      if (content && content !== '{{ACCEPTANCE_SCENARIOS}}') {
+        filledTemplate.userScenarios.acceptanceScenarios.content = this.formatAcceptanceScenarios(content);
+      }
+    }
+  }
+
+  /**
+   * Format user stories as a numbered list
+   */
+  private formatUserStoriesAsList(storiesText: string): string {
+    if (!storiesText || storiesText.trim() === '') {
+      return '1. **As a user**, I want to perform basic operations so that I can accomplish my tasks.';
+    }
+
+    const lines = storiesText.split('\n').filter(line => line.trim());
+
+    // If already numbered, return as-is
+    if (lines.some(line => /^\d+\./.test(line.trim()))) {
+      return storiesText;
+    }
+
+    return lines.map((line, index) =>
+      `${index + 1}. ${line.replace(/^[-•*]\s*/, '').trim()}`
+    ).join('\n');
+  }
+
+  /**
+   * Format acceptance scenarios with proper structure
+   */
+  private formatAcceptanceScenarios(scenariosText: string): string {
+    if (!scenariosText || scenariosText.trim() === '') {
+      return '**Happy Path Scenarios**\n1. Given the user is on the main page\n   When they perform an action\n   Then they see expected results';
+    }
+
+    // If already properly formatted, return as-is
+    if (scenariosText.includes('**Happy Path Scenarios**') || scenariosText.includes('Given ') && scenariosText.includes('When ') && scenariosText.includes('Then ')) {
+      return scenariosText;
+    }
+
+    // Basic formatting for Given-When-Then scenarios
+    return `**Happy Path Scenarios**\n${scenariosText.split('\n').map(line => {
+      if (line.trim()) {
+        return `1. ${line.trim()}`;
+      }
+      return line;
+    }).join('\n')}`;
   }
 
   /**
@@ -455,7 +605,7 @@ ${JSON.stringify(templateData, null, 2)}
       comprehensiveUserStories: `Generate 8-10 comprehensive user stories for: ${userInput}. Use format: **As a [user type], I want [goal] so that [benefit]**.`,
       acceptanceScenarios: `Generate comprehensive acceptance criteria for: ${userInput}. Use Given-When-Then format.`,
       edgeCases: `Generate edge cases for: ${userInput}. Consider boundary conditions, error states, and unusual user behaviors.`,
-      functionalRequirements: `Generate comprehensive functional requirements for: ${userInput}. Use FR-001, FR-002 format.`,
+      functionalRequirements: `Generate comprehensive functional requirements for: ${userInput}. Format as a numbered list with IDs: 1. **FR-001**: [Requirement description] 2. **FR-002**: [Requirement description] etc. Each requirement must start with FR-XXX ID and be independently testable.`,
       keyEntities: `Identify key data entities for: ${userInput}. Include their attributes and relationships.`,
       databaseRequirements: `Define database requirements for: ${userInput}. Include PostgreSQL for ACID compliance.`,
       apiEndpoints: `Define RESTful/GraphQL API endpoints for: ${userInput}.`,
@@ -499,17 +649,6 @@ ${JSON.stringify(templateData, null, 2)}
     };
   }
 
-  private createFeatureId(featureName: string): string {
-    const timestamp = Date.now();
-    // Sanitize feature name for ID (replace spaces and special chars with hyphens)
-    const sanitizedName = featureName
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-
-    return `${sanitizedName}-${timestamp}`;
-  }
 
 
   /**
@@ -968,6 +1107,28 @@ ${JSON.stringify(templateData, null, 2)}
         }
         break;
 
+      case 'libraryFirst':
+        // Library-first applies to web, desktop, backend, ai
+        // Mobile apps may also benefit from modular component approach
+        if (['web', 'desktop', 'backend', 'ai', 'mobile'].includes(platform)) {
+          const libraryKeywords = ['library', 'component', 'module', 'reusable', 'standalone', 'modular', 'core functionality'];
+          const uiKeywords = ['ui', 'interface', 'frontend', 'view', 'screen', 'page', 'component library'];
+
+          const hasLibrary = libraryKeywords.some(keyword => content.includes(keyword));
+          const hasUI = uiKeywords.some(keyword => content.includes(keyword));
+
+          // If it mentions UI/interface but no library/component approach
+          if (hasUI && !hasLibrary) {
+            return { warning: 'Library-First Gate: Consider building core functionality as reusable library/component first, with UI as thin veneer' };
+          }
+
+          // For backend/desktop, strongly recommend library approach
+          if ((platform === 'backend' || platform === 'desktop') && !hasLibrary) {
+            return { warning: 'Library-First Gate: Backend/desktop features should start as standalone libraries' };
+          }
+        }
+        break;
+
       case 'performance':
         const performanceKeywords = ['performance', 'optimization', 'speed', 'fast', 'efficient', 'lazy loading'];
         const hasPerformance = performanceKeywords.some(keyword => content.includes(keyword));
@@ -1380,15 +1541,47 @@ ${JSON.stringify(templateData, null, 2)}
 
 
 
-  private extractFeatureNameFromInput(input: string): string {
-    // Simple feature name extraction - take first few words and make them kebab-case
-    const words = input.toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .split(/\s+/)
-      .slice(0, 3)
-      .filter(word => word.length > 0);
+  private generateFeatureNameExtractionRules(): any {
+    return {
+      "{{EXTRACTION_INSTRUCTIONS}}": "Extract a concise, meaningful feature name from the user input. Focus on the main product/feature/app/system name, not implementation details.",
+      "{{FORMATTING_RULES}}": "Use kebab-case (lowercase-with-hyphens): e.g., 'task-management-system'. Max 4 words, prioritize nouns over verbs.",
+      "{{EXAMPLES}}": "I want to build a task management system → task-management-system, Create a user authentication module → user-authentication-module, Build an e-commerce platform with React → ecommerce-platform, Need a dashboard for sales analytics → sales-analytics-dashboard, Develop a fitness tracking app → fitness-tracking-app",
+      "{{FILTERING_RULES}}": "Remove common verbs/prepositions: want, need, build, create, make, develop, using, with, for, and, the, a, an. Keep nouns and meaningful terms only.",
+      "{{VALIDATION_RULES}}": "Ensure kebab-case format, max 50 characters, fallback to 'untitled-feature' if extraction fails"
+    };
+  }
 
-    return words.join('-') || 'untitled-feature';
+  /**
+   * Format functional requirements as a proper numbered list with FR-XXX IDs
+   */
+  private formatFunctionalRequirements(requirementsText: string): string {
+    if (!requirementsText || requirementsText.trim() === '') {
+      return '1. **FR-001**: System shall provide basic functionality as specified by user requirements.';
+    }
+
+    // Split by lines and clean up
+    const lines = requirementsText.split('\n').filter(line => line.trim());
+
+    // If already properly formatted, return as-is
+    if (lines.some(line => /^\d+\.\s*\*\*FR-\d{3}\*\*/.test(line.trim()))) {
+      return requirementsText;
+    }
+
+    // Format each line as a numbered item with FR-XXX ID
+    const formattedLines = lines.map((line, index) => {
+      const requirementId = `FR-${String(index + 1).padStart(3, '0')}`;
+      const cleanLine = line.replace(/^[-•*]\s*/, '').trim(); // Remove existing bullets
+
+      // If line already has FR-XXX format, preserve it
+      if (cleanLine.match(/^FR-\d{3}:/)) {
+        return `${index + 1}. **${cleanLine.replace(':', '**:')}**`;
+      }
+
+      // Otherwise, add proper formatting
+      return `${index + 1}. **${requirementId}**: ${cleanLine}`;
+    });
+
+    return formattedLines.join('\n');
   }
 
 
