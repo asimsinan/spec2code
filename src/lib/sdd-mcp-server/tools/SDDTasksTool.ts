@@ -8,9 +8,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { PlatformDetectionEngine} from '../utils/PlatformDetectionEngine.js';
 import { ProjectEstimator } from '../utils/ProjectEstimator.js';
-import { ArchitecturePatternDetector } from '../utils/ArchitecturePatternDetector.js';
+import { TaskComplexityAnalyzer } from '../utils/TaskComplexityAnalyzer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,15 +17,12 @@ const __dirname = dirname(__filename);
 export class SDDTasksTool {
 
   private basePath: string;
-  private platformDetector: PlatformDetectionEngine;
   private projectEstimator: ProjectEstimator;
-  private architectureDetector: ArchitecturePatternDetector;
+
 
   constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
-    this.platformDetector = new PlatformDetectionEngine();
     this.projectEstimator = new ProjectEstimator();
-    this.architectureDetector = new ArchitecturePatternDetector();
   }
 
   getToolDefinition(): Tool {
@@ -92,13 +88,26 @@ export class SDDTasksTool {
         return this.error('Tasks template not found.');
       }
       
-      // Get platform detection results using raw markdown content
-      const platformDetection = await this.platformDetector.detectPlatform(
-        { content: specContent },
-        { content: planContent }
-      );
-
-      // Extract architecture pattern from spec
+      // Extract platform from plan.md metadata (authoritative source)
+      // plan.md should always have platform info since it's generated from spec
+      let platformDetection = this.extractPlatformFromPlanMetadata(planContent);
+      
+      if (!platformDetection) {
+        // Fallback to spec metadata if plan doesn't have it (shouldn't happen normally)
+        platformDetection = this.extractPlatformFromSpecMetadata(specContent);
+        if (platformDetection) {
+          console.warn(`[SDDTasksTool] Platform not found in plan.md, using spec.md metadata as fallback`);
+        } else {
+          // Error if platform is missing from both plan.md and spec.md
+          return this.error(
+            'Platform information not found in plan.md or spec.md metadata. ' +
+            'Please ensure plan.md contains platform information in the Metadata section. ' +
+            'Run sdd_plan tool to regenerate plan.md if needed.'
+          );
+        }
+      }
+      
+      // Extract architecture pattern from spec (prioritize metadata)
       const architecturePattern = this.extractArchitectureFromSpec(specContent);
 
       // Filter template to only include current phase
@@ -111,6 +120,32 @@ export class SDDTasksTool {
       // Apply platform-specific filtering to commands
       const filteredPhaseTemplate = this.filterCommandsByPlatform(adaptedPhaseTemplate, platformDetection);
 
+      // Analyze task template complexity for duration estimation guidance
+      let taskComplexitySummary = '';
+      try {
+        if (filteredPhaseTemplate?.tasks && Array.isArray(filteredPhaseTemplate.tasks) && filteredPhaseTemplate.tasks.length > 0) {
+          const complexityAnalyzer = new TaskComplexityAnalyzer();
+          const complexityAnalysis = complexityAnalyzer.analyzeTasks(filteredPhaseTemplate.tasks);
+          
+          // Format complexity summary for AI prompt
+          const avgComplexity = Math.round(complexityAnalysis.averageComplexity);
+          const complexityLevel = avgComplexity < 30 ? 'low' : avgComplexity < 60 ? 'medium' : 'high';
+          const avgMinutes = Math.round(complexityAnalysis.totalEstimatedMinutes / filteredPhaseTemplate.tasks.length);
+          
+          taskComplexitySummary = `
+**TASK COMPLEXITY ANALYSIS (Template-Based):**
+- **Average Complexity Score**: ${avgComplexity}/100 (${complexityLevel})
+- **Average Minutes per Task**: ~${avgMinutes} minutes
+- **Task Type Breakdown**: ${Object.entries(complexityAnalysis.taskTypeBreakdown).map(([type, count]) => `${count} ${type}`).join(', ')}
+- **Complexity Distribution**: ${complexityAnalysis.complexityDistribution.low} low, ${complexityAnalysis.complexityDistribution.medium} medium, ${complexityAnalysis.complexityDistribution.high} high
+- **Total Estimated Minutes**: ${Math.round(complexityAnalysis.totalEstimatedMinutes)} minutes (~${Math.round(complexityAnalysis.totalEstimatedMinutes / 60)} hours)
+`;
+        }
+      } catch (error) {
+        console.warn('[SDDTasksTool] Failed to analyze task complexity:', error);
+        // Continue without complexity summary
+      }
+
       // phaseToGenerate is already determined above
 
       const phaseInfo = this.getPhaseInfo(phaseToGenerate);
@@ -121,12 +156,23 @@ export class SDDTasksTool {
       const aiTimeEstimate = this.projectEstimator.generateAITimeEstimate(specContent);
 
       // Calculate phase-specific PERT estimates (days for human, hours for AI)
-      const humanPhasePERT = this.projectEstimator.calculatePhasePERTEstimates(timeEstimate.totalDuration, phaseToGenerate, false);
-      const aiPhasePERT = this.projectEstimator.calculatePhasePERTEstimates(aiTimeEstimate.totalDuration, phaseToGenerate, true);
+      // Note: Tasks not yet generated, so we use defaults (task-level analysis available post-generation)
+      const humanPhasePERT = await this.projectEstimator.calculatePhasePERTEstimates(timeEstimate.totalDuration, phaseToGenerate, false);
+      const aiPhasePERT = await this.projectEstimator.calculatePhasePERTEstimates(aiTimeEstimate.totalDuration, phaseToGenerate, true);
 
-      // Format durations for display
-      const humanPhaseDuration = this.projectEstimator.calculatePhaseDuration(timeEstimate.totalDuration, phaseToGenerate);
-      const aiPhaseDuration = aiPhasePERT.weightedAverage <= 8 ? `${aiPhasePERT.weightedAverage} hours` : `${Math.ceil(aiPhasePERT.weightedAverage / 8)} days`;
+      // Format durations for display using PERT weighted averages (consistent with PERT methodology)
+      // Human estimates are in days, format as "X days" or "X weeks" or "X months"
+      const humanPhaseDurationDays = humanPhasePERT.weightedAverage;
+      const humanPhaseDuration = humanPhaseDurationDays < 7 
+        ? `${humanPhaseDurationDays} day${humanPhaseDurationDays !== 1 ? 's' : ''}`
+        : humanPhaseDurationDays < 30
+        ? `${Math.ceil(humanPhaseDurationDays / 7)} week${Math.ceil(humanPhaseDurationDays / 7) !== 1 ? 's' : ''}`
+        : `${Math.ceil(humanPhaseDurationDays / 30)} month${Math.ceil(humanPhaseDurationDays / 30) !== 1 ? 's' : ''}`;
+      
+      // AI estimates are in hours (AI is faster)
+      const aiPhaseDuration = aiPhasePERT.weightedAverage <= 8 
+        ? `${aiPhasePERT.weightedAverage} hour${aiPhasePERT.weightedAverage !== 1 ? 's' : ''}` 
+        : `${Math.ceil(aiPhasePERT.weightedAverage / 8)} day${Math.ceil(aiPhasePERT.weightedAverage / 8) !== 1 ? 's' : ''}`;
 
       // Create simplified project context for phase
       const phaseEstimates = {
@@ -243,7 +289,10 @@ You are generating ONE markdown file for this tool call:
 3. **ACCEPTANCE CRITERIA**: Regenerate measurable, project-specific criteria
    - Make them specific to the detected platform and project domain
 
-4. **DURATION ESTIMATES**: Regenerate realistic estimates based on task complexity
+4. **DURATION ESTIMATES**: Regenerate realistic estimates based on task complexity${taskComplexitySummary ? taskComplexitySummary : `
+   - Use phase-specific defaults: Phase 1 (~30 min/task), Phase 2 (~55 min/task), Phase 3 (~45 min/task), Phase 4 (~25 min/task)
+   - Adjust based on description length, requirements count, and acceptance criteria
+   - Consider task type: Setup tasks are quicker, Implementation tasks take longer, Integration tasks vary`}
 
 5. **LOC ESTIMATES**: Regenerate realistic code estimates
 
@@ -272,6 +321,15 @@ You are generating ONE markdown file for this tool call:
    - **PERMISSION-SAFE**: Only user-level commands, NO sudo/root commands
    - **TESTING COMMANDS**: Include real environment testing commands (TestContainers, real databases)
    - **COVERAGE COMMANDS**: Include coverage verification commands with 85% threshold
+   - **ECHO COMMAND SAFETY (CRITICAL)**:
+     * **AVOID CHAINING**: DO NOT create echo commands with more than 3 && operators in a single line
+     * **NO EMOJIS IN ECHO**: DO NOT use emojis (✅, 📊, 🎯, etc.) inside echo quoted strings - they cause encoding issues
+     * **SHORT COMMANDS**: Keep echo commands under 200 characters - long lines cause shell timeouts
+     * **SEPARATE COMMANDS**: Instead of chaining many commands with &&, use separate command lines
+     * **SIMPLE TEXT**: Use plain ASCII text in echo messages, avoid special Unicode characters
+     * **QUOTE SAFETY**: Ensure all quotes are properly closed - no trailing extra quotes (e.g., echo "text!"" is INVALID)
+     * **EXAMPLE GOOD**: echo "TASK-005 Verification:" or echo "API Integration Files:" (separate commands)
+     * **EXAMPLE BAD**: cd X && echo "✅ TASK-005:" && echo "📊 Files:" && echo "..." (too many &&, emojis)
 
 9. **EXPECTED STATES**: Regenerate platform-specific success criteria
    - Include platform name and project domain in success messages
@@ -342,6 +400,17 @@ The file should follow this structure:
 - **Action**: [task.verification.action]
 **Commands**:
 [List all commands from task.verification.commands array verbatim, each on its own line without any markdown formatting, bullet points, or list markers. These are executable shell commands that must be copyable as-is]
+
+⚠️ **ECHO COMMAND SAFETY RULES (MANDATORY WHEN GENERATING VERIFICATION COMMANDS)**:
+- **MAXIMUM 3 && OPERATORS**: Do NOT chain more than 3 commands with && in a single line
+- **NO EMOJIS**: Never include emojis (✅, 📊, 🎯, etc.) in echo command quoted strings
+- **MAX 200 CHARACTERS**: Keep each command line under 200 characters to avoid timeouts
+- **SEPARATE ECHO COMMANDS**: Generate separate echo commands instead of chaining many with &&
+- **ASCII TEXT ONLY**: Use plain ASCII characters in echo messages, avoid Unicode/special characters
+- **PROPER QUOTES**: Ensure quotes are properly closed with no trailing extra quotes
+- **GOOD FORMAT**: One echo per line: echo "TASK-005 Verification:" (separate commands)
+- **BAD FORMAT**: cd X && echo "✅ TASK-005:" && echo "📊 Files:" && echo "..." (too many &&, emojis, long line)
+
 - **Expected State**: [task.verification.expectedState]
 - **Mandatory**: [task.verification.mandatory]
 - **Proof Required**: [task.verification.proofRequired if exists]
@@ -708,33 +777,224 @@ INSTRUCTION: ${hasMorePhases
   }
 
   /**
+   * Extract platform from plan.md metadata (PRIMARY SOURCE - authoritative)
+   * plan.md should always have platform info since it's generated from spec
+   */
+  private extractPlatformFromPlanMetadata(planContent: string): any | null {
+    // Extract metadata section from plan.md
+    const planMetadataMatch = planContent.match(/##\s*.*Metadata\n([\s\S]*?)(?=\n## |$)/i);
+    if (!planMetadataMatch) {
+      return null;
+    }
+    
+    const metadataContent = planMetadataMatch[1];
+    
+    // Try different metadata formats
+    // Format 1: - **Platform**: value
+    let platformMatch = metadataContent.match(/-?\s*\*\*Platform\*\*[:\s]*([^\n]+)/i);
+    // Format 2: Platform: value (no bold)
+    if (!platformMatch) {
+      platformMatch = metadataContent.match(/Platform[:\s]*([^\n]+)/i);
+    }
+    // Format 3: "platform": "value" (JSON-like)
+    if (!platformMatch) {
+      platformMatch = metadataContent.match(/["']platform["'][:\s]*["']([^"']+)["']/i);
+    }
+    
+    if (!platformMatch) {
+      return null;
+    }
+    
+    const platform = platformMatch[1].trim().toLowerCase();
+    
+    // Extract framework and language from metadata
+    let frameworkMatch = metadataContent.match(/-?\s*\*\*Framework\*\*[:\s]*([^\n]+)/i);
+    if (!frameworkMatch) {
+      frameworkMatch = metadataContent.match(/Framework[:\s]*([^\n]+)/i);
+    }
+    if (!frameworkMatch) {
+      frameworkMatch = metadataContent.match(/["']framework["'][:\s]*["']([^"']+)["']/i);
+    }
+    
+    let languageMatch = metadataContent.match(/-?\s*\*\*Language\*\*[:\s]*([^\n]+)/i);
+    if (!languageMatch) {
+      languageMatch = metadataContent.match(/Language[:\s]*([^\n]+)/i);
+    }
+    if (!languageMatch) {
+      languageMatch = metadataContent.match(/["']language["'][:\s]*["']([^"']+)["']/i);
+    }
+    
+    // Also check Technical Context section for platform details
+    const techContextMatch = planContent.match(/##\s*.*Technical\s*Context[\s\S]*?Target\s*Platform[:\s]*([^\n]+)/i);
+    if (techContextMatch && !platformMatch) {
+      platformMatch = techContextMatch;
+    }
+    
+    let framework = frameworkMatch ? frameworkMatch[1].trim().toLowerCase() : '';
+    let language = languageMatch ? languageMatch[1].trim().toLowerCase() : '';
+    
+    // Map platform to detection engine format
+    let mappedPlatform: string = platform;
+    let mappedFramework: string = framework;
+    let mappedLanguage: string = language;
+    
+    // Platform mapping logic
+    if (platform.includes('ios') || platform.includes('swift')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = framework || (platform.includes('swiftui') ? 'ios-native' : 'ios-native');
+      mappedLanguage = language || 'swift';
+    } else if (platform.includes('android')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = framework || 'android-native';
+      mappedLanguage = language || 'kotlin';
+    } else if (platform.includes('react-native')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = 'react-native';
+      mappedLanguage = language || 'typescript';
+    } else if (platform.includes('web') || platform.includes('next') || platform.includes('react')) {
+      mappedPlatform = 'web';
+      mappedFramework = framework || (platform.includes('next') ? 'nextjs' : 'react');
+      mappedLanguage = language || 'typescript';
+    } else if (platform.includes('backend') || platform.includes('server')) {
+      mappedPlatform = 'backend';
+      mappedFramework = framework || 'nodejs-express';
+      mappedLanguage = language || 'typescript';
+    } else if (platform.includes('desktop')) {
+      mappedPlatform = 'desktop';
+      mappedFramework = framework || 'electron';
+      mappedLanguage = language || 'typescript';
+    }
+    
+    // If framework/language still not found, try to infer from platform name
+    if (!mappedFramework && platform) {
+      if (platform.includes('next')) mappedFramework = 'nextjs';
+      else if (platform.includes('express')) mappedFramework = 'nodejs-express';
+      else if (platform.includes('django')) mappedFramework = 'python-django';
+      else if (platform.includes('spring')) mappedFramework = 'java-spring';
+    }
+    
+    return {
+      platform: mappedPlatform as any,
+      framework: mappedFramework as any,
+      language: mappedLanguage as any,
+      confidence: 98, // Very high confidence for plan.md (authoritative source)
+      detectedFrom: ['plan-metadata'],
+      topCandidates: [{ platform: mappedFramework, score: 98 }],
+      detectionMethods: ['plan-metadata'],
+      confidenceRange: { min: 95, max: 100 }
+    };
+  }
+
+  /**
+   * Extract platform from spec.md metadata (fallback only)
+   */
+  private extractPlatformFromSpecMetadata(specContent: string): any | null {
+    const specMetadataMatch = specContent.match(/##\s*.*Metadata\n([\s\S]*?)(?=\n## |$)/i);
+    if (!specMetadataMatch) {
+      return null;
+    }
+    
+    const metadataContent = specMetadataMatch[1];
+    
+    // Extract platform from metadata
+    const platformMatch = metadataContent.match(/-?\s*\*\*Platform\*\*[:\s]*([^\n]+)/i);
+    const frameworkMatch = metadataContent.match(/-?\s*\*\*Framework\*\*[:\s]*([^\n]+)/i);
+    const languageMatch = metadataContent.match(/-?\s*\*\*Language\*\*[:\s]*([^\n]+)/i);
+    
+    if (!platformMatch) {
+      return null;
+    }
+    
+    const platform = platformMatch[1].trim().toLowerCase();
+    let framework = frameworkMatch ? frameworkMatch[1].trim().toLowerCase() : '';
+    let language = languageMatch ? languageMatch[1].trim().toLowerCase() : '';
+    
+    // Map platform to detection engine format (same logic as plan)
+    let mappedPlatform: string = platform;
+    let mappedFramework: string = framework;
+    let mappedLanguage: string = language;
+    
+    if (platform.includes('ios') || platform.includes('swift')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = framework || (platform.includes('swiftui') ? 'ios-native' : 'ios-native');
+      mappedLanguage = language || 'swift';
+    } else if (platform.includes('android')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = framework || 'android-native';
+      mappedLanguage = language || 'kotlin';
+    } else if (platform.includes('react-native')) {
+      mappedPlatform = 'mobile';
+      mappedFramework = 'react-native';
+      mappedLanguage = language || 'typescript';
+    } else if (platform.includes('web') || platform.includes('next') || platform.includes('react')) {
+      mappedPlatform = 'web';
+      mappedFramework = framework || (platform.includes('next') ? 'nextjs' : 'react');
+      mappedLanguage = language || 'typescript';
+    }
+    
+    return {
+      platform: mappedPlatform as any,
+      framework: mappedFramework as any,
+      language: mappedLanguage as any,
+      confidence: 95,
+      detectedFrom: ['spec-metadata'],
+      topCandidates: [{ platform: mappedFramework, score: 95 }],
+      detectionMethods: ['metadata'],
+      confidenceRange: { min: 90, max: 100 }
+    };
+  }
+
+  /**
    * Extract architecture pattern from spec content
    */
   private extractArchitectureFromSpec(specContent: string): string {
-    // Check metadata section for architecture pattern
-    const metadataMatch = specContent.match(/architecture.*pattern[:\s]*([a-z-]+)/i);
+    // PRIORITY 1: Check metadata section for architecture pattern (most reliable)
+    const metadataMatch = specContent.match(/##\s*.*Metadata\n([\s\S]*?)(?=\n## |$)/i);
     if (metadataMatch) {
-      return metadataMatch[1].toLowerCase();
+      const metadataContent = metadataMatch[1];
+      const archPatternMatch = metadataContent.match(/-?\s*\*\*Architecture\s*Pattern\*\*[:\s]*([^\n]+)/i);
+      if (archPatternMatch) {
+        const pattern = archPatternMatch[1].trim().toLowerCase();
+     
+        return pattern;
+      }
     }
 
-    // Check architecture section
+    // PRIORITY 2: Check architecture section
     const archSectionMatch = specContent.match(/##\s+Architecture[\s\S]*?###\s+Pattern\s*\n([a-z-]+)/i);
     if (archSectionMatch) {
-      return archSectionMatch[1].toLowerCase();
+      const pattern = archSectionMatch[1].toLowerCase();
+
+      return pattern;
     }
 
-    // Check for keywords
+    // PRIORITY 3: Check for keywords (fallback)
     const content = specContent.toLowerCase();
-    if (content.includes('firebase')) return 'baas-firebase';
-    if (content.includes('supabase')) return 'baas-supabase';
-    if (content.includes('amplify') || content.includes('appsync')) return 'baas-amplify';
-    if (content.includes('serverless') || content.includes('lambda')) return 'serverless';
+    if (content.includes('firebase')) {
+    
+      return 'baas-firebase';
+    }
+    if (content.includes('supabase')) {
+  
+      return 'baas-supabase';
+    }
+    if (content.includes('amplify') || content.includes('appsync')) {
+
+      return 'baas-amplify';
+    }
+    if (content.includes('serverless') || content.includes('lambda')) {
+   
+      return 'serverless';
+    }
     if (content.includes('express') || content.includes('fastapi') || content.includes('rest api')) {
       // Check if also has BaaS
-      if (content.includes('firebase') || content.includes('supabase')) return 'hybrid';
+      if (content.includes('firebase') || content.includes('supabase')) {
+        
+        return 'hybrid';
+      }
+ 
       return 'traditional-backend';
     }
-
     return 'traditional-backend'; // Default
   }
 

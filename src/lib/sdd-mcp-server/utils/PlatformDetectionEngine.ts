@@ -149,18 +149,20 @@ export class PlatformDetectionEngine {
         { term: 'mobile app', weight: 10 }
       ],
       'ios-native': [
-        { term: 'swift', weight: 20 },
-        { term: 'swiftui', weight: 20 },
+        { term: 'swiftui', weight: 25 }, // Higher weight for SwiftUI (explicit framework)
+        { term: 'swift', weight: 22 }, // High weight for Swift language
+        { term: 'ios', weight: 20 }, // High weight for iOS
         { term: 'uikit', weight: 15 },
-        { term: 'ios', weight: 18 },
         { term: 'xcode', weight: 15 },
         { term: 'cocoapods', weight: 10 },
         { term: 'swift package manager', weight: 10 },
         { term: 'spm', weight: 10 },
         { term: 'objective-c', weight: 10 },
-        { term: 'native ios', weight: 15 },
+        { term: 'native ios', weight: 18 },
         { term: 'apple', weight: 8 },
-        { term: 'app store', weight: 12 }
+        { term: 'app store', weight: 12 },
+        { term: 'ios app', weight: 15 }, // Explicit iOS app mention
+        { term: 'ios native', weight: 18 } // Explicit native iOS
       ],
       'android-native': [
         { term: 'kotlin', weight: 20 },
@@ -237,6 +239,17 @@ export class PlatformDetectionEngine {
     // Boost score if platform is explicitly mentioned
     if (text.includes(platform)) {
       score += 10;
+    }
+    
+    // CRITICAL: Penalty for react-native when Swift/SwiftUI is explicitly mentioned
+    // If spec explicitly mentions Swift or SwiftUI, strongly favor ios-native
+    if (platform === 'react-native' && (text.includes('swift') || text.includes('swiftui'))) {
+      score -= 30; // Strong penalty to prevent react-native from winning
+    }
+    
+    // CRITICAL: Boost ios-native when Swift/SwiftUI is mentioned
+    if (platform === 'ios-native' && (text.includes('swift') || text.includes('swiftui'))) {
+      score += 15; // Additional boost for explicit Swift/SwiftUI mentions
     }
     
     // Apply exponential decay to normalize scores (prevents runaway scores)

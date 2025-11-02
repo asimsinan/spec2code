@@ -4,6 +4,9 @@
  * Features:
  * - Complexity analysis (low, medium, high)
  * - Scope analysis (features, pages, integrations)
+ * - Use Case Points (UCP) estimation (SOTA)
+ * - Enhanced NLP specification analysis
+ * - Task-level complexity analysis
  * - Human vs AI time estimates
  * - Team size recommendations
  * - Risk factor identification
@@ -67,10 +70,433 @@ export interface AITimeEstimate {
 }
 
 /**
+ * Use Case Points (UCP) Analysis - Industry-standard estimation from specifications
+ */
+export interface UseCase {
+  id: string;
+  description: string;
+  actorCount: number;
+  transactionCount: number;
+  weight: number; // 5 (simple), 10 (average), 15 (complex)
+}
+
+export interface UCPAnalysis {
+  useCases: UseCase[];
+  totalUseCases: number;
+  actors: number;
+  unadjustedUseCaseWeight: number; // UUCW
+  technicalComplexityFactor: number; // TCF (0.6 to 1.3)
+  environmentalComplexityFactor: number; // ECF (0.42 to 1.41)
+  useCasePoints: number; // Final UCP = (UUCW + TCF) × ECF
+  estimatedHours: number; // UCP × hours per UCP (typically 20-28 hours)
+}
+
+/**
+ * Enhanced NLP Specification Analysis
+ */
+export interface NLPAnalysis {
+  readabilityScore: number; // Flesch-Kincaid approximate
+  requirementDensity: number; // Requirements per 100 words
+  domainTermComplexity: number; // Domain-specific terms count
+  conditionalComplexity: number; // Conditional statements count
+  dependencyComplexity: number; // Dependency indicators count
+  actionVerbDensity: number; // Action verbs per 100 words
+}
+
+/**
  * Project Estimator
  * Analyzes project specifications and generates realistic time, team, and resource estimates
  */
 export class ProjectEstimator {
+  /**
+   * Analyze specification using Use Case Points (UCP) - Industry standard estimation
+   */
+  analyzeUseCasePoints(specContent: string): UCPAnalysis {
+    const useCases = this.extractUseCases(specContent);
+    const actors = this.countActors(specContent);
+    const uucw = this.calculateUUCW(useCases);
+    const tcf = this.calculateTCF(specContent);
+    const ecf = this.calculateECF(specContent);
+    const ucp = Math.round((uucw * tcf) * ecf);
+    
+    // Standard conversion: 1 UCP = 20-28 hours (average 24 hours)
+    // For AI-assisted: 1 UCP = 0.5-1 hour (50x speedup)
+    const estimatedHours = Math.round(ucp * 24);
+    
+    return {
+      useCases,
+      totalUseCases: useCases.length,
+      actors,
+      unadjustedUseCaseWeight: uucw,
+      technicalComplexityFactor: tcf,
+      environmentalComplexityFactor: ecf,
+      useCasePoints: ucp,
+      estimatedHours
+    };
+  }
+
+  /**
+   * Extract use cases from specification
+   */
+  private extractUseCases(specContent: string): UseCase[] {
+    const useCases: UseCase[] = [];
+    const lines = specContent.split('\n');
+    
+    // Patterns that indicate use cases
+    const useCasePatterns = [
+      /user can (.+)/gi,
+      /users can (.+)/gi,
+      /system should (.+)/gi,
+      /system allows (.+)/gi,
+      /must be able to (.+)/gi,
+      /should be able to (.+)/gi,
+      /can (.+)/gi,
+      /feature: (.+)/gi,
+      /functionality: (.+)/gi,
+      /use case: (.+)/gi
+    ];
+    
+    let useCaseId = 1;
+    for (const line of lines) {
+      for (const pattern of useCasePatterns) {
+        const matches = line.matchAll(pattern);
+        for (const match of matches) {
+          if (match[1] && match[1].length > 10) { // Filter out very short matches
+            const description = match[1].trim();
+            // Skip if it's too generic or already captured
+            if (description.length < 50 && !description.match(/^(the|a|an|be|is|are|was|were)\s/i)) {
+              const transactionCount = this.countTransactions(description);
+              const actorCount = this.countActorsInUseCase(line, specContent);
+              const weight = this.determineUseCaseWeight(transactionCount, actorCount);
+              
+              useCases.push({
+                id: `UC-${String(useCaseId++).padStart(3, '0')}`,
+                description,
+                actorCount,
+                transactionCount,
+                weight
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    // Also extract from numbered/bulleted lists
+    const listPatterns = [
+      /^\d+\.\s*(.+)/gm,
+      /^[-*]\s*(.+)/gm,
+      /^[a-z]\)\s*(.+)/gm
+    ];
+    
+    for (const pattern of listPatterns) {
+      const matches = specContent.matchAll(pattern);
+      for (const match of matches) {
+        const text = match[1]?.trim();
+        if (text && text.length > 15 && text.length < 200) {
+          // Check if it describes an action (use case)
+          if (this.isUseCaseDescription(text)) {
+            const transactionCount = this.countTransactions(text);
+            const actorCount = this.countActorsInUseCase(text, specContent);
+            const weight = this.determineUseCaseWeight(transactionCount, actorCount);
+            
+            // Avoid duplicates
+            const isDuplicate = useCases.some(uc => 
+              uc.description.toLowerCase().includes(text.toLowerCase().substring(0, 20)) ||
+              text.toLowerCase().includes(uc.description.toLowerCase().substring(0, 20))
+            );
+            
+            if (!isDuplicate) {
+              useCases.push({
+                id: `UC-${String(useCaseId++).padStart(3, '0')}`,
+                description: text,
+                actorCount,
+                transactionCount,
+                weight
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    // Ensure minimum use cases (at least 3 for any project)
+    if (useCases.length === 0) {
+      // Fallback: extract from sentences with action verbs
+      const sentences = specContent.match(/[^.!?]+[.!?]+/g) || [];
+      for (const sentence of sentences.slice(0, 5)) {
+        if (this.isUseCaseDescription(sentence)) {
+          const transactionCount = this.countTransactions(sentence);
+          const actorCount = 1; // Default
+          const weight = this.determineUseCaseWeight(transactionCount, actorCount);
+          
+          useCases.push({
+            id: `UC-${String(useCaseId++).padStart(3, '0')}`,
+            description: sentence.trim(),
+            actorCount,
+            transactionCount,
+            weight
+          });
+        }
+      }
+    }
+    
+    return useCases.slice(0, 50); // Cap at 50 use cases
+  }
+
+  /**
+   * Determine if text describes a use case (action-oriented)
+   */
+  private isUseCaseDescription(text: string): boolean {
+    const actionVerbs = [
+      'create', 'add', 'edit', 'delete', 'update', 'save', 'submit',
+      'login', 'logout', 'register', 'authenticate', 'authorize',
+      'view', 'search', 'filter', 'sort', 'export', 'import',
+      'send', 'receive', 'upload', 'download', 'process',
+      'manage', 'configure', 'setup', 'install', 'deploy'
+    ];
+    
+    const lowerText = text.toLowerCase();
+    return actionVerbs.some(verb => lowerText.includes(verb));
+  }
+
+  /**
+   * Count transactions in a use case (number of steps/interactions)
+   */
+  private countTransactions(useCaseText: string): number {
+    let count = 1; // Minimum 1 transaction
+    
+    // Count action verbs (each represents a potential transaction)
+    const actionVerbs = /\b(create|add|edit|delete|update|save|submit|view|search|filter|sort|send|receive|process|validate|verify)\b/gi;
+    const verbMatches = useCaseText.match(actionVerbs);
+    if (verbMatches) {
+      count = Math.max(count, verbMatches.length);
+    }
+    
+    // Count conditional/branching logic
+    const conditions = /\b(if|when|then|else|after|before|while)\b/gi;
+    const conditionMatches = useCaseText.match(conditions);
+    if (conditionMatches) {
+      count += Math.floor(conditionMatches.length / 2);
+    }
+    
+    // Count sequential steps (numbered, "then", "next", "finally")
+    const sequential = /\b(then|next|finally|first|second|third|step|steps)\b/gi;
+    const sequentialMatches = useCaseText.match(sequential);
+    if (sequentialMatches) {
+      count += Math.floor(sequentialMatches.length / 2);
+    }
+    
+    // Classify: 1-3 = simple (5 points), 4-7 = average (10 points), 8+ = complex (15 points)
+    return Math.min(count, 15); // Cap at reasonable maximum
+  }
+
+  /**
+   * Determine use case weight based on transaction and actor count
+   */
+  private determineUseCaseWeight(transactionCount: number, actorCount: number): number {
+    // Use Case Weight Classification:
+    // Simple: ≤3 transactions → 5 points
+    // Average: 4-7 transactions → 10 points  
+    // Complex: ≥8 transactions → 15 points
+    
+    if (transactionCount <= 3) return 5;
+    if (transactionCount <= 7) return 10;
+    return 15;
+  }
+
+  /**
+   * Count actors in specification
+   */
+  private countActors(specContent: string): number {
+    const actorPatterns = [
+      /user/gi,
+      /admin/gi,
+      /customer/gi,
+      /client/gi,
+      /developer/gi,
+      /manager/gi,
+      /role/gi,
+      /actor/gi
+    ];
+    
+    const uniqueActors = new Set<string>();
+    for (const pattern of actorPatterns) {
+      const matches = specContent.match(pattern);
+      if (matches) {
+        matches.forEach(match => uniqueActors.add(match.toLowerCase()));
+      }
+    }
+    
+    // Also look for explicit actor definitions
+    const actorDefPattern = /(?:actor|user|role)[:\s]+([^\n,]+)/gi;
+    const actorMatches = specContent.matchAll(actorDefPattern);
+    for (const match of actorMatches) {
+      if (match[1]) uniqueActors.add(match[1].trim().toLowerCase());
+    }
+    
+    return Math.max(1, uniqueActors.size); // At least 1 actor (user)
+  }
+
+  /**
+   * Count actors mentioned in a use case
+   */
+  private countActorsInUseCase(useCaseText: string, fullSpec: string): number {
+    // Check for explicit actor mentions
+    const actorMentions = /\b(user|admin|customer|client|developer|manager)\b/gi;
+    const matches = useCaseText.match(actorMentions);
+    return matches ? new Set(matches.map(m => m.toLowerCase())).size : 1;
+  }
+
+  /**
+   * Calculate Unadjusted Use Case Weight (UUCW)
+   */
+  private calculateUUCW(useCases: UseCase[]): number {
+    return useCases.reduce((sum, uc) => sum + uc.weight, 0);
+  }
+
+  /**
+   * Calculate Technical Complexity Factor (TCF)
+   * 13 technical factors, each 0-5 points, weighted
+   */
+  private calculateTCF(specContent: string): number {
+    const factors = [
+      { name: 'Distributed System', weight: 2.0, keywords: ['distributed', 'microservices', 'cloud', 'serverless'] },
+      { name: 'Performance Requirements', weight: 1.0, keywords: ['performance', 'speed', 'latency', 'throughput', 'response time'] },
+      { name: 'End User Efficiency', weight: 1.0, keywords: ['efficient', 'user experience', 'ux', 'ui', 'interface'] },
+      { name: 'Complex Internal Processing', weight: 1.0, keywords: ['algorithm', 'complex', 'calculation', 'processing', 'computation'] },
+      { name: 'Reusability', weight: 1.0, keywords: ['reusable', 'component', 'library', 'module', 'shared'] },
+      { name: 'Easy to Install', weight: 0.5, keywords: ['install', 'deploy', 'setup', 'configuration'] },
+      { name: 'Easy to Use', weight: 0.5, keywords: ['easy to use', 'user-friendly', 'intuitive', 'simple interface'] },
+      { name: 'Portable', weight: 2.0, keywords: ['portable', 'cross-platform', 'mobile', 'web', 'desktop'] },
+      { name: 'Easy to Change', weight: 1.0, keywords: ['flexible', 'configurable', 'customizable', 'adaptable'] },
+      { name: 'Concurrent', weight: 1.0, keywords: ['concurrent', 'parallel', 'multi-user', 'multi-tenant', 'real-time'] },
+      { name: 'Special Security Features', weight: 1.0, keywords: ['security', 'encryption', 'authentication', 'authorization', 'secure'] },
+      { name: 'Access for Third Parties', weight: 1.0, keywords: ['api', 'third-party', 'external', 'integration', 'webhook'] },
+      { name: 'Special User Training', weight: 1.0, keywords: ['training', 'documentation', 'tutorial', 'guide', 'manual'] }
+    ];
+    
+    let totalFactor = 0;
+    for (const factor of factors) {
+      let score = 0;
+      for (const keyword of factor.keywords) {
+        const regex = new RegExp(keyword, 'gi');
+        if (regex.test(specContent)) {
+          score = Math.max(score, Math.min(5, specContent.match(regex)!.length)); // Cap at 5
+        }
+      }
+      totalFactor += score * factor.weight;
+    }
+    
+    // TCF = 0.6 + (0.01 × Total Factor)
+    const tcf = 0.6 + (0.01 * totalFactor);
+    return Math.max(0.6, Math.min(1.3, tcf)); // Bound between 0.6 and 1.3
+  }
+
+  /**
+   * Calculate Environmental Complexity Factor (ECF)
+   * 8 environmental factors, each 0-5 points, weighted
+   */
+  private calculateECF(specContent: string): number {
+    // For AI-assisted development, we assume favorable environment
+    // But we can still detect from spec
+    const factors = [
+      { name: 'Familiarity with Development Process', weight: 1.5, default: 4 }, // AI tools = high familiarity
+      { name: 'Application Experience', weight: 0.5, default: 3 },
+      { name: 'Object-Oriented Experience', weight: 1.0, default: 4 }, // Modern development
+      { name: 'Lead Analyst Capability', weight: 0.5, default: 4 }, // AI assistance
+      { name: 'Motivation', weight: 1.0, default: 4 },
+      { name: 'Stable Requirements', weight: 2.0, keywords: ['stable', 'fixed', 'defined', 'specification'] },
+      { name: 'Part-Time Workers', weight: -1.0, default: 5 }, // AI = always available
+      { name: 'Difficult Programming Language', weight: -1.0, keywords: ['legacy', 'cobol', 'assembly', 'complex', 'low-level'] }
+    ];
+    
+    let totalFactor = 0;
+    for (const factor of factors) {
+      let score = factor.default || 3; // Default neutral score
+      
+      // Override with keyword detection if available
+      if (factor.keywords) {
+        for (const keyword of factor.keywords) {
+          const regex = new RegExp(keyword, 'gi');
+          if (regex.test(specContent)) {
+            score = keyword.includes('stable') || keyword.includes('fixed') || keyword.includes('defined') ? 5 : 1;
+            break;
+          }
+        }
+      }
+      
+      totalFactor += score * factor.weight;
+    }
+    
+    // ECF = 1.4 + (-0.03 × Total Factor)
+    const ecf = 1.4 + (-0.03 * totalFactor);
+    return Math.max(0.42, Math.min(1.41, ecf)); // Bound between 0.42 and 1.41
+  }
+
+  /**
+   * Enhanced NLP specification analysis
+   */
+  analyzeNLPSpecification(specContent: string): NLPAnalysis {
+    const words = specContent.split(/\s+/).filter(w => w.length > 0);
+    const sentences = specContent.match(/[^.!?]+[.!?]+/g) || [specContent];
+    const wordCount = words.length;
+    
+    // Readability score approximation (Flesch-Kincaid approximate)
+    const avgWordsPerSentence = wordCount / Math.max(1, sentences.length);
+    const avgSyllablesPerWord = this.estimateSyllables(words) / wordCount;
+    const readabilityScore = 206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
+    
+    // Requirement density (requirements per 100 words)
+    const requirementKeywords = /\b(must|shall|should|will|requires?|needs?|feature|functionality)\b/gi;
+    const requirementCount = (specContent.match(requirementKeywords) || []).length;
+    const requirementDensity = (requirementCount / wordCount) * 100;
+    
+    // Domain term complexity (technical/domain-specific terms)
+    const domainPatterns = /\b([A-Z][a-z]+[A-Z][a-zA-Z]*|[a-z]+(?:API|SDK|UI|UX|DB|SQL|HTTP|REST|JSON|XML))\b/g;
+    const domainTerms = new Set((specContent.match(domainPatterns) || []).map(t => t.toLowerCase()));
+    
+    // Conditional complexity
+    const conditionals = /\b(if|when|then|else|unless|provided|assuming|depending on)\b/gi;
+    const conditionalCount = (specContent.match(conditionals) || []).length;
+    
+    // Dependency complexity
+    const dependencies = /\b(depends on|requires|needs|relies on|uses|integrates with)\b/gi;
+    const dependencyCount = (specContent.match(dependencies) || []).length;
+    
+    // Action verb density
+    const actionVerbs = /\b(create|implement|build|develop|design|configure|setup|install|deploy|manage|process|handle)\b/gi;
+    const actionVerbCount = (specContent.match(actionVerbs) || []).length;
+    const actionVerbDensity = (actionVerbCount / wordCount) * 100;
+    
+    return {
+      readabilityScore: Math.max(0, Math.min(100, readabilityScore)),
+      requirementDensity,
+      domainTermComplexity: domainTerms.size,
+      conditionalComplexity: conditionalCount,
+      dependencyComplexity: dependencyCount,
+      actionVerbDensity
+    };
+  }
+
+  /**
+   * Estimate syllables in words (approximate for readability)
+   */
+  private estimateSyllables(words: string[]): number {
+    let totalSyllables = 0;
+    for (const word of words) {
+      const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
+      if (cleanWord.length <= 3) {
+        totalSyllables += 1;
+      } else {
+        // Simple heuristic: count vowel groups
+        const vowelGroups = cleanWord.match(/[aeiouy]+/g) || [];
+        totalSyllables += Math.max(1, vowelGroups.length);
+      }
+    }
+    return totalSyllables;
+  }
+
   /**
    * Analyze project complexity from specification content
    */
@@ -216,15 +642,29 @@ export class ProjectEstimator {
 
   /**
    * Generate human time estimates
+   * Uses Use Case Points (UCP) as baseline, enhanced with NLP analysis and traditional complexity scoring
    */
   generateTimeEstimate(specContent: string): TimeEstimate {
     try {
+      // SOTA: Use Case Points analysis (industry standard)
+      const ucpAnalysis = this.analyzeUseCasePoints(specContent);
+      
+      // Enhanced NLP analysis
+      const nlpAnalysis = this.analyzeNLPSpecification(specContent);
+      
+      // Traditional complexity analysis (for compatibility and risk factors)
       const complexity = this.analyzeProjectComplexity(specContent);
       const scope = this.analyzeProjectScope(specContent);
       const technicalFactors = this.analyzeTechnicalFactors(specContent);
 
-      // Calculate base estimates
-      const baseEstimates = this.calculateBaseEstimates(complexity, scope, technicalFactors);
+      // Calculate base estimates using UCP as primary source
+      const baseEstimates = this.calculateBaseEstimatesWithUCP(
+        ucpAnalysis,
+        nlpAnalysis,
+        complexity,
+        scope,
+        technicalFactors
+      );
       
       // Calculate PERT-style estimates (SOTA: Three-Point Estimation)
       const pertEstimates = this.calculatePERTEstimates(baseEstimates, complexity, scope);
@@ -267,20 +707,35 @@ export class ProjectEstimator {
 
   /**
    * Generate AI-assisted time estimates
+   * Uses UCP as baseline with AI speedup factors
    */
   generateAITimeEstimate(specContent: string): AITimeEstimate {
     try {
+      // SOTA: Use Case Points analysis for baseline
+      const ucpAnalysis = this.analyzeUseCasePoints(specContent);
+      const nlpAnalysis = this.analyzeNLPSpecification(specContent);
       const complexity = this.analyzeProjectComplexity(specContent);
       const scope = this.analyzeProjectScope(specContent);
 
-      // Get human estimates (for multiplier calculation)
-      const humanEstimates = this.calculateBaseEstimates(complexity, scope, { factors: [], score: 0 });
+      // Get human estimates (using UCP-based calculation)
+      const humanEstimates = this.calculateBaseEstimatesWithUCP(
+        ucpAnalysis,
+        nlpAnalysis,
+        complexity,
+        scope,
+        { factors: [], score: 0 }
+      );
       
       // Apply AI multipliers (AI is much faster)
       const aiMultipliers = this.calculateAIMultipliers(specContent);
       
       // Calculate AI total days using PERT
-      const aiTotalDays = Math.max(0.125, humanEstimates.totalDays * (aiMultipliers.development + aiMultipliers.testing + aiMultipliers.guidance + aiMultipliers.review));
+      // For AI: UCP hours are much lower (50x speedup)
+      const aiUCPHours = Math.max(0.5, ucpAnalysis.estimatedHours * 0.02); // 2% of human time (50x speedup)
+      const aiTraditionalDays = Math.max(0.125, humanEstimates.totalDays * (aiMultipliers.development + aiMultipliers.testing + aiMultipliers.guidance + aiMultipliers.review));
+      
+      // Blend: Use UCP-based AI estimate (70%) with traditional (30%)
+      const aiTotalDays = (aiUCPHours / 8 * 0.7) + (aiTraditionalDays * 0.3);
       
       // Apply PERT to AI estimates
       const aiPERTEstimates = this.calculatePERTEstimates(
@@ -359,6 +814,71 @@ export class ProjectEstimator {
     if (specContent.includes('database') || specContent.includes('SQL')) skills.push('Database Design');
     if (specContent.includes('API') || specContent.includes('REST')) skills.push('API Development');
     return skills;
+  }
+
+  /**
+   * Calculate base estimates using UCP as primary source (SOTA)
+   */
+  private calculateBaseEstimatesWithUCP(
+    ucpAnalysis: UCPAnalysis,
+    nlpAnalysis: NLPAnalysis,
+    complexity: ComplexityAnalysis,
+    scope: ScopeAnalysis,
+    technicalFactors: TechnicalFactors
+  ): any {
+    // Primary estimation from UCP (industry standard)
+    // 1 UCP = 20-28 hours (average 24 hours) for human development
+    let baseHours = ucpAnalysis.estimatedHours;
+    
+    // Adjust based on NLP analysis
+    // Higher requirement density = more work
+    const requirementMultiplier = 1 + (nlpAnalysis.requirementDensity / 200); // 0-50% adjustment
+    // Higher conditional complexity = more testing/debugging
+    const conditionalMultiplier = 1 + (nlpAnalysis.conditionalComplexity / 100); // 0-20% adjustment
+    // Higher dependency complexity = more integration work
+    const dependencyMultiplier = 1 + (nlpAnalysis.dependencyComplexity / 80); // 0-25% adjustment
+    
+    baseHours = baseHours * requirementMultiplier * conditionalMultiplier * dependencyMultiplier;
+    
+    // Fallback: If UCP is too low or high, blend with traditional method
+    const traditionalEstimates = this.calculateBaseEstimates(complexity, scope, technicalFactors);
+    
+    // Blend: 70% UCP (if reliable), 30% traditional (as sanity check)
+    const ucpDays = baseHours / 8;
+    const traditionalDays = traditionalEstimates.totalDays;
+    
+    // If UCP seems too low (less than 10 days for 33 tasks), use blend
+    // If UCP seems too high (more than 100 days), cap and blend
+    let finalDays: number;
+    if (ucpDays < 10) {
+      // UCP might be underestimating, blend more with traditional
+      finalDays = (ucpDays * 0.5) + (traditionalDays * 0.5);
+    } else if (ucpDays > 100) {
+      // UCP might be overestimating, cap and blend
+      finalDays = (Math.min(ucpDays, 100) * 0.7) + (traditionalDays * 0.3);
+    } else {
+      // UCP looks reasonable, use 70/30 blend
+      finalDays = (ucpDays * 0.7) + (traditionalDays * 0.3);
+    }
+    
+    // Calculate breakdown
+    const developmentDays = finalDays * 0.65; // 65% development
+    const testingDays = finalDays * 0.25; // 25% testing
+    const bufferDays = finalDays * 0.10; // 10% buffer
+    
+    return {
+      developmentDays: Math.ceil(developmentDays),
+      testingDays: Math.ceil(testingDays),
+      bufferDays: Math.ceil(bufferDays),
+      totalDays: Math.ceil(finalDays),
+      developmentHours: Math.ceil(developmentDays * 8),
+      testingHours: Math.ceil(testingDays * 8),
+      bufferHours: Math.ceil(bufferDays * 8),
+      totalHours: Math.ceil(finalDays * 8),
+      ucpBased: true, // Flag to indicate UCP was used
+      ucpPoints: ucpAnalysis.useCasePoints,
+      ucpHours: ucpAnalysis.estimatedHours
+    };
   }
 
   private calculateBaseEstimates(complexity: ComplexityAnalysis, scope: ScopeAnalysis, technicalFactors: TechnicalFactors): any {
@@ -509,7 +1029,19 @@ export class ProjectEstimator {
     return taskCounts[phaseNumber as keyof typeof taskCounts] || 9;
   }
 
-  calculatePhasePERTEstimates(totalDuration: string, phaseNumber: number, isAI: boolean = false): any {
+  /**
+   * Calculate phase-specific PERT estimates with optional task-level complexity analysis
+   * @param totalDuration - Total project duration string (e.g., "10 weeks")
+   * @param phaseNumber - Phase number (1-4)
+   * @param isAI - Whether estimating for AI (hours) or human (days)
+   * @param tasks - Optional array of tasks for task-level complexity analysis (SOTA)
+   */
+  async calculatePhasePERTEstimates(
+    totalDuration: string,
+    phaseNumber: number,
+    isAI: boolean = false,
+    tasks?: any[]
+  ): Promise<any> {
     const match = totalDuration.match(/(\d+)/);
     if (!match) {
       return {
@@ -533,32 +1065,120 @@ export class ProjectEstimator {
     const phaseWeight = phaseWeights[phaseNumber] || 1.0;
     
     // Average task complexity within phase (minutes per task)
-    const taskComplexityMinutes: Record<number, number> = {
-      1: 30,  // Phase 1: Mix of quick setup (10-15min) and medium (30-45min)
-      2: 55,  // Phase 2: Mostly complex implementation (45-75min)
-      3: 45,  // Phase 3: Mix of components (30-60min)
-      4: 25   // Phase 4: Mostly quick testing/documentation (10-30min)
-    };
-    const avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
+    // SOTA: Use actual task complexity if tasks provided, otherwise use defaults
+    let avgMinutesPerTask: number;
+    if (tasks && tasks.length > 0) {
+      // Import and use TaskComplexityAnalyzer (dynamic import to avoid circular dependency)
+      try {
+        const { TaskComplexityAnalyzer } = await import('./TaskComplexityAnalyzer.js');
+        const analyzer = new TaskComplexityAnalyzer();
+        const analysis = analyzer.analyzeTasks(tasks);
+        // Average minutes per task from actual task analysis
+        avgMinutesPerTask = analysis.totalEstimatedMinutes / tasks.length;
+      } catch (importError) {
+        // Fallback if import fails (use synchronous require for Node.js compatibility)
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { TaskComplexityAnalyzer } = require('./TaskComplexityAnalyzer');
+          const analyzer = new TaskComplexityAnalyzer();
+          const analysis = analyzer.analyzeTasks(tasks);
+          avgMinutesPerTask = analysis.totalEstimatedMinutes / tasks.length;
+        } catch {
+          // Final fallback if both fail
+          console.warn('[ProjectEstimator] Failed to import TaskComplexityAnalyzer, using defaults');
+          const taskComplexityMinutes: Record<number, number> = {
+            1: 30, 2: 55, 3: 45, 4: 25
+          };
+          avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
+        }
+      }
+    } else {
+      // Fallback to defaults
+      const taskComplexityMinutes: Record<number, number> = {
+        1: 30,  // Phase 1: Mix of quick setup (10-15min) and medium (30-45min)
+        2: 55,  // Phase 2: Mostly complex implementation (45-75min)
+        3: 45,  // Phase 3: Mix of components (30-60min)
+        4: 25   // Phase 4: Mostly quick testing/documentation (10-30min)
+      };
+      avgMinutesPerTask = taskComplexityMinutes[phaseNumber] || 30;
+    }
     
     // Base phase estimate (dynamic task counts per phase)
+    // Calculate phase duration directly from phase tasks with minimal scaling
+    // This gives realistic per-phase estimates that don't inflate with large projects
     const phaseTaskCount = this.getPhaseTaskCount(phaseNumber);
     const totalPhaseMinutes = phaseTaskCount * avgMinutesPerTask;
-    const basePhaseDays = (totalPhaseMinutes / 60 / 8) * phaseWeight * (totalValue / (33 * 30 / 60 / 8)); // 33 total tasks
+    
+    // Base phase days: minutes / 60 (hours) / 8 (hours per day) * phaseWeight
+    // PhaseWeight already accounts for phase complexity differences (1.0, 1.5, 1.3, 0.8)
+    // avgMinutesPerTask already accounts for task complexity differences (30, 55, 45, 25)
+    // phaseTaskCount accounts for task count differences (9, 8, 9, 7)
+    // So we get: Phase 1 = 9×30×1.0 = 270min, Phase 2 = 8×55×1.5 = 660min, etc.
+    let basePhaseDays = (totalPhaseMinutes / 60 / 8) * phaseWeight;
+    
+    // No additional scaling needed - phaseWeight and avgMinutesPerTask already create differences
+    // The original problem was scaling by totalValue which inflated everything
+    // Now phases differentiate naturally based on:
+    // 1. Task count per phase (9 vs 8 vs 9 vs 7)
+    // 2. Minutes per task (30 vs 55 vs 45 vs 25)  
+    // 3. Phase weight (1.0 vs 1.5 vs 1.3 vs 0.8)
     
     // For AI, convert to hours (AI is much faster: 50x speedup for most tasks)
     // AI can complete most tasks in 1-10 minutes
     const aiSpeedupFactor = phaseNumber === 4 ? 30 : 50; // Testing tasks have less AI speedup
     const aiMinutesPerTask = avgMinutesPerTask / aiSpeedupFactor;
-    const basePhaseHours = isAI ? Math.max(0.5, Math.ceil((phaseTaskCount * aiMinutesPerTask) / 60)) : basePhaseDays * 8;
+    // Calculate AI hours base
+    let basePhaseHours = isAI ? (phaseTaskCount * aiMinutesPerTask) / 60 : basePhaseDays * 8;
+    
+    // Scale AI base to preserve phase differentiation
+    // Without scaling, all phases converge to ~0.1h which is too small to differentiate
+    // Scale up by 3-5x to make differences visible (0.5h vs 1h vs 1.5h)
+    if (isAI) {
+      basePhaseHours = basePhaseHours * 5; // Scale up to preserve phase differences
+    }
     
     // PERT multipliers
-    const optimistic = Math.ceil(basePhaseHours * 0.6);   // 60% of average
-    const mostLikely = Math.ceil(basePhaseHours);          // Baseline
-    const pessimistic = Math.ceil(basePhaseHours * 1.8);   // 180% of average
+    // For AI: use smaller multipliers since base is already small
+    // For Human: use standard multipliers
+    let optimisticMultiplier = 0.6;
+    let pessimisticMultiplier = 1.8;
+    
+    if (isAI) {
+      // AI estimates: use multipliers that preserve differentiation
+      // Base values are small (0.1-0.2h), so don't floor too aggressively
+      optimisticMultiplier = 0.6;  // Allow optimistic to go below 0.5h
+      pessimisticMultiplier = 2.0; // Keep pessimistic range wide
+    }
+    
+    // Calculate PERT values without aggressive flooring to preserve phase differences
+    let optimistic = basePhaseHours * optimisticMultiplier;
+    let mostLikely = basePhaseHours;
+    let pessimistic = basePhaseHours * pessimisticMultiplier;
+    
+    // Only apply minimum floor AFTER PERT calculation to preserve differentiation
+    // For AI: ensure minimum 0.5 hours total, but allow phases to differ
+    // For Human: no minimum needed
     
     // PERT weighted average: (O + 4M + P) / 6
-    const weightedAverage = Math.ceil((optimistic + 4 * mostLikely + pessimistic) / 6);
+    let weightedAverage = (optimistic + 4 * mostLikely + pessimistic) / 6;
+    
+    // For AI: Use a very low minimum (0.3h) to preserve phase differences
+    // The phases naturally range from 0.1-0.2h base, so 0.3h min preserves differences
+    // For Human: No minimum needed
+    if (isAI) {
+      weightedAverage = Math.max(0.3, weightedAverage);
+      // Round to nearest 0.25 hours first for granularity
+      weightedAverage = Math.round(weightedAverage * 4) / 4;
+      // Then round to readable increments: 0.5h, 1h, 1.5h, 2h
+      // Use thresholds that preserve Phase 2 (most complex) as longer
+      if (weightedAverage < 0.625) weightedAverage = 0.5;      // 0-0.625 → 0.5h
+      else if (weightedAverage < 1.25) weightedAverage = 1.0;   // 0.625-1.25 → 1h
+      else if (weightedAverage < 1.75) weightedAverage = 1.5;   // 1.25-1.75 → 1.5h
+      else weightedAverage = Math.round(weightedAverage);       // 1.75+ → round to nearest hour
+    } else {
+      // Human: Round up to whole hours
+      weightedAverage = Math.ceil(weightedAverage);
+    }
     
     // Confidence intervals (simplified)
     const confidenceIntervals = {

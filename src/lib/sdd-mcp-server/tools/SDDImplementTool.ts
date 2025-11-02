@@ -5,7 +5,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import * as path from 'path';
 import * as fs from 'fs';
-import { fileURLToPath } from 'url';
 
 import { PlatformDetectionEngine, PlatformDetectionResult } from '../utils/PlatformDetectionEngine.js';
 import { SDDArchitecturalValidator } from './SDDArchitecturalValidator.js';
@@ -371,19 +370,34 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
 
   async execute(input: any): Promise<any> {
     try {
+      // Parse input parameters
+      
       let phase: string = "1"; // Default to phase 1
       let taskParam: string | undefined;
       let markComplete: boolean = false;
       let singleTask: boolean = false;
-      if (typeof input === 'object' && input.phase) {
-        // Standard JSON format
-        phase = input.phase;
-        if (input.task) taskParam = String(input.task);
-        if (typeof input.complete === 'boolean') markComplete = input.complete;
-        if (typeof input.single_task === 'boolean') singleTask = input.single_task;
+      
+      // Handle MCP object format (most common)
+      if (typeof input === 'object' && input !== null) {
+        if (input.phase !== undefined && input.phase !== null) {
+          phase = String(input.phase);
+        }
+        if (input.task !== undefined && input.task !== null) {
+          taskParam = String(input.task);
+        }
+        if (typeof input.complete === 'boolean') {
+          markComplete = input.complete;
+        } else if (typeof input.complete === 'string') {
+          markComplete = input.complete.toLowerCase() === 'true' || input.complete === '1';
+        }
+        if (typeof input.single_task === 'boolean') {
+          singleTask = input.single_task;
+        } else if (typeof input.single_task === 'string') {
+          singleTask = input.single_task.toLowerCase() === 'true' || input.single_task === '1';
+        }
       } else if (typeof input === 'string' && input.includes('=')) {
         // Query string format: "phase=1" or "--phase=1"
-        const match = input.match(/(?:^|\s)(?:--)?phase\s*=\s*(\d{1})/);
+        const match = input.match(/(?:^|\s)(?:--)?phase\s*=\s*(\d+)/);
         if (match) {
           phase = match[1];
         }
@@ -405,7 +419,7 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
         // Direct value: "1"
         phase = input;
       } else if (input?.phase) {
-        phase = input.phase;
+        phase = String(input.phase);
       }
       
       // Phase parameter validation
@@ -417,27 +431,61 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
       // Read phase-specific task file
       const phaseFile = `phase${phaseNum}-tasks.md`;
       const tasksMarkdownPath = path.join(this.basePath, 'specs', phaseFile);
-        if (!fs.existsSync(tasksMarkdownPath)) {
+      
+      if (!fs.existsSync(tasksMarkdownPath)) {
         return this.error(`No ${phaseFile} found. Please run sdd_tasks to generate phase ${phaseNum} tasks first.`);
-        }
-        const tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
+      }
+      
+      let tasksMarkdown: string;
+      try {
+        tasksMarkdown = fs.readFileSync(tasksMarkdownPath, 'utf-8');
+      } catch (readError) {
+        return this.error(`Failed to read ${phaseFile}: ${readError instanceof Error ? readError.message : 'Unknown error'}`);
+      }
+      
+      if (!tasksMarkdown || tasksMarkdown.length === 0) {
+        return this.error(`Tasks file ${phaseFile} is empty. Please run sdd_tasks to regenerate phase ${phaseNum} tasks.`);
+      }
 
       // Detect platform from task file
-      const platformDetection = await this.platformDetector.detectPlatform(
-        { content: tasksMarkdown },
-        { content: tasksMarkdown }
-      );
+      let platformDetection: PlatformDetectionResult;
+      try {
+        platformDetection = await this.platformDetector.detectPlatform(
+          { content: tasksMarkdown },
+          { content: tasksMarkdown }
+        );
+      } catch (platformError) {
+        // Use default platform detection if it fails
+        platformDetection = {
+          platform: 'web' as PlatformDetectionResult['platform'],
+          framework: 'unknown',
+          language: 'unknown',
+          confidence: 0,
+          detectedFrom: []
+        };
+      }
 
       // Detect architecture pattern from spec and tasks
       const specPath = path.join(this.basePath, 'specs', 'spec.md');
       let architecturePattern = 'traditional-backend'; // Default
+      
       if (fs.existsSync(specPath)) {
-        const specContent = fs.readFileSync(specPath, 'utf-8');
-        architecturePattern = await this.detectArchitecturePattern(specContent, tasksMarkdown);
+        try {
+          const specContent = fs.readFileSync(specPath, 'utf-8');
+          architecturePattern = await this.detectArchitecturePattern(specContent, tasksMarkdown);
+        } catch (archError) {
+          // Use default architecture pattern if detection fails
+        }
       }
    
       // Execute phase (optionally for a single task)
-      return this.executePhase(phaseNum, tasksMarkdown, platformDetection, taskParam, markComplete, singleTask, architecturePattern);
+      try {
+        const result = await this.executePhase(phaseNum, tasksMarkdown, platformDetection, taskParam, markComplete, singleTask, architecturePattern);
+        return result;
+      } catch (execError) {
+        console.error(`[SDDImplementTool] ERROR in executePhase:`, execError);
+        return this.error(`Failed to execute phase: ${execError instanceof Error ? execError.message : 'Unknown error'}`);
+      }
     } catch (error) {
       console.error('[SDDImplementTool] ERROR:', error);
       return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
@@ -449,7 +497,13 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
    */
   private async executePhase(phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult, taskParam?: string, markComplete?: boolean, singleTask?: boolean, architecturePattern?: string): Promise<any> {
     // Extract tasks from the generated phase markdown file (includes resolved verification commands)
-    const allTasks = this.extractTasks(tasksMarkdown);
+    let allTasks: any[];
+    try {
+      allTasks = this.extractTasks(tasksMarkdown);
+    } catch (extractError) {
+      return this.error(`Failed to extract tasks from phase ${phaseNum} tasks file: ${extractError instanceof Error ? extractError.message : 'Unknown error'}`);
+    }
+    
     let tasks = allTasks;
     let effectiveMarkdown = tasksMarkdown;
     const statusPath = path.join(this.basePath, 'specs', `phase${phaseNum}-status.json`);
@@ -473,8 +527,14 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
 
     // Initialize on phase entry (no specific task)
     if (!taskParam) {
-      const st = this.readStatus(statusPath);
-      if (!fs.existsSync(statusPath)) this.updateStatusFile(statusPath, st);
+      try {
+        const st = this.readStatus(statusPath);
+        if (!fs.existsSync(statusPath)) {
+          this.updateStatusFile(statusPath, st);
+        }
+      } catch (statusError) {
+        return this.error(`Failed to initialize status: ${statusError instanceof Error ? statusError.message : 'Unknown error'}`);
+      }
     }
 
     // If a specific task is requested, filter to that task only and reconstruct minimal markdown
@@ -482,8 +542,12 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
 
       // Handle workflow execution when no specific task is provided
     if (!taskParam) {
-      // RETURN COMPLETE WORKFLOW PLAN - let AI execute all tasks in sequence
-      return this.executeAllTasksWorkflow(phaseNum, allTasks, tasksMarkdown, platformDetection, statusPath);
+      try {
+        return await this.executeAllTasksWorkflow(phaseNum, allTasks, tasksMarkdown, platformDetection, statusPath);
+      } catch (workflowError) {
+        console.error(`[executePhase] ERROR in executeAllTasksWorkflow:`, workflowError);
+        return this.error(`Failed to execute workflow: ${workflowError instanceof Error ? workflowError.message : 'Unknown error'}`);
+      }
     }
 
     // Handle specific task execution
@@ -791,10 +855,21 @@ After providing the correction, proceed with architecture-appropriate implementa
    */
   private async executeAllTasksWorkflow(phaseNum: number, allTasks: Array<any>, tasksMarkdown: string, platformDetection: PlatformDetectionResult, statusPath: string): Promise<any> {
     // SEQUENTIAL PHASE EXECUTION: Execute ALL tasks in phase automatically (like SDDTasksTool)
-    const currentStatus = this.readStatus(statusPath);
+    let currentStatus: { currentTask: number; completed: number[] };
+    try {
+      currentStatus = this.readStatus(statusPath);
+    } catch (statusError) {
+      return this.error(`Failed to read status: ${statusError instanceof Error ? statusError.message : 'Unknown error'}`);
+    }
 
     // Find the next task to execute (first incomplete task)
-    const phaseInfo = this.getPhaseInfo(phaseNum);
+    let phaseInfo: any;
+    try {
+      phaseInfo = this.getPhaseInfo(phaseNum);
+    } catch (phaseInfoError) {
+      return this.error(`Failed to get phase info: ${phaseInfoError instanceof Error ? phaseInfoError.message : 'Unknown error'}`);
+    }
+    
     let nextTaskIndex = 1;
     for (let i = 1; i <= phaseInfo.taskCount; i++) {
       if (!currentStatus.completed.includes(i)) {
@@ -843,10 +918,20 @@ VERIFICATION: All tasks individually marked complete in status file
     }
 
     // Extract just this task's content from the markdown
-    const taskMarkdown = this.extractSingleTaskMarkdown(tasksMarkdown, nextTask.id);
+    let taskMarkdown: string;
+    try {
+      taskMarkdown = this.extractSingleTaskMarkdown(tasksMarkdown, nextTask.id);
+    } catch (markdownError) {
+      return this.error(`Failed to extract task markdown: ${markdownError instanceof Error ? markdownError.message : 'Unknown error'}`);
+    }
 
     // Generate guidance for ONLY this single task
-    const taskGuidance = this.generateSingleTaskGuidance(phaseNum, nextTask, taskMarkdown, platformDetection, nextTaskIndex, phaseInfo);
+    let taskGuidance: string;
+    try {
+      taskGuidance = this.generateSingleTaskGuidance(phaseNum, nextTask, taskMarkdown, platformDetection, nextTaskIndex, phaseInfo);
+    } catch (guidanceError) {
+      return this.error(`Failed to generate task guidance: ${guidanceError instanceof Error ? guidanceError.message : 'Unknown error'}`);
+    }
 
     const phaseProgressWarning = `
 🚨🚨🚨 CRITICAL METHODOLOGY ENFORCEMENT 🚨🚨🚨
@@ -936,16 +1021,6 @@ CRITICAL: After completing this task, you MUST immediately call the next task in
 
 ${currentTaskTODO}
 
-🚨 **MANDATORY TODO LIST CREATION - READ THIS BEFORE STARTING**:
-- **YOU MUST CREATE A TODO ITEM FOR THIS TASK ONLY**: \`- [ ] ${nextTask.id}: ${nextTask.title}\`
-- **THIS IS THE ONLY TODO YOU NEED TO CREATE RIGHT NOW** - Create one TODO per task as you work through them
-- **FORMAT**: MUST use exact format: \`- [ ] ${nextTask.id}: ${nextTask.title}\`
-- **TIMING**: Create the TODO item BEFORE any implementation work begins
-- **COMPLETION**: This TODO item MUST be checked off ONLY after completing this task with \`complete=true\`
-- **ACKNOWLEDGMENT**: If you cannot create TODOs, explicitly acknowledge: "Starting ${nextTask.id}: ${nextTask.title}"
-- **VIOLATION**: Skipping TODO creation/acknowledgment is a methodology violation requiring restart
-- **NEXT TASK**: When you call the next task, create a new TODO for that task only
-
 ${taskGuidance}
 
 📊 PHASE EXECUTION CONTEXT:
@@ -1014,8 +1089,32 @@ ${phaseProgressWarning}`
 
       for (const line of lines) {
         // Remove markdown list markers and clean up
-        const cleanCommand = line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+        let cleanCommand = line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+        
         if (cleanCommand && !cleanCommand.includes('CRITICAL:')) {
+          // Fix malformed quotes - remove trailing extra quotes that cause shell to hang
+          // Handle cases like: echo "text!"" -> echo "text!"
+          // Strategy: Remove consecutive trailing quotes (keep only one closing quote)
+          
+          // Fix malformed quotes that cause shell to hang
+          // Problem: echo "text!"" has trailing extra quotes that leave shell waiting
+          // Solution: Remove trailing consecutive quotes beyond the first one
+          
+          // Pattern: match 2+ consecutive quotes at the end and replace with single quote
+          // This handles: echo "text!"" -> echo "text!"
+          cleanCommand = cleanCommand.replace(/("")+$/, '"');
+          
+          // For echo commands, ensure quote balance (even number = properly closed)
+          if (cleanCommand.trim().startsWith('echo ')) {
+            const quoteCount = (cleanCommand.match(/"/g) || []).length;
+            if (quoteCount % 2 !== 0) {
+              // Odd number means unclosed quote - add closing quote if missing
+              if (!cleanCommand.trim().endsWith('"')) {
+                cleanCommand = cleanCommand.trim() + '"';
+              }
+            }
+          }
+          
           commands.push(cleanCommand);
         }
       }
@@ -1052,14 +1151,6 @@ ${taskMarkdown}`;
 - Task Number: ${taskIndex}/${phaseInfo.taskCount}
 - Platform: ${platformDetection.platform}
 - Framework: ${platformDetection.framework}
-
-🚨 **MANDATORY TODO LIST STEP - READ THIS BEFORE STARTING**:
-- **BEFORE STARTING THIS TASK**, you MUST create/acknowledge a TODO item: \`- [ ] ${task.id}: ${task.title}\`
-- **FORMAT**: MUST use exact format: \`- [ ] ${task.id}: ${task.title}\`
-- **TIMING**: Create the TODO item BEFORE any implementation work begins
-- **COMPLETION**: This TODO item MUST be checked off ONLY after completing this task with \`complete=true\`
-- **ACKNOWLEDGMENT**: If you cannot create TODOs, explicitly acknowledge: "Starting ${task.id}: ${task.title}"
-- **VIOLATION**: Skipping TODO creation/acknowledgment is a methodology violation requiring restart
 
 ✅ SUCCESS CRITERIA:
 Task ${task.id} is fully implemented and all verification commands pass
@@ -1412,6 +1503,15 @@ UNIVERSAL RULES (applies to every task):
 -- Zero tolerance forbidden: NEVER say "I'll run them now", "time constraints", or provide documentation instead of proof
 -- Do NOT read spec.md/plan.md; use ONLY the task section below
 -- Permission safety: NO sudo/chown/chmod (root-level). User-level commands only
+
+⚠️ **VERIFICATION COMMAND SAFETY (CRITICAL)**:
+When executing verification commands, especially echo commands:
+- **MAX && OPERATORS**: Do NOT execute commands with more than 3 && operators chained together
+- **NO EMOJIS IN ECHO**: Avoid emojis in echo quoted strings (✅, 📊, 🎯) - they cause encoding issues and hangs
+- **SHORT COMMANDS**: Keep command lines under 200 characters - long lines cause shell timeouts
+- **SEPARATE EXECUTION**: If verification commands have many && operators, break them into separate commands
+- **QUOTE VALIDATION**: Before executing, ensure quotes are properly closed (no trailing extra quotes)
+- **IF COMMAND HANGS**: The command likely has too many && operators, emojis, or unclosed quotes - report error and suggest fix
 
 MANDATORY MINI-CHECKLIST:
 - [ ] Ran ALL verification commands and pasted terminal output

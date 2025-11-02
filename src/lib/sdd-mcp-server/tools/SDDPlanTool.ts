@@ -97,7 +97,7 @@ ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 [Mandatory folder structure with specific paths]
 
 ## Implementation Phases
-[4 phases, 33 tasks total with RED-GREEN-REFACTOR-SMOKE patterns]
+[4 phases with RED-GREEN-REFACTOR-SMOKE patterns]
 
 ## Database Strategy
 [Technology choice, schema, migrations, connections]
@@ -248,10 +248,13 @@ Structure must be enforceable and specific enough to prevent developer discretio
 
         implementationPhases: `🚀 4-PHASE IMPLEMENTATION ROADMAP:
 ${architectureAdaptation ? `\n${architectureAdaptation}` : ''}
-**Phase 1 (9 tasks)**: Foundation & Design → Models & Test Suite → Core System → Architecture Refactor → Quality Refactor → Compilation → Test Execution → Integration Testing → Final Verification
-**Phase 2 (8 tasks)**: ${architecturePattern?.startsWith('baas-') ? 'SDK Integration → Client-Side Service Layer → Client-Side Controllers/Components → Security Rules Configuration → Integration Tests → Authentication (Client-Side) → Data Validation → Phase 2 Verification' : 'Business Logic → Service Layer → Controller Layer → Integration Tests → Authentication → Data Validation → Performance Optimization → Phase 2 Verification'}
-**Phase 3 (9 tasks)**: Platform Setup → Design System → Application Structure → UI Components → ${architecturePattern?.startsWith('baas-') ? 'SDK Integration (Client-Side)' : 'API Integration'} → State Management → User Experience → Responsive Design → Phase 3 Verification
-**Phase 4 (7 tasks)**: Comprehensive Testing → System Optimization → Production Build → Documentation → Security Assessment → Load Testing → Database Migration
+🚨 **CRITICAL: TASK NUMBERING RESETS AT EACH PHASE** 🚨
+- **Phase 1 (9 tasks: TASK-001 to TASK-009)**: Foundation & Design → Models & Test Suite → Core System → Architecture Refactor → Quality Refactor → Compilation → Test Execution → Integration Testing → Final Verification
+- **Phase 2 (8 tasks: TASK-001 to TASK-008)**: ${architecturePattern?.startsWith('baas-') ? 'SDK Integration → Client-Side Service Layer → Client-Side Controllers/Components → Security Rules Configuration → Integration Tests → Authentication (Client-Side) → Data Validation → Phase 2 Verification' : 'Business Logic → Service Layer → Controller Layer → Integration Tests → Authentication → Data Validation → Performance Optimization → Phase 2 Verification'}
+- **Phase 3 (9 tasks: TASK-001 to TASK-009)**: Platform Setup → Design System → Application Structure → UI Components → ${architecturePattern?.startsWith('baas-') ? 'SDK Integration (Client-Side)' : 'API Integration'} → State Management → User Experience → Responsive Design → Phase 3 Verification
+- **Phase 4 (7 tasks: TASK-001 to TASK-007)**: Comprehensive Testing → System Optimization → Production Build → Documentation → Security Assessment → Load Testing → Database Migration
+
+⚠️ **TASK NUMBERING RULE**: Each phase starts with TASK-001 and numbers sequentially within that phase. Task numbers DO NOT continue across phases (Phase 1 ends at TASK-009, Phase 2 starts at TASK-001 again).
 
 Each phase follows RED-GREEN-REFACTOR-SMOKE pattern. Specify concrete deliverables and success criteria for each phase.`,
 

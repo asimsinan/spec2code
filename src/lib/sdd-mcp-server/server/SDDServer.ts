@@ -122,10 +122,10 @@ VIOLATION RESULTS IN SLOW EXECUTION AND ERRORS`
 
         const { name, arguments: args } = request.params;
 
-
         const tool = this.tools.get(name);
         if (!tool) {
-          // Tool not found in tools map - handled silently
+          // Tool not found in tools map
+          console.error(`[SDDServer] Tool ${name} not found. Available tools:`, Array.from(this.tools.keys()));
           throw new Error(`Tool ${name} not found`);
         }
 
