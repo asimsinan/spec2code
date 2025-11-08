@@ -1,4 +1,4 @@
-# AI-SDD-MCP-BETA: Turn Ideas Into Code Automatically 🚀
+# Spec2Code: Turn Ideas Into Code Automatically 🚀
 
 [![npm version](https://img.shields.io/npm/v/ai-sdd-mcp.svg)](https://www.npmjs.com/package/ai-sdd-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
