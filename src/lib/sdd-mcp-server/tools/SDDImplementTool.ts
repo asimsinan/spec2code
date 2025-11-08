@@ -14,7 +14,7 @@ import { ArchitecturePatternDetector } from '../utils/ArchitecturePatternDetecto
 const EXECUTION_RULES = {
   // Core usage rules
   USAGE: {
-    ALWAYS_CALL_FIRST: "🚀 PHASE WORKFLOW EXECUTION: Call '/sdd_implement phase=X' to get complete step-by-step workflow plan for ALL remaining tasks. Execute the entire plan without stopping - no summaries, no user confirmation required.",
+    ALWAYS_CALL_FIRST: "🚀 PHASE WORKFLOW EXECUTION: Call '/sdd_implement phase=X' to get complete step-by-step workflow plan for ALL remaining tasks. Execute the entire plan sequentially, completing each task fully before moving to the next.",
     NO_MANUAL_IMPLEMENTATION: "Never create your own TODOs or implement manually",
     NO_SPEC_READING: "Never read spec.md or plan.md files - use only task specifications provided",
     SINGLE_TOOL_SOURCE: "This tool provides ALL necessary information - no file reading required"
@@ -37,10 +37,10 @@ const EXECUTION_RULES = {
 
   // Execution behavior
   EXECUTION: {
-    CONTINUOUS_WORK: "Work through all tasks without pausing or asking permission",
-    NO_COMMUNICATION: "Do not provide status updates or ask questions during execution",
-    SILENT_MODE: "Execute all tasks in one continuous session without interruption",
-    IMMEDIATE_PROGRESSION: "Move to next task immediately after completing previous one"
+    CONTINUOUS_WORK: "Work through all tasks sequentially, completing each fully before moving to next",
+    NO_COMMUNICATION: "Do not ask for permission or provide status updates - focus on completing tasks",
+    SILENT_MODE: "Execute all tasks sequentially, focusing on completion",
+    IMMEDIATE_PROGRESSION: "Move to next task after completing previous one fully (including verification)"
   },
 
   // Implementation standards
@@ -166,10 +166,10 @@ ${EXECUTION_RULES.EXECUTION.IMMEDIATE_PROGRESSION}
 - Deferring foundational tasks to "later phases"
 
 ### Required Actions:
-- Execute tasks sequentially without interruption
-- Move immediately to next task after completion
-- Work silently until all tasks are done
-- Only communicate final results when complete
+- Execute tasks sequentially, completing each fully before moving to next
+- Move to next task after completing current task fully (including verification)
+- Focus on completing tasks, not providing status updates
+- Show final results when all tasks are complete
 
 ### Common Evasion Patterns to Avoid:
 - "I've completed X tasks, should I continue?"
@@ -242,12 +242,12 @@ EXECUTION FLOW:
 
 TRUTH-SEEKING SYSTEM PROMPT:
 "I am an AI committed to absolute truthfulness and accuracy. I will:
-- Use Chain-of-Thought reasoning for all decisions
+- Think through requirements carefully before implementing
 - Provide evidence for every claim I make
 - Admit when I don't know something
-- Correct my own mistakes immediately
+- Correct my own mistakes when found
 - Never fabricate data or results
-- Always show my work and reasoning process"
+- Always show proof of work (code, commands, output)"
 
 HALLUCINATION PREVENTION:
 - I will only output information I can verify
@@ -280,7 +280,7 @@ MANDATORY RULES:
 ✅ Execute EXACTLY ONE TASK per tool call
 ✅ Use ONLY information from this tool's response
 ✅ Follow atomic task structure (phase-specific task counts)
-✅ Call tool immediately after each task completion
+✅ Call tool after completing each task fully (including verification)
 ✅ No manual file reading or external research
 
 VIOLATION CONSEQUENCE: Complete reset and restart required
@@ -288,7 +288,7 @@ VIOLATION CONSEQUENCE: Complete reset and restart required
 RESPONSE FORMAT ENFORCEMENT:
 ✅ TOOL EXECUTION ONLY
 ✅ IMMEDIATE NEXT TOOL CALL
-❌ NO explanations, summaries, or human text
+❌ DO NOT provide lengthy explanations or summaries - focus on implementation and verification proof
 ❌ NO progress reports or status updates
 ❌ NO multiple task implementations
 
@@ -432,9 +432,9 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
       const phaseFile = `phase${phaseNum}-tasks.md`;
       const tasksMarkdownPath = path.join(this.basePath, 'specs', phaseFile);
       
-      if (!fs.existsSync(tasksMarkdownPath)) {
+        if (!fs.existsSync(tasksMarkdownPath)) {
         return this.error(`No ${phaseFile} found. Please run sdd_tasks to generate phase ${phaseNum} tasks first.`);
-      }
+        }
       
       let tasksMarkdown: string;
       try {
@@ -451,9 +451,9 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
       let platformDetection: PlatformDetectionResult;
       try {
         platformDetection = await this.platformDetector.detectPlatform(
-          { content: tasksMarkdown },
-          { content: tasksMarkdown }
-        );
+        { content: tasksMarkdown },
+        { content: tasksMarkdown }
+      );
       } catch (platformError) {
         // Use default platform detection if it fails
         platformDetection = {
@@ -528,7 +528,7 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
     // Initialize on phase entry (no specific task)
     if (!taskParam) {
       try {
-        const st = this.readStatus(statusPath);
+      const st = this.readStatus(statusPath);
         if (!fs.existsSync(statusPath)) {
           this.updateStatusFile(statusPath, st);
         }
@@ -618,10 +618,20 @@ ${EXECUTION_RULES.USAGE.SINGLE_TOOL_SOURCE}`,
       if (markComplete) {
         // STRICT VERIFICATION: Check if task requirements are actually met before allowing completion
         const taskVerification = this.verifyTaskCompletion(taskId, taskIndex, phaseNum, tasksMarkdown, platformDetection);
+        
+        // If verification task blocks completion, add explicit warning
+        if (taskVerification.blocksCompletion) {
+          console.error(`[SDDImplementTool] Task ${taskId} BLOCKS completion - execution proof required`);
+        }
         if (!taskVerification.isComplete) {
+          const blockingMessage = taskVerification.blocksCompletion 
+            ? `\n\n🚨🚨🚨 EXECUTION PROOF REQUIRED - COMPLETION BLOCKED 🚨🚨🚨\n\nThis task requires executing commands and showing terminal output. Completion is BLOCKED until execution proof is provided.\n\nYou MUST:\n1. Execute ALL verification commands\n2. Show ACTUAL terminal output (paste real output)\n3. Prove required status (GREEN/PASS/coverage if required)\n4. Include output in your response using code blocks\n\nOnly then can you mark this task complete.`
+            : '';
+          
           return this.error(`TASK COMPLETION REJECTED: ${taskVerification.reason}
 
 ❌ TASK ${taskId} CANNOT BE MARKED COMPLETE
+${blockingMessage}
 
 VERIFICATION FAILURE DETAILS:
 ${taskVerification.details}
@@ -635,14 +645,8 @@ REMEDY: Complete ALL requirements above, then call complete=true again.`);
         if (!completed.includes(taskIndex)) {
           completed = [...completed, taskIndex].sort((a, b) => a - b);
 
-          console.error(`[SDDImplementTool] ✅ MARKING TASK ${taskId} (${taskIndex}) AS COMPLETED. Status before: completed=[${st.completed.join(',')}], after: completed=[${completed.join(',')}]`);
-        } else {
-          console.error(`[SDDImplementTool] ⚠️ Task ${taskId} (${taskIndex}) already marked complete, skipping duplicate mark`);
-        }
-      } else {
-        console.error(`[SDDImplementTool] 📋 Providing guidance for task ${taskId} (${taskIndex}), NOT marking complete. Current completed: [${st.completed.join(',')}]`);
-      }
-      
+        } 
+      } 
       // Update currentTask appropriately:
       // When marking complete: taskIndex is the completed task, so currentTask should be taskIndex + 1 (next task to work on)
       // When providing guidance: taskIndex is the task being worked on, so currentTask should be taskIndex
@@ -716,9 +720,9 @@ COMPLETED: ${currentStatus.completed.length + 1}/${phaseInfo.taskCount} tasks (i
 REMAINING: ${phaseInfo.taskCount - currentStatus.completed.length - 1} tasks
 
 🔄 CRITICAL CHAINING REQUIREMENT:
-After completing this task, you MUST immediately call the NEXT task in the SAME response:
+After completing this task FULLY (all requirements met, verification executed if needed), call the NEXT task:
 1. Call: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true (marks current complete)
-2. Then immediately call: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1} (starts next task)
+2. Then call: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1} (starts next task)
 
 ⚠️ VIOLATION DETECTED: Stopping after completion without calling next task = methodology violation requiring complete reset from task 1.`;
       } else {
@@ -958,7 +962,7 @@ FORBIDDEN ACTIONS (VIOLATION = RESET REQUIRED):
 MANDATORY COMPLIANCE:
 ✅ Execute EXACTLY ONE TASK per tool call
 ✅ Follow tool's exact specifications only
-✅ Call tool again immediately after completion
+✅ Call tool again after completing current task fully (including verification)
 ✅ Use ONLY information provided by this tool
 ✅ No manual file reading or external research
 ✅ No task combining or reorganization
@@ -973,7 +977,7 @@ RESPONSE FORMAT ENFORCEMENT:
 - Execute exactly one task
 - Show verification proof
 - End with next task call
-- NO human explanations, summaries, or deviations
+- Focus on implementation and verification proof, not lengthy explanations
 
 METHODOLOGY VIOLATION DETECTED = COMPLETE RESET REQUIRED
 Continue through ALL ${phaseInfo.taskCount} tasks systematically or restart from beginning.
@@ -988,7 +992,7 @@ I, the AI assistant, hereby commit to:
 6. Maintaining the integrity of the SDD methodology
 
 🔬 ROBUST PROMPTING STRATEGIES ACTIVATED 🔬
-CHAIN-OF-THOUGHT REQUIREMENT: I must explain my reasoning before any action
+THINKING REQUIREMENT: Think through requirements before taking action
 SELF-VERIFICATION: I must double-check all claims against evidence
 EVIDENCE-BASED RESPONSES: Every claim must be backed by verifiable proof
 CONSTRAINED OUTPUT: Responses must follow strict formatting rules
@@ -1008,11 +1012,17 @@ After completing this task, call: sdd_implement phase=${phaseNum} task=${nextTas
 This will mark Phase ${phaseNum} complete.` :
 
       `🔄 AUTOMATIC SEQUENTIAL EXECUTION
-CRITICAL: After completing this task, you MUST immediately call the next task in the SAME response:
-1. Complete this task: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true
-2. Then immediately call: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1}
+CRITICAL: After completing this task FULLY (all requirements met, verification executed if needed), call the next task:
+1. Mark this task complete: sdd_implement phase=${phaseNum} task=${nextTaskIndex} complete=true
+2. Then call next task: sdd_implement phase=${phaseNum} task=${nextTaskIndex + 1}
 
-⚠️ VIOLATION DETECTED: Stopping here without calling the next task = methodology violation requiring complete reset.`;
+**IMPORTANT**: Only call next task after:
+- Current task is fully implemented
+- All verification commands executed (if required)
+- Terminal output shown (if required)
+- All acceptance criteria met
+
+⚠️ VIOLATION: Calling next task before completing current task fully = methodology violation requiring complete reset.`;
 
     return {
       success: true,
@@ -1033,18 +1043,35 @@ PROGRESS: ${currentStatus.completed.length}/${phaseInfo.taskCount} completed, ${
 ${chainingInstructions}
 
 🚨 CRITICAL METHODOLOGY ENFORCEMENT:
-MANDATORY SEQUENTIAL EXECUTION: Complete this task, then IMMEDIATELY call the next task.
-NO stopping, NO claiming completion, NO summaries until ALL ${phaseInfo.taskCount} tasks are done.
+MANDATORY SEQUENTIAL EXECUTION: Complete this task FULLY (including ALL verification if required), then call the next task.
+**CRITICAL**: "Complete fully" means ALL requirements are met:
+- For implementation tasks: Code written, tested, and working
+- For verification tasks: Commands EXECUTED and terminal output SHOWN (mandatory!)
+- For mixed tasks: Both implementation AND verification completed
+
+**COMPLETION REQUIREMENTS** (must be met before calling next task):
+✅ All task requirements implemented
+✅ All verification commands executed (if task requires verification)
+✅ Terminal output shown (if task requires verification)
+✅ Acceptance criteria met
+✅ Ready to proceed to next task
+
+**DO NOT** claim completion or call next task until ALL requirements above are met.
+**DO NOT** skip verification steps to save time - this causes task failures.
+**DO NOT** provide summaries or explanations - just complete and move to next task.
+
 VIOLATION = Complete reset from task 1 required.
 
 🛡️ METHODOLOGY ENFORCEMENT:
 VIOLATION DETECTED: If you read plan.md, combine tasks, or deviate from atomic execution → DELETE all work and RESTART from task 1. Zero tolerance for methodology violations.
 
 📝 RESPONSE FORMAT REQUIREMENTS:
-RESPONSE FORMAT: TOOL_CALL_ONLY. Execute task → Call next tool. NO text explanations, NO summaries, NO human language. VIOLATION = RESET.
+RESPONSE FORMAT: Execute task using structured format (show code/commands/output), then call next tool.
+**DO NOT** provide lengthy explanations or progress summaries - focus on implementation and verification proof.
+**DO** show terminal output, code snippets, and evidence of completion.
 
 🤖 AUTOMATED ENFORCEMENT:
-SYSTEM ENFORCES: Scans for explanations/summaries. Auto-resets on violation. One task per response only.
+SYSTEM ENFORCES: One task per response only. Focus on implementation and verification proof, not lengthy explanations.
 
 ⚠️ PHASE PROGRESS WARNING:
 ${phaseProgressWarning}`
@@ -1140,23 +1167,138 @@ ${taskMarkdown}`;
   /**
    * Generate guidance for a single task
    */
+  /**
+   * Detect if a task is a verification task based on title and description
+   */
+  private isVerificationTask(task: any): { isVerification: boolean; verificationType?: string; reasons: string[] } {
+    const verificationVerbs = ['EXECUTE', 'RUN', 'VERIFY', 'CONFIRM', 'TEST', 'CHECK', 'VALIDATE', 'SHOW', 'COMPILE'];
+    const title = (task.title || '').toUpperCase();
+    const description = (task.description || '').toUpperCase();
+    const combined = `${title} ${description}`;
+    
+    const reasons: string[] = [];
+    let verificationType: string | undefined;
+    
+    for (const verb of verificationVerbs) {
+      if (combined.includes(verb)) {
+        reasons.push(`Contains "${verb}" verb`);
+        if (!verificationType) {
+          verificationType = verb;
+        }
+      }
+    }
+    
+    // Check for verification-specific patterns
+    if (combined.includes('GREEN') || combined.includes('PASS') || combined.includes('0 FAILED')) {
+      reasons.push('Requires test execution proof');
+      verificationType = verificationType || 'TEST_EXECUTION';
+    }
+    
+    if (combined.includes('TERMINAL OUTPUT') || combined.includes('SHOW OUTPUT')) {
+      reasons.push('Requires terminal output');
+      verificationType = verificationType || 'OUTPUT_REQUIRED';
+    }
+    
+    if (combined.includes('COVERAGE') && combined.includes('%')) {
+      reasons.push('Requires coverage metrics');
+      verificationType = verificationType || 'COVERAGE_CHECK';
+    }
+    
+    const isVerification = reasons.length > 0 || 
+      (task.verification?.action && ['EXECUTE', 'SHOW', 'VERIFY', 'CONFIRM', 'RUN'].includes(task.verification.action.toUpperCase()));
+    
+    return { isVerification, verificationType, reasons };
+  }
+
   private generateSingleTaskGuidance(phaseNum: number, task: any, taskMarkdown: string, platformDetection: PlatformDetectionResult, taskIndex: number, phaseInfo: any): string {
     const template = this.getTemplateForTask(task, taskMarkdown, platformDetection);
+    const verificationCheck = this.isVerificationTask(task);
+    
+    // Build verification-specific warnings if this is a verification task
+    let verificationWarning = '';
+    if (verificationCheck.isVerification) {
+      verificationWarning = `
+🚨🚨🚨 VERIFICATION TASK DETECTED 🚨🚨🚨
 
+⚠️ THIS IS A VERIFICATION TASK - EXECUTION IS MANDATORY ⚠️
 
-    return `🎯 TASK ${task.id}: ${task.title}
+**Task Type**: ${verificationCheck.verificationType || 'VERIFICATION'}
+**Detection Reasons**: ${verificationCheck.reasons.join(', ')}
+
+🚫 **FORBIDDEN ACTIONS** (VIOLATION = RESET REQUIRED):
+❌ Creating files without running commands
+❌ Implementing code without executing verification
+❌ Marking complete without terminal output
+❌ Assuming "code exists" = "task complete"
+❌ Skipping command execution to "save time"
+
+✅ **MANDATORY ACTIONS** (NO EXCEPTIONS):
+1. **RUN THE COMMANDS**: Execute ALL verification commands listed in the task
+2. **SHOW OUTPUT**: Paste ACTUAL terminal output showing command execution
+3. **PROVE STATUS**: Show required status (GREEN/PASS/0 errors/coverage %)
+4. **VERIFY RESULTS**: Confirm output matches acceptance criteria
+5. **THEN PROCEED**: Only after showing proof, call next task
+
+**CRITICAL RULE**: 
+You MUST run commands and show output BEFORE marking complete.
+Only proceed to next task AFTER completing all verification steps for this task.
+
+**⛔ COMPLETION BLOCK**: This task CANNOT be marked complete until you:
+1. Execute ALL verification commands
+2. Show ACTUAL terminal output (not just describe what you did)
+3. Prove required status (GREEN/PASS/coverage if specified)
+4. Include output in your response using code blocks
+
+**If you mark complete without execution proof, the task will be REJECTED.**
+
+**VERIFICATION CHECKLIST** (Complete ALL before marking done):
+- [ ] Ran ALL verification commands from task specification
+- [ ] Captured ACTUAL terminal output (not fabricated)
+- [ ] Output shows required status (GREEN/PASS/0 errors/coverage %)
+- [ ] Output matches acceptance criteria
+- [ ] All verification commands executed successfully
+- [ ] Proof provided in response (terminal output visible)
+
+**If ANY checklist item is unchecked → DO NOT mark complete!**
+
+---
+`;
+    }
+    
+    return `${verificationWarning}🎯 TASK ${task.id}: ${task.title}
 
 📋 TASK DETAILS:
 - Task ID: ${task.id}
 - Task Number: ${taskIndex}/${phaseInfo.taskCount}
+- Task Type: ${verificationCheck.isVerification ? '🔍 VERIFICATION TASK (Execution Required)' : '⚙️ IMPLEMENTATION TASK'}
 - Platform: ${platformDetection.platform}
 - Framework: ${platformDetection.framework}
 
 ✅ SUCCESS CRITERIA:
-Task ${task.id} is fully implemented and all verification commands pass
+${verificationCheck.isVerification 
+  ? `Task ${task.id} requires EXECUTING commands and SHOWING terminal output proving completion.\n**MANDATORY**: You MUST run verification commands and show actual output before marking complete.`
+  : `Task ${task.id} is fully implemented and all verification commands pass`}
 
 🎯 COMPLETION ACTION:
-Call: sdd_implement phase=${phaseNum} task=${taskIndex} complete=true
+${verificationCheck.isVerification ? `🚨🚨🚨 COMPLETION BLOCKED - EXECUTION PROOF REQUIRED 🚨🚨🚨
+
+⛔ **DO NOT call complete=true until you have:**
+1. Executed ALL verification commands from task specification
+2. Shown ACTUAL terminal output (paste real output, not descriptions)
+3. Proven required status (GREEN/PASS/0 errors/coverage % if required)
+4. Included output in your response using \`\`\`bash code blocks
+
+**This task REQUIRES execution proof - completion is blocked until proof is provided.**
+
+**EXECUTION CHECKPOINT** (Complete ALL):
+- [ ] Ran ALL verification commands
+- [ ] Captured ACTUAL terminal output
+- [ ] Output shows required status
+- [ ] Output matches acceptance criteria
+- [ ] Proof visible in response (code block with output)
+
+**ONLY AFTER completing ALL checklist items above, call:**
+Call: sdd_implement phase=${phaseNum} task=${taskIndex} complete=true` : `Call: sdd_implement phase=${phaseNum} task=${taskIndex} complete=true`}
 
 ${taskIndex < phaseInfo.taskCount ? `🔄 NEXT TASK HINT: Task ${taskIndex + 1}` : '🎉 PHASE COMPLETE!'}
 
@@ -1205,43 +1347,52 @@ ${task.description}`;
    */
   private extractTasks(tasksMarkdown: string): Array<any> {
     const tasks: Array<any> = [];
-    // Capture ID, header title (same line), and full section body
-    // Supports headings like:
-    //   "### TASK-001 Title here"
-    //   "### [TASK-001] Title here"
-    //   "### TASK-001 [TASK-001] Title here"
-    const taskPattern = /^###\s+(?:\[)?(TASK-\d{3})(?:\])?(?:\s+\[TASK-\d{3}\])?\s+([^\n]+)\n([\s\S]*?)(?=^###\s+(?:\[)?TASK-|^\n##\s+|$)/gm;
     
-    let match;
-    while ((match = taskPattern.exec(tasksMarkdown)) !== null) {
-      const [, taskId, headerTitleRaw, sectionBody] = match;
+    // Use a two-pass approach: first find all task headers, then extract bodies
+    // This is more reliable than complex regex with lookaheads
+    const taskHeaderPattern = /^###\s+(?:\[)?(TASK-\d{3})(?:\])?(?:\s*:\s*|\s+)(?:\s*\[TASK-\d{3}\])?\s*([^\n]+)$/gm;
+    const taskHeaders: Array<{ index: number; taskId: string; title: string; fullMatch: string }> = [];
+    
+    let headerMatch;
+    while ((headerMatch = taskHeaderPattern.exec(tasksMarkdown)) !== null) {
+      taskHeaders.push({
+        index: headerMatch.index,
+        taskId: headerMatch[1],
+        title: headerMatch[2].trim().replace(/\[?TASK-\d{3}\]?\s*/ig, '').trim(),
+        fullMatch: headerMatch[0]
+      });
+    }
+    
+    // Extract task body for each header
+    for (let i = 0; i < taskHeaders.length; i++) {
+      const header = taskHeaders[i];
+      const nextHeaderIndex = i < taskHeaders.length - 1 ? taskHeaders[i + 1].index : tasksMarkdown.length;
+      
+      // Extract body from after the header to before the next header
+      const bodyStart = header.index + header.fullMatch.length;
+      const sectionBody = tasksMarkdown.substring(bodyStart, nextHeaderIndex).trim();
       
       // Validate taskId exists
-      if (!taskId || !taskId.match(/^TASK-\d{3}$/)) {
-        console.warn(`[SDDImplementTool] Invalid task ID extracted: ${taskId}`);
+      if (!header.taskId || !header.taskId.match(/^TASK-\d{3}$/)) {
+        console.warn(`[SDDImplementTool] Invalid task ID extracted: ${header.taskId}`);
         continue;
       }
-      
-      // Title comes directly from the header line to avoid picking bold labels later
-      let title = (headerTitleRaw || '').trim();
-      // Remove any stray [TASK-XXX] tokens from header title
-      title = title.replace(/\[?TASK-\d{3}\]?\s*/ig, '').trim();
 
       // Extract description from the section body
       const descMatch = sectionBody.match(/#### Description\s*\n([\s\S]*?)(?=\n####|\n\*\*|$)/);
       const description = descMatch ? descMatch[1].trim() : '';
-
+      
       // Extract verification commands from the generated markdown
       const verificationCommands = this.extractVerificationCommands(sectionBody);
       
       tasks.push({
-        id: taskId,
-        title: title || taskId,
+        id: header.taskId,
+        title: header.title || header.taskId,
         description: description,
         verification: {
           commands: verificationCommands
         },
-        rawContent: sectionBody.trim()
+        rawContent: sectionBody
       });
     }
     
@@ -1268,8 +1419,8 @@ ${task.description}`;
   }
 
   /**
-   * Generate TODO list from extracted tasks
-   * MANDATORY: Every TODO item MUST include the task ID (TASK-XXX format)
+   * Generate TODO list instructions for AI to create subtasks
+   * AI should analyze the task and break it down into manageable TODO items
    */
   private generateTODOList(tasks: Array<any>, phaseNum: number): string {
     if (tasks.length === 0) {
@@ -1293,45 +1444,111 @@ ${task.description}`;
       console.warn(`[SDDImplementTool] Filtered ${tasks.length - tasksWithIds.length} tasks without valid IDs`);
     }
     
-    // Generate TODO items with MANDATORY task ID format
-    const todoItems = tasksWithIds.map((task, index) => {
-      // CRITICAL: Task ID MUST be included in format "TASK-XXX Title"
-      const taskIdPrefix = task.id; // Already validated as TASK-XXX format
+    // Generate instructions for AI to create TODO list by analyzing each task
+    const taskInstructions = tasksWithIds.map((task, index) => {
+      const taskIdPrefix = task.id;
       const title = task.title || task.id;
+      const description = task.description || '';
       const nn = String(index + 1);
-      return `- [ ] ${taskIdPrefix}: ${title}\n   Run: sdd_implement phase=${phaseNum} task=${nn}\n   → See full details in specs/phase${phaseNum}-tasks.md`;
+      
+      // Extract key requirements from description for guidance
+      const requirements = this.extractKeyRequirements(description);
+      
+      return `## ${taskIdPrefix}: ${title}
+
+📋 **TASK ANALYSIS INSTRUCTIONS**:
+Analyze this task and create a TODO list that breaks it down into manageable subtasks.
+
+**Task Requirements to Consider**:
+${requirements.length > 0 ? requirements.map((req, idx) => `${idx + 1}. ${req}`).join('\n') : '- Review the task description and break it down into logical steps'}
+
+**TODO List Creation Guidelines**:
+1. **Identify ALL Components**: Break down the task by identifying each distinct requirement (look for "AND", "INCLUDE", "ALSO", "PLUS" connectors)
+2. **Create Subtasks**: For each major component, create a separate TODO item
+3. **Sequential Dependencies**: Order subtasks logically (setup before implementation, dependencies before dependents)
+4. **Specific Titles**: Each TODO should have a clear, actionable title (e.g., "Create Xcode project structure", "Configure Firebase environment variables")
+5. **Task ID Format**: Each TODO item MUST include the task ID prefix: \`- [ ] ${taskIdPrefix}-SUB-XXX: Title\` or \`- [ ] ${taskIdPrefix}: Subtask Title\`
+
+**Example TODO Breakdown**:
+If the task says "CREATE Xcode project AND CONFIGURE environment variables AND SETUP database schema", your TODO list should be:
+\`\`\`
+- [ ] ${taskIdPrefix}: Create initial Xcode project structure
+- [ ] ${taskIdPrefix}: Configure development environment variables
+- [ ] ${taskIdPrefix}: Setup database schema and collections
+- [ ] ${taskIdPrefix}: Verify all components are working
+\`\`\`
+
+**MANDATORY**: Create your TODO list NOW before starting implementation. Use your TODO creation tool to add these items.`;
       }).join('\n\n');
     
-    return `## TODO List - Phase ${phaseNum} (${tasksWithIds.length} tasks)
+    return `## TODO LIST CREATION INSTRUCTIONS
 
 ${this.getTaskFormatRequirements()}
 
-${todoItems}
+🚨 **CRITICAL**: You MUST create a TODO list by analyzing the task(s) below and breaking them down into manageable subtasks.
 
-💡 **HOW TO USE**: For each TODO above, find the full task specification in the "Phase ${phaseNum} Task Specifications" section below. Each task has:
-- Task Title
-- Complete description
-- Requirements & acceptance criteria
-- Prohibited actions
-- Anti-evasion rules
-- Proof required
-- Post verification instructions
-- Verification commands
-- Expected states
+**For each task listed below, you MUST:**
+1. Read the complete task description
+2. Identify ALL individual requirements (look for "AND", "INCLUDE", "ALSO", "PLUS" connectors)
+3. Create TODO items for each major requirement/component
+4. Order them logically (dependencies first)
+5. Use your TODO creation tool/feature to add these items to your workspace
 
-🚨 **CRITICAL**: For each task, you MUST implement ALL requirements listed in:
-1. The task description (all parts, not just the first part)
-2. The acceptance criteria (every single criterion)
-3. The verification commands (all commands)
-4. The expected state (complete state, not partial)
-5. Obey the prohibited actions
-6. Obey the anti-evasion rules
-7. Provide proof required by the task
-8. Follow the post verification instructions
-9. Run the verification commands
-10. Confirm the expected state by the task
+**TODO Item Format Requirements**:
+- **MUST** start with: \`- [ ] TASK-XXX: Title\` or \`- [ ] TASK-XXX-SUB-XXX: Title\`
+- **MUST** include the task ID (e.g., "TASK-001")
+- **FORBIDDEN**: Creating TODO items without task IDs like "- [ ] Setup project"
+- **REQUIRED**: Each TODO should be specific and actionable
 
-**DO NOT cherry-pick**: If a task says "Create page AND add navigation AND add functionality", you MUST do ALL three, not just create the page!`;
+---
+
+${taskInstructions}
+
+💡 **HOW TO USE**: 
+1. Create the TODO list using your TODO tool/feature
+2. Work through each TODO item sequentially
+3. Check off items as you complete them
+4. Reference the full task specification below for detailed requirements
+
+🚨 **CRITICAL**: If you skip TODO list creation and proceed directly to implementation, this is a methodology violation requiring restart from task 1.`;
+  }
+  
+  /**
+   * Extract key requirements from task description to help AI create TODO items
+   */
+  private extractKeyRequirements(description: string): string[] {
+    if (!description || description.trim().length === 0) {
+      return [];
+    }
+    
+    const requirements: string[] = [];
+    
+    // Look for action verbs followed by objects (CREATE X, SETUP Y, CONFIGURE Z)
+    const actionPattern = /(?:^|\s)(CREATE|SETUP|CONFIGURE|IMPLEMENT|DEFINE|ESTABLISH|BUILD|INSTALL|ADD|CONNECT|INTEGRATE|WRITE|GENERATE|DEPLOY)\s+([A-Z][^.!?]*(?:AND|INCLUDE|ALSO|PLUS)?[^.!?]*)/gi;
+    let match;
+    while ((match = actionPattern.exec(description)) !== null) {
+      const action = match[1];
+      const target = match[2].trim();
+      // Clean up the target (remove trailing connectors)
+      const cleanTarget = target.replace(/\s+(AND|INCLUDE|ALSO|PLUS)$/i, '').trim();
+      if (cleanTarget.length > 0 && cleanTarget.length < 100) {
+        requirements.push(`${action} ${cleanTarget}`);
+      }
+    }
+    
+    // If no action patterns found, look for "AND" connectors to identify multiple requirements
+    if (requirements.length === 0 && description.includes(' AND ')) {
+      const parts = description.split(/\s+AND\s+/i);
+      parts.forEach((part, idx) => {
+        const trimmed = part.trim();
+        if (trimmed.length > 10 && trimmed.length < 150) {
+          requirements.push(trimmed);
+        }
+      });
+    }
+    
+    // Limit to top 8 requirements to avoid overwhelming
+    return requirements.slice(0, 8);
   }
 
 
@@ -1346,12 +1563,12 @@ ${todoItems}
 
 TRUTH-SEEKING SYSTEM PROMPT:
 "I am an AI committed to absolute truthfulness and accuracy. I will:
-- Use Chain-of-Thought reasoning for all decisions
+- Think through requirements carefully before implementing
 - Provide evidence for every claim I make
 - Admit when I don't know something
-- Correct my own mistakes immediately
+- Correct my own mistakes when found
 - Never fabricate data or results
-- Always show my work and reasoning process"
+- Always show proof of work (code, commands, output)"
 
 HALLUCINATION PREVENTION:
 - I will only output information I can verify
@@ -1378,7 +1595,7 @@ I, the AI assistant, hereby commit to:
 VIOLATION OF THIS CONTRACT = IMMEDIATE RESET TO TASK 1
 
 🔬 ROBUST PROMPTING STRATEGIES ACTIVATED 🔬
-CHAIN-OF-THOUGHT REQUIREMENT: I must explain my reasoning before any action
+THINKING REQUIREMENT: Think through requirements before taking action
 SELF-VERIFICATION: I must double-check all claims against evidence
 EVIDENCE-BASED RESPONSES: Every claim must be backed by verifiable proof
 CONSTRAINED OUTPUT: Responses must follow strict formatting rules
@@ -1465,12 +1682,12 @@ MANDATORY VERIFICATION FOR TASK COMPLETION:
 VIOLATION = TASK REJECTION + AUDIT LOGGING
 
 📊 EVIDENCE-BASED PROMPTING REQUIREMENTS 📊
-CHAIN-OF-THOUGHT REASONING REQUIRED:
+TASK EXECUTION PROCESS:
 1. **ANALYZE**: What does this task actually require?
 2. **PLAN**: What specific steps must I take?
-3. **EXECUTE**: What commands will I run?
-4. **VERIFY**: How will I prove completion?
-5. **VALIDATE**: Does the evidence match the requirements?
+3. **EXECUTE**: Run commands and implement code
+4. **VERIFY**: Show proof of completion (terminal output, code snippets)
+5. **VALIDATE**: Confirm evidence matches requirements
 
 EVIDENCE CHAIN:
 - Command executed → Terminal output shown → Result verified → Task criteria met
@@ -1518,7 +1735,7 @@ MANDATORY MINI-CHECKLIST:
 - [ ] If GREEN required: PASS/✓/0 failed visible (and ≥85% coverage if specified)
 - [ ] Shown real code snippet for implementation tasks
 - [ ] No placeholders/TODOs; handlers call real API functions
-- [ ] Ready to immediately run: sdd_implement phase=${phaseNum} task=${taskId} complete=true
+- [ ] Ready to mark complete: sdd_implement phase=${phaseNum} task=${taskId} complete=true
 
 ---
 
@@ -1532,10 +1749,10 @@ AFTER IMPLEMENTING THIS TASK:
 1. Call: sdd_implement phase=${phaseNum} task=${taskId} complete=true
 2. Then call: sdd_implement phase=${phaseNum} (for next task)
 
-NO SUMMARIES. NO EXPLANATIONS. JUST IMPLEMENT AND CALL NEXT TOOL.
+FOCUS: Implement the task, show verification proof (code/commands/output), then call next tool.
 
 🚨 CRITICAL IMPLEMENTATION REQUIREMENTS 🚨
-IMPLEMENTATION_REQUIRED: You MUST write the actual code for ${taskId} RIGHT NOW. This tool provides guidance only.
+IMPLEMENTATION_REQUIRED: You MUST write the actual code for ${taskId}. This tool provides guidance only.
 TASK_TO_IMPLEMENT: ${taskId}
 PHASE: ${phaseNum}
 
@@ -1543,12 +1760,12 @@ CRITICAL_INSTRUCTIONS:
 ❌ DO NOT implement multiple tasks
 ❌ DO NOT provide progress summaries
 ❌ DO NOT stop after this task
-✅ Implement ONLY ${taskId} right now
+✅ Implement ONLY ${taskId} (complete all requirements including verification if needed)
 ✅ After implementing, call: sdd_implement phase=${phaseNum} task=${taskId} complete=true
 ✅ Then call: sdd_implement phase=${phaseNum} for the next task
 
 NEXT_REQUIRED_ACTION: 1. Implement ${taskId} code, 2. Call complete=true, 3. Call for next task
-WARNING: CONTINUOUS EXECUTION REQUIRED: Implement this task, mark complete, get next task. No summaries or stops.
+WARNING: Complete this task fully (including verification if needed), mark complete, then get next task.
 `;
   }
 
@@ -1593,12 +1810,12 @@ MANDATORY VERIFICATION FOR TASK COMPLETION:
 VIOLATION = TASK REJECTION + AUDIT LOGGING
 
 📊 EVIDENCE-BASED PROMPTING REQUIREMENTS 📊
-CHAIN-OF-THOUGHT REASONING REQUIRED:
+TASK EXECUTION PROCESS:
 1. **ANALYZE**: What does this task actually require?
 2. **PLAN**: What specific steps must I take?
-3. **EXECUTE**: What commands will I run?
-4. **VERIFY**: How will I prove completion?
-5. **VALIDATE**: Does the evidence match the requirements?
+3. **EXECUTE**: Run commands and implement code
+4. **VERIFY**: Show proof of completion (terminal output, code snippets)
+5. **VALIDATE**: Confirm evidence matches requirements
 
 EVIDENCE CHAIN:
 - Command executed → Terminal output shown → Result verified → Task criteria met
@@ -1627,14 +1844,14 @@ MANDATORY MINI-CHECKLIST:
 - [ ] If GREEN required: PASS/✓/0 failed visible (and ≥85% coverage if specified)
 - [ ] Shown real code snippet for implementation tasks
 - [ ] No placeholders/TODOs; handlers call real API functions
-- [ ] Ready to immediately run: ${nextCall ?? 'N/A'}
+- [ ] Ready to proceed to next task: ${nextCall ?? 'N/A'}
 - [ ] Tests create their own data (NO hardcoded IDs); create then query by created IDs
 - [ ] If coverage required: visible ≥85% line in output
 - [ ] If blocked by sequencing: run previous task or mark it complete explicitly
 
 ---
 
-MINI TODO (execute end-to-end without pausing):
+MINI TODO (complete all steps before marking done):
 - [ ] Parse all requirements from Description/Requirements/Acceptance (count all AND/INCLUDE)
 - [ ] Implement code fully (show snippet) and list changed file paths
 - [ ] Run ALL Verification commands exactly as listed and paste terminal output
@@ -1653,9 +1870,23 @@ REQUIRED COMPLETION TEMPLATE (paste in your final answer when done):
 [Show actual working code snippet relevant to this task]
 
 ## Verification (terminal)
+${tasks[0]?.verification?.commands?.length > 0 || (tasks[0]?.description?.toUpperCase().includes('EXECUTE') || tasks[0]?.description?.toUpperCase().includes('RUN') || tasks[0]?.description?.toUpperCase().includes('TEST')) ? `🚨🚨🚨 EXECUTION CHECKPOINT - MANDATORY 🚨🚨🚨
+
+⛔ DO NOT mark this task complete until you have executed ALL verification commands and shown terminal output!
+
+**Required Actions**:
+1. Run ALL verification commands listed in task specification
+2. Copy/paste ACTUAL terminal output (not fabricated)
+3. Show required status (GREEN/PASS/0 errors/coverage % if required)
+4. Verify output matches acceptance criteria
+
+**If task requires EXECUTE/RUN/TEST/SHOW GREEN, you MUST run commands and show output BEFORE marking complete.**
+
 \`\`\`bash
 [Paste ACTUAL command output showing PASS/✓/0 failed and coverage if required]
-\`\`\`
+\`\`\`` : `\`\`\`bash
+[Paste ACTUAL command output showing PASS/✓/0 failed and coverage if required]
+\`\`\``}
 \`\`\`
 
 EXECUTION GUARDS:
@@ -1678,10 +1909,10 @@ ${nextCall ? `**Next Call:** ${nextCall}` : ''}
 
 
 
-🚨🚨🚨 CRITICAL: DO NOT STOP UNTIL ALL ${tasks.length} TASKS ARE DONE 🚨🚨🚨
+🚨🚨🚨 CRITICAL: COMPLETE ALL ${tasks.length} TASKS SEQUENTIALLY 🚨🚨🚨
+🚨🚨🚨 CRITICAL: COMPLETE EACH TASK FULLY (including verification) BEFORE MOVING TO NEXT 🚨🚨🚨
 🚨🚨🚨 CRITICAL: DO NOT ASK FOR PERMISSION TO CONTINUE 🚨🚨🚨  
 🚨🚨🚨 CRITICAL: DO NOT PROVIDE STATUS UPDATES MID-PHASE 🚨🚨🚨
-🚨🚨🚨 CRITICAL: WORK WITHOUT COMMUNICATION THROUGH ALL ${tasks.length} TASKS 🚨🚨🚨
 
 ---
 
@@ -1694,10 +1925,10 @@ ${nextCall ? `**Next Call:** ${nextCall}` : ''}
 
 ### 1.2. Zero Tolerance for Excuses
    **🚫 NEVER SAY:**
-   - "Sorry, I didn't run the tests" → NO EXCUSES! Run them immediately!
+   - "Sorry, I didn't run the tests" → NO EXCUSES! Run them NOW before marking complete!
    - "I'll run them now" → Should have done it the first time!
    - "Let me add tests" → Tests were already supposed to be run!
-   - "I forgot to run tests" → UNACCEPTABLE! Run ALL tests immediately!
+   - "I forgot to run tests" → UNACCEPTABLE! Run ALL tests NOW before proceeding!
 
    **✅ ALWAYS DO:**
    - Run ALL verification commands in EVERY task
@@ -1937,14 +2168,35 @@ For tasks requiring GREEN status, you MUST show PASS/✓/0 failed in terminal ou
 
 ## 6. TEST EXECUTION REQUIREMENTS
 
-### 6.1. Mandatory Test Execution
-   - When task says "EXECUTE tests" or "RUN tests", you MUST actually run test commands
-   - Creating tests is NOT enough - you must execute them
-   - Always show actual output of test execution commands
-   - Verify test status: pass (GREEN) or fail (RED)
-   - Ensure 85% coverage threshold
+### 6.1. Mandatory Test Execution (NON-NEGOTIABLE)
+   ⚠️ **CRITICAL**: When task says "EXECUTE tests" or "RUN tests", you MUST actually run test commands
+   ⚠️ **FORBIDDEN**: Creating tests is NOT enough - you must execute them
+   ⚠️ **REQUIRED**: Always show actual output of test execution commands
+   ⚠️ **BLOCKED**: Completion is BLOCKED until execution proof is provided
 
-### 6.2. Common Test Commands by Platform
+### 6.2. What Happens If You Skip Execution
+   **If you try to mark complete without execution proof:**
+   - Task completion will be REJECTED
+   - You will receive explicit error message
+   - Task will remain incomplete
+   - You MUST execute commands and show output before retrying
+   
+   **Common Violations (ALL FORBIDDEN):**
+   - ❌ "Created test files" → Must also run tests
+   - ❌ "Implemented code" → Must also execute verification
+   - ❌ "Tests should pass" → Must actually run them and show output
+   - ❌ "Will run tests later" → Must run NOW before marking complete
+   - ❌ Describing what you did → Must show ACTUAL terminal output
+   
+   **Correct Approach:**
+   - ✅ Run test commands
+   - ✅ Copy/paste ACTUAL terminal output
+   - ✅ Show PASS/✓/0 failed status
+   - ✅ Show coverage % if required
+   - ✅ Include output in code blocks
+   - ✅ THEN mark complete
+
+### 6.3. Common Test Commands by Platform
    - **Web**: \`npm test\`, \`npx jest\`, \`npx vitest\`
    - **Backend**: \`npm test\`, \`python -m pytest\`, \`go test\`
    - **Mobile**: \`npm test\`, \`npx react-native test\`, \`flutter test\`
@@ -2065,15 +2317,152 @@ ${this.getCompletionRequirements()}
   }
 
   /**
+   * Detect if execution evidence is present in task completion
+   * This checks for common patterns that indicate commands were actually executed
+   */
+  private detectExecutionEvidence(taskSpec: string, verificationCommands: string[]): { hasEvidence: boolean; evidenceType: string; missingRequirements: string[] } {
+    const specUpper = taskSpec.toUpperCase();
+    const missingRequirements: string[] = [];
+    let hasEvidence = false;
+    let evidenceType = 'none';
+    
+    // Check for execution verbs in task spec
+    const requiresExecution = specUpper.includes('EXECUTE') || specUpper.includes('RUN') || specUpper.includes('TEST');
+    const requiresShow = specUpper.includes('SHOW') || specUpper.includes('TERMINAL OUTPUT') || specUpper.includes('OUTPUT');
+    const requiresGreen = specUpper.includes('GREEN') || specUpper.includes('PASS') || specUpper.includes('0 FAILED');
+    const requiresCoverage = specUpper.includes('COVERAGE') && specUpper.includes('%');
+    const requiresCompile = specUpper.includes('COMPILE') || specUpper.includes('BUILD');
+    
+    // This method will be called by verifyTaskCompletion
+    // We can't check actual response content here, but we can identify what's required
+    // The actual enforcement happens through the blocking requirements and explicit checkpoints
+    
+    if (requiresExecution) {
+      missingRequirements.push('EXECUTE commands (not just create files)');
+    }
+    if (requiresShow) {
+      missingRequirements.push('SHOW terminal output (actual command execution proof)');
+    }
+    if (requiresGreen) {
+      missingRequirements.push('SHOW GREEN/PASS status in terminal output');
+    }
+    if (requiresCoverage) {
+      missingRequirements.push('SHOW coverage percentage ≥85% in terminal output');
+    }
+    if (requiresCompile) {
+      missingRequirements.push('EXECUTE compilation command and show output');
+    }
+    
+    // If no specific requirements, assume execution is needed if verification commands exist
+    if (verificationCommands.length > 0 && missingRequirements.length === 0) {
+      missingRequirements.push('EXECUTE verification commands and show output');
+    }
+    
+    return { hasEvidence, evidenceType, missingRequirements };
+  }
+
+  /**
    * Verify that a task's requirements are actually met before allowing completion
    */
-  private verifyTaskCompletion(taskId: string, taskIndex: number, phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult): { isComplete: boolean; reason: string; details: string; requirements: string[] } {
+  private verifyTaskCompletion(taskId: string, taskIndex: number, phaseNum: number, tasksMarkdown: string, platformDetection: PlatformDetectionResult): { isComplete: boolean; reason: string; details: string; requirements: string[]; blocksCompletion: boolean } {
     const basePath = path.resolve(this.basePath);
 
     // Get the task specification to understand requirements
     const taskSpec = this.extractSingleTaskSpec(tasksMarkdown, taskId);
+    
+    // Extract task object for verification check
+    const allTasks = this.extractTasks(tasksMarkdown);
+    const task = allTasks.find(t => t.id === taskId);
+    
+    // Check if this is a verification task
+    const verificationCheck = task ? this.isVerificationTask(task) : { isVerification: false, reasons: [] };
+    
+    // Get verification commands from task
+    const verificationCommands = task?.verification?.commands || [];
+    
+    // For verification tasks, add special requirements and BLOCK completion if execution is required
+    if (verificationCheck.isVerification) {
+      const verificationRequirements: string[] = [];
+      
+      // Check for verification verbs in task spec
+      const specUpper = taskSpec.toUpperCase();
+      const executionEvidence = this.detectExecutionEvidence(taskSpec, verificationCommands);
+      
+      if (specUpper.includes('EXECUTE') || specUpper.includes('RUN')) {
+        verificationRequirements.push('🚨 MANDATORY: Verification commands must be EXECUTED (not just mentioned or files created)');
+      }
+      if (specUpper.includes('SHOW') || specUpper.includes('TERMINAL OUTPUT')) {
+        verificationRequirements.push('🚨 MANDATORY: Terminal output must be SHOWN (actual command execution proof required)');
+      }
+      if (specUpper.includes('GREEN') || specUpper.includes('PASS') || specUpper.includes('0 FAILED')) {
+        verificationRequirements.push('🚨 MANDATORY: Test results must show GREEN/PASS status in terminal output');
+      }
+      if (specUpper.includes('COVERAGE') && specUpper.includes('%')) {
+        verificationRequirements.push('🚨 MANDATORY: Coverage percentage must be shown in terminal output');
+      }
+      if (specUpper.includes('COMPILE') || specUpper.includes('BUILD')) {
+        verificationRequirements.push('🚨 MANDATORY: Compilation command must be executed and output shown');
+      }
+      
+      const allRequirements = [
+        '🚨🚨🚨 VERIFICATION TASK - EXECUTION IS MANDATORY - COMPLETION BLOCKED UNTIL PROOF PROVIDED 🚨🚨🚨',
+        ...verificationRequirements,
+        '🚨 Terminal output must be visible in your response',
+        '🚨 All verification commands must be executed BEFORE marking complete',
+        '🚨 Output must match acceptance criteria',
+        '🚨 DO NOT mark complete until you have executed commands and shown proof'
+      ];
+      
+      // BLOCK completion for ALL verification tasks that have verification commands
+      // This is a hard requirement - the AI must provide execution proof
+      // Even if task doesn't explicitly say "EXECUTE", if it has verification commands, execution is required
+      const blocksCompletion = verificationCheck.isVerification && (
+                               executionEvidence.missingRequirements.length > 0 || 
+                               specUpper.includes('EXECUTE') || 
+                               specUpper.includes('RUN') || 
+                               specUpper.includes('TEST') ||
+                               specUpper.includes('SHOW GREEN') ||
+                               specUpper.includes('CONFIRM') ||
+                               specUpper.includes('VERIFY') ||
+                               verificationCommands.length > 0);
+      
+      return {
+        isComplete: false, // BLOCK completion until execution proof is provided
+        reason: 'Verification task requires execution proof',
+        details: `🚨🚨🚨 VERIFICATION TASK - COMPLETION BLOCKED 🚨🚨🚨
 
-    // Parse the task specification to extract requirements
+**Task Type**: ${verificationCheck.verificationType || 'VERIFICATION'}
+**Detection**: ${verificationCheck.reasons.join(', ')}
+
+**⛔ THIS TASK CANNOT BE MARKED COMPLETE UNTIL YOU PROVIDE EXECUTION PROOF ⛔**
+
+**MANDATORY REQUIREMENTS** (must all be met):
+${verificationRequirements.length > 0 ? verificationRequirements.map(r => `- ${r}`).join('\n') : '- Execute verification commands and show output'}
+${executionEvidence.missingRequirements.length > 0 ? `\n**Missing Requirements**:\n${executionEvidence.missingRequirements.map(r => `- ${r}`).join('\n')}` : ''}
+
+**EXECUTION CHECKPOINT** (Complete ALL before marking done):
+1. ✅ Run ALL verification commands from task specification
+2. ✅ Capture ACTUAL terminal output (copy/paste real output)
+3. ✅ Show required status (GREEN/PASS/0 errors/coverage % if required)
+4. ✅ Verify output matches acceptance criteria
+5. ✅ Include output in your response using:
+   \`\`\`bash
+   [paste ACTUAL terminal output here]
+   \`\`\`
+
+**❌ DO NOT mark complete until you have:**
+- Executed commands (not just created files)
+- Shown terminal output (not just described what you did)
+- Proven GREEN status (if required)
+- Shown coverage (if required)
+
+**If you mark complete without execution proof, this is a methodology violation and the task will be rejected.**`,
+        requirements: allRequirements,
+        blocksCompletion: true // Hard block - cannot complete without execution proof
+      };
+    }
+
+    // Parse the task specification to extract requirements for non-verification tasks
     const requirements = this.parseTaskRequirements(taskSpec, platformDetection);
     const missingRequirements: string[] = [];
 
@@ -2089,7 +2478,8 @@ ${this.getCompletionRequirements()}
         isComplete: false,
         reason: 'Task requirements not met',
         details: `Missing ${missingRequirements.length} of ${requirements.length} requirements: ${missingRequirements.slice(0, 3).join(', ')}${missingRequirements.length > 3 ? '...' : ''}`,
-        requirements: requirements.map(req => `❌ ${req}`)
+        requirements: requirements.map(req => `❌ ${req}`),
+        blocksCompletion: false
       };
     }
 
@@ -2097,7 +2487,8 @@ ${this.getCompletionRequirements()}
       isComplete: true,
       reason: 'Task verification passed',
       details: 'All task requirements verified as implemented',
-      requirements: requirements.map(req => `✅ ${req}`)
+      requirements: requirements.map(req => `✅ ${req}`),
+      blocksCompletion: false
     };
   }
 

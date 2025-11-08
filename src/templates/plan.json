@@ -1,7 +1,7 @@
 {
   "id": "sdd-plan-perfect-v2",
   "name": "SDD Plan Template (AI-Driven Task Structure)",
-  "version": "2.1.0",
+  undefined,
   "description": "Implementation plan template focused on HOW to implement (not WHAT to implement)",
   "template_data": {
     "title": "Implementation Plan: {{FEATURE_NAME}}",
@@ -70,6 +70,55 @@
           "content": "{{PHASE_4_TESTING_DOCUMENTATION_DEPLOYMENT}}",
           "instruction": "🚨 CRITICAL: Task numbering RESETS to TASK-001 for this phase (do NOT continue from Phase 3's TASK-009). Complete testing, optimization, documentation, and production readiness with comprehensive verification. Comprehensive testing suite execution, system optimization and security hardening, production build verification, documentation generation, security assessment with penetration testing, load testing and scalability verification, database migration scripts and data seeding. Each domain follows strict verification requirements with architectural compliance. NO SHORTCUTS - every verification must be demonstrated with complete proof trail and production readiness confirmation. Number tasks as TASK-001, TASK-002, ..., TASK-007 (starting from 001 again)."
         }
+      }
+    },
+    "userStoriesCoverage": {
+      "title": "User Stories Coverage",
+      "description": "Comprehensive mapping of all user stories to implementation phases",
+      "content": "{{USER_STORIES_COVERAGE}}",
+      "instruction": "🚨 MANDATORY: Extract ALL user stories from parsedSpecData.userStories array. List each user story with ID (US-XXX), persona, goal, and benefit. Map each user story to the appropriate implementation phase(s): Phase 1 (Foundation), Phase 2 (Core Logic), Phase 3 (UI), Phase 4 (Testing). Include user story references in phase descriptions. Ensure 100% coverage - NO user stories should be missing from the plan.",
+      "format": "For each user story, include:\n- User Story ID (US-001, US-002, etc.)\n- Persona: [user type]\n- Goal: [what they want]\n- Benefit: [why they want it]\n- Mapped Phases: [Phase 1, Phase 2, Phase 3, Phase 4]\n- Implementation Notes: [how this story is implemented]"
+    },
+    "scenariosCoverage": {
+      "title": "Scenarios Coverage",
+      "description": "Comprehensive mapping of all scenarios (Happy Path, Negative, Edge Cases) to implementation phases",
+      "happyPath": {
+        "title": "Happy Path Scenarios",
+        "content": "{{HAPPY_PATH_SCENARIOS_COVERAGE}}",
+        "instruction": "🚨 MANDATORY: Extract ALL Happy Path scenarios from parsedSpecData.scenarios.happyPath array. List each scenario with Given-When-Then format. Map to Phase 2 (Core Logic) and Phase 3 (UI). Include scenario references in phase descriptions. Ensure 100% coverage."
+      },
+      "negative": {
+        "title": "Negative Scenarios",
+        "content": "{{NEGATIVE_SCENARIOS_COVERAGE}}",
+        "instruction": "🚨 MANDATORY: Extract ALL Negative scenarios from parsedSpecData.scenarios.negative array. List each scenario with Given-When-Then format. Map to Phase 2 (Validation) and Phase 4 (Testing). Include scenario references in phase descriptions. Ensure 100% coverage."
+      },
+      "edgeCases": {
+        "title": "Edge Case Scenarios",
+        "content": "{{EDGE_CASE_SCENARIOS_COVERAGE}}",
+        "instruction": "🚨 MANDATORY: Extract ALL Edge Case scenarios from parsedSpecData.scenarios.edgeCases array. List each scenario with Given-When-Then format. Map to Phase 2 (Business Logic) and Phase 4 (Testing). Include scenario references in phase descriptions. Ensure 100% coverage."
+      }
+    },
+    "functionalRequirementsMapping": {
+      "title": "Functional Requirements Mapping",
+      "description": "Comprehensive mapping of all functional requirements (FR-XXX) to implementation phases",
+      "content": "{{FUNCTIONAL_REQUIREMENTS_MAPPING}}",
+      "instruction": "🚨 MANDATORY: Extract ALL functional requirements from parsedSpecData.functionalRequirements array. List each FR-XXX with ID and description. Map each FR to appropriate phase(s) based on requirement type: FR-001 to FR-010 (Phase 1 & 2), FR-011 to FR-020 (Phase 2 & 3), FR-021 to FR-030 (Phase 3 & 4). Include FR references in phase descriptions and task breakdowns. Ensure 100% coverage - NO FRs should be missing. Every FR must be traceable to implementation tasks.",
+      "format": "For each functional requirement, include:\n- FR ID (FR-001, FR-002, etc.)\n- Description: [requirement description]\n- Mapped Phases: [Phase 1, Phase 2, Phase 3, Phase 4]\n- Implementation Tasks: [which tasks implement this FR]\n- Traceability: [how this FR is verified]"
+    },
+    "specCompletenessValidation": {
+      "title": "Specification Completeness Validation",
+      "description": "Validation report ensuring all spec elements are included in the plan",
+      "content": "{{SPEC_COMPLETENESS_VALIDATION}}",
+      "instruction": "🚨 MANDATORY: Include completeness report from parsedSpecData. Show counts for user stories, scenarios, functional requirements, and edge cases. List any warnings from completenessReport. Confirm that ALL extracted elements appear in the plan. Missing elements will cause validation to fail.",
+      "checklist": {
+        "userStories": "All user stories from spec included in plan",
+        "happyPathScenarios": "All Happy Path scenarios from spec included in plan",
+        "negativeScenarios": "All Negative scenarios from spec included in plan",
+        "edgeCaseScenarios": "All Edge Case scenarios from spec included in plan",
+        "functionalRequirements": "All FR-XXX requirements from spec included in plan",
+        "edgeCaseItems": "All Edge Case items from spec included in plan",
+        "phaseMapping": "All elements mapped to appropriate implementation phases",
+        "traceability": "All elements traceable to implementation tasks"
       }
     },
     "databaseStrategy": {

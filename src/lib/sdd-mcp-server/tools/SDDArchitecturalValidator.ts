@@ -51,11 +51,14 @@ export class SDDArchitecturalValidator {
       // Extract architecture pattern from spec
       const architecturePattern = this.extractArchitectureFromSpec(specContent);
 
+      // Extract platform from spec
+      const platformInfo = this.extractPlatformFromSpec(specContent);
+
       // Load current implementation state
       const implementationState = this.analyzeImplementation(phase);
 
-      // Validate against architectural requirements (architecture-aware)
-      const validationResult = this.validateArchitecture(specContent, implementationState, phase, architecturePattern);
+      // Validate against architectural requirements (architecture-aware and platform-aware)
+      const validationResult = this.validateArchitecture(specContent, implementationState, phase, architecturePattern, platformInfo);
 
       // Generate validation report
       const report = this.generateValidationReport(validationResult, phase, strict_mode);
@@ -294,17 +297,32 @@ export class SDDArchitecturalValidator {
 
       case 3: // UI/UX Development - Frontend Implementation
         // Phase 3 should implement user interface and frontend logic
+        // Platform-agnostic component detection
         const hasComponents = state.files.some(file =>
           file.includes('/components/') ||
           file.includes('/ui/') ||
           file.includes('/views/') ||
-          file.includes('/screens/')
+          file.includes('/screens/') ||
+          file.includes('ViewController') ||
+          file.includes('View.swift') ||
+          file.includes('ContentView') ||
+          file.includes('Activity') ||
+          file.includes('Fragment') ||
+          file.includes('Composable') ||
+          (file.includes('.swift') && (file.includes('View') || file.includes('Screen'))) ||
+          (file.includes('.kt') && (file.includes('Screen') || file.includes('View')))
         );
 
         const hasPages = state.files.some(file =>
           file.includes('/pages/') ||
           file.includes('/routes/') ||
-          file.includes('/navigation/')
+          file.includes('/navigation/') ||
+          file.includes('Navigation') ||
+          file.includes('Router') ||
+          file.includes('Coordinator') ||
+          file.includes('NavController') ||
+          file.includes('react-navigation') ||
+          file.includes('@react-navigation')
         );
 
         const hasStyles = state.files.some(file =>
@@ -312,7 +330,10 @@ export class SDDArchitecturalValidator {
           file.includes('.scss') ||
           file.includes('.less') ||
           file.includes('/styles/') ||
-          file.includes('/theme/')
+          file.includes('/theme/') ||
+          file.includes('swiftui') ||
+          file.includes('material') ||
+          file.includes('compose')
         );
 
         // Add Phase 3 specific patterns
@@ -387,7 +408,58 @@ export class SDDArchitecturalValidator {
     return 'traditional-backend'; // Default
   }
 
-  private validateArchitecture(specContent: string, implementation: ImplementationState, phase: number, architecturePattern: string): ValidationResult {
+  /**
+   * Extract platform from spec
+   */
+  private extractPlatformFromSpec(specContent: string): { platform: string; framework: string } {
+    const content = specContent.toLowerCase();
+    
+    // Check metadata section for platform
+    const metadataMatch = specContent.match(/platform[:\s]*([^\n]+)/i);
+    if (metadataMatch) {
+      const platformText = metadataMatch[1].toLowerCase();
+      if (platformText.includes('ios') || platformText.includes('swift')) {
+        return { platform: 'mobile', framework: 'ios-native' };
+      }
+      if (platformText.includes('android') || platformText.includes('kotlin')) {
+        return { platform: 'mobile', framework: 'android-native' };
+      }
+      if (platformText.includes('react-native') || platformText.includes('expo')) {
+        return { platform: 'mobile', framework: 'react-native' };
+      }
+      if (platformText.includes('web') || platformText.includes('next')) {
+        return { platform: 'web', framework: 'nextjs' };
+      }
+    }
+
+    // Check for iOS/Swift keywords
+    if (content.includes('swift') || content.includes('swiftui') || content.includes('xcode') || 
+        (content.includes('ios') && !content.includes('react-native'))) {
+      return { platform: 'mobile', framework: 'ios-native' };
+    }
+
+    // Check for Android/Kotlin keywords
+    if (content.includes('kotlin') || content.includes('android studio') || 
+        (content.includes('android') && !content.includes('react-native'))) {
+      return { platform: 'mobile', framework: 'android-native' };
+    }
+
+    // Check for React Native
+    if (content.includes('react-native') || content.includes('expo')) {
+      return { platform: 'mobile', framework: 'react-native' };
+    }
+
+    // Check for web
+    if (content.includes('next.js') || content.includes('nextjs') || 
+        (content.includes('web') && !content.includes('mobile'))) {
+      return { platform: 'web', framework: 'nextjs' };
+    }
+
+    // Default to web if not detected
+    return { platform: 'web', framework: 'nextjs' };
+  }
+
+  private validateArchitecture(specContent: string, implementation: ImplementationState, phase: number, architecturePattern: string, platformInfo: { platform: string; framework: string }): ValidationResult {
     const result: ValidationResult = {
       isComplete: true,
       criticalGaps: [],
@@ -418,8 +490,8 @@ export class SDDArchitecturalValidator {
       }
     });
 
-    // Validate phase-specific requirements (architecture-aware)
-    const phaseValidation = this.validatePhaseSpecificRequirements(implementation, phase, architecturePattern);
+    // Validate phase-specific requirements (architecture-aware and platform-aware)
+    const phaseValidation = this.validatePhaseSpecificRequirements(implementation, phase, architecturePattern, platformInfo);
     result.phaseSpecificValidation = phaseValidation;
 
     // Add phase-specific gaps to critical gaps if they fail
@@ -547,7 +619,7 @@ export class SDDArchitecturalValidator {
     return validation;
   }
 
-  private validatePhaseSpecificRequirements(implementation: ImplementationState, phase: number, architecturePattern: string): { criticalGaps: RequirementValidation[], warnings: RequirementValidation[] } {
+  private validatePhaseSpecificRequirements(implementation: ImplementationState, phase: number, architecturePattern: string, platformInfo: { platform: string; framework: string }): { criticalGaps: RequirementValidation[], warnings: RequirementValidation[] } {
     const result = { criticalGaps: [] as RequirementValidation[], warnings: [] as RequirementValidation[] };
 
     switch (phase) {
@@ -663,35 +735,146 @@ export class SDDArchitecturalValidator {
         break;
 
       case 3: // UI/UX Development - Frontend Implementation
-        // Critical: Must have UI components and page structure
-        if (!implementation.patterns['hasUIComponents']) {
-          result.criticalGaps.push({
-            requirement: 'UI components (/components/ or /ui/)',
-            passed: false,
-            critical: true,
-            evidence: [],
-            message: 'Missing UI components - user interface not implemented'
-          });
+        // Platform-aware validation for UI components
+        if (platformInfo.framework === 'ios-native') {
+          // iOS native: Check for ViewControllers, Views, SwiftUI views
+          const hasIOSViews = implementation.files.some(file =>
+            file.includes('ViewController') ||
+            file.includes('View.swift') ||
+            file.includes('ContentView') ||
+            file.includes('.swift') && (file.includes('View') || file.includes('Screen'))
+          );
+          
+          if (!hasIOSViews) {
+            result.criticalGaps.push({
+              requirement: 'iOS UI Views (ViewControllers, SwiftUI Views)',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing iOS UI components - ViewControllers, Views, or SwiftUI views not implemented'
+            });
+          }
+
+          // Check for navigation structure (UINavigationController, NavigationStack for SwiftUI)
+          const hasNavigation = implementation.files.some(file =>
+            file.includes('Navigation') ||
+            file.includes('Router') ||
+            file.includes('Coordinator')
+          );
+
+          if (!hasNavigation) {
+            result.criticalGaps.push({
+              requirement: 'iOS Navigation structure',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing iOS navigation structure - UINavigationController or NavigationStack not implemented'
+            });
+          }
+        } else if (platformInfo.framework === 'android-native') {
+          // Android native: Check for Activities, Fragments, Composables
+          const hasAndroidViews = implementation.files.some(file =>
+            file.includes('Activity') ||
+            file.includes('Fragment') ||
+            file.includes('Composable') ||
+            file.includes('.kt') && (file.includes('Screen') || file.includes('View'))
+          );
+
+          if (!hasAndroidViews) {
+            result.criticalGaps.push({
+              requirement: 'Android UI Components (Activities, Fragments, Composables)',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing Android UI components - Activities, Fragments, or Composables not implemented'
+            });
+          }
+
+          // Check for navigation (NavController, Navigation Component)
+          const hasNavigation = implementation.files.some(file =>
+            file.includes('Navigation') ||
+            file.includes('NavController')
+          );
+
+          if (!hasNavigation) {
+            result.criticalGaps.push({
+              requirement: 'Android Navigation structure',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing Android navigation structure - Navigation Component not implemented'
+            });
+          }
+        } else if (platformInfo.framework === 'react-native') {
+          // React Native: Check for components and navigation
+          const hasComponents = implementation.files.some(file =>
+            file.includes('/components/') ||
+            file.includes('/screens/') ||
+            file.includes('.tsx') || file.includes('.jsx')
+          );
+
+          if (!hasComponents) {
+            result.criticalGaps.push({
+              requirement: 'React Native components (/components/ or /screens/)',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing React Native components - UI components not implemented'
+            });
+          }
+
+          const hasNavigation = implementation.files.some(file =>
+            file.includes('navigation') ||
+            file.includes('react-navigation') ||
+            file.includes('@react-navigation')
+          );
+
+          if (!hasNavigation) {
+            result.criticalGaps.push({
+              requirement: 'React Native navigation',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing React Native navigation - react-navigation not configured'
+            });
+          }
+        } else {
+          // Web platforms (Next.js, React, etc.): Use web-style patterns
+          if (!implementation.patterns['hasUIComponents']) {
+            result.criticalGaps.push({
+              requirement: 'UI components (/components/ or /ui/)',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing UI components - user interface not implemented'
+            });
+          }
+
+          if (!implementation.patterns['hasPageStructure']) {
+            result.criticalGaps.push({
+              requirement: 'Page structure (/pages/ or /routes/)',
+              passed: false,
+              critical: true,
+              evidence: [],
+              message: 'Missing page structure - application navigation not implemented'
+            });
+          }
         }
 
-        if (!implementation.patterns['hasPageStructure']) {
-          result.criticalGaps.push({
-            requirement: 'Page structure (/pages/ or /routes/)',
-            passed: false,
-            critical: true,
-            evidence: [],
-            message: 'Missing page structure - application navigation not implemented'
-          });
-        }
-
-        // Warning: Styling
+        // Warning: Styling (platform-agnostic)
         if (!implementation.patterns['hasStyling']) {
+          const stylingMessage = platformInfo.framework === 'ios-native' 
+            ? 'Consider adding SwiftUI styling or UIKit design patterns'
+            : platformInfo.framework === 'android-native'
+            ? 'Consider adding Material Design or Jetpack Compose theming'
+            : 'Consider adding styling for better user experience';
+          
           result.warnings.push({
-            requirement: 'Styling system (CSS/SCSS or styling framework)',
+            requirement: 'Styling system',
             passed: false,
             critical: false,
             evidence: [],
-            message: 'Consider adding styling for better user experience'
+            message: stylingMessage
           });
         }
         break;

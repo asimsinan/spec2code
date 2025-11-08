@@ -8,6 +8,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { EdgeCaseAnalyzer } from '../utils/EdgeCaseAnalyzer.js';
+import { SpecParser } from '../utils/SpecParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,11 +16,13 @@ const __dirname = dirname(__filename);
 export class SDDPlanTool {
   private basePath: string;
   private edgeCaseAnalyzer: EdgeCaseAnalyzer;
+  private specParser: SpecParser;
 
 
   constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
     this.edgeCaseAnalyzer = EdgeCaseAnalyzer.getInstance();
+    this.specParser = SpecParser.getInstance();
 
   }
 
@@ -45,6 +48,18 @@ export class SDDPlanTool {
 
       const specContent = fs.readFileSync(specPath, 'utf-8');
       
+      // Parse spec into structured data using SpecParser
+      const parsedSpecData = this.specParser.parseSpec(specContent);
+      
+      // Validate spec completeness
+      const completenessReport = this.specParser.validateSpecCompleteness(parsedSpecData);
+      
+      // Warn if spec is incomplete
+      if (!completenessReport.isComplete && completenessReport.warnings.length > 0) {
+        console.warn('[sdd_plan] Spec completeness warnings:', completenessReport.warnings);
+        // Continue but include warnings in response
+      }
+      
       // Extract architecture pattern from spec
       const architecturePattern = this.extractArchitectureFromSpec(specContent);
       
@@ -58,12 +73,14 @@ export class SDDPlanTool {
       // Fill plan template with Cursor AI instructions and estimates
       const templateWithInstructions = this.fillPlanTemplate(template, {
         specData: specContent,
+        parsedSpecData: parsedSpecData,
+        completenessReport: completenessReport,
         edgeCaseAnalysis: edgeCaseAnalysis,
         architecturePattern: architecturePattern
         });
       // Report success with clear, actionable instructions
       const successMessage = `
-🚀 **PLAN GENERATION COMPLETE** - Create specs/plan.md file now!
+🚀 **PLAN GENERATION COMPLETE** - Create specs/plan.md file
 
 📋 **WHAT TO DO NEXT:**
 1. Create file: \`specs/plan.md\`
@@ -73,11 +90,16 @@ export class SDDPlanTool {
 📋 **TEMPLATE DATA:**
 ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
 
+${completenessReport.warnings.length > 0 ? `\n⚠️ **SPEC COMPLETENESS WARNINGS:**\n${completenessReport.warnings.map(w => `- ${w}`).join('\n')}\n\n**ACTION REQUIRED:** Review the specification and ensure all required elements are present before generating the plan.\n` : ''}
+
 ⚠️ **INSTRUCTIONS:**
 - Follow \`cursor_ai_instructions\` in the template for each section
 - Extract technologies and requirements from \`specData\` field
+- **CRITICAL**: Use \`parsedSpecData\` to extract ALL user stories, scenarios, and FR-XXX requirements
+- **MANDATORY**: Include ALL elements from parsedSpecData in the plan (user stories, scenarios, FRs, edge cases)
 - Generate platform-specific implementation details
 - Validate all 7 constitutional gates
+- Check \`completenessReport\` for validation warnings
 
 📝 **REQUIRED STRUCTURE:**
 # [Feature Title]
@@ -178,6 +200,8 @@ ${JSON.stringify(this.filterPlanOnlyContent(templateWithInstructions), null, 2)}
     // Add Cursor AI instructions for content generation
     filledTemplate.cursor_ai_instructions = {
       specData: options.specData,
+      parsedSpecData: options.parsedSpecData,
+      completenessReport: options.completenessReport,
       edgeCaseAnalysis: options.edgeCaseAnalysis,
       architecturePattern: architecturePattern,
       instructions: {
@@ -287,7 +311,92 @@ Include concrete commands, file structures, and platform gates.`,
 Extract from specification: error conditions, boundary cases, unusual user flows, data edge cases.
 Categorize: High (blocks core functionality), Medium (important but not critical), Low (nice-to-have).
 Estimate additional time: High (+2 days), Medium (+1 day), Low (+0.5 days).
-Include specific test scenarios and implementation considerations.`
+Include specific test scenarios and implementation considerations.`,
+
+        userStoriesCoverage: `📋 USER STORIES COVERAGE (MANDATORY):
+🚨 CRITICAL: You MUST extract and include ALL user stories from the specification.
+
+The parsedSpecData contains ${options.parsedSpecData?.userStories?.length || 0} user stories that MUST be included in the plan.
+
+**REQUIRED ACTIONS:**
+1. List ALL user stories from parsedSpecData.userStories array
+2. Map each user story to the appropriate implementation phase(s)
+3. Include user story references in phase descriptions
+4. Ensure NO user stories are missing from the plan
+
+**FORMAT:**
+- For each user story, include: ID (US-XXX), persona, goal, benefit
+- Map to phases: Phase 1 (Foundation), Phase 2 (Core Logic), Phase 3 (UI), Phase 4 (Testing)
+- Reference user stories in phase descriptions: "This phase implements US-001, US-002, US-003..."
+
+**VALIDATION:**
+- Count: ${options.parsedSpecData?.userStories?.length || 0} user stories must appear in plan
+- Coverage: 100% of user stories must be mapped to phases
+- Missing user stories will cause plan validation to fail`,
+
+        scenariosCoverage: `📋 SCENARIOS COVERAGE (MANDATORY):
+🚨 CRITICAL: You MUST extract and include ALL scenarios from the specification.
+
+The parsedSpecData contains:
+- ${options.parsedSpecData?.scenarios?.happyPath?.length || 0} Happy Path scenarios
+- ${options.parsedSpecData?.scenarios?.negative?.length || 0} Negative scenarios  
+- ${options.parsedSpecData?.scenarios?.edgeCases?.length || 0} Edge Case scenarios
+
+**REQUIRED ACTIONS:**
+1. List ALL scenarios from parsedSpecData.scenarios arrays
+2. Map each scenario to the appropriate implementation phase(s)
+3. Include scenario references in phase descriptions
+4. Ensure NO scenarios are missing from the plan
+
+**FORMAT:**
+- Happy Path: Include Given-When-Then format, map to Phase 2 (Core Logic) and Phase 3 (UI)
+- Negative: Include error handling scenarios, map to Phase 2 (Validation) and Phase 4 (Testing)
+- Edge Cases: Include boundary conditions, map to Phase 2 (Business Logic) and Phase 4 (Testing)
+
+**VALIDATION:**
+- Happy Path: ${options.parsedSpecData?.scenarios?.happyPath?.length || 0} scenarios must appear
+- Negative: ${options.parsedSpecData?.scenarios?.negative?.length || 0} scenarios must appear
+- Edge Cases: ${options.parsedSpecData?.scenarios?.edgeCases?.length || 0} scenarios must appear
+- Coverage: 100% of scenarios must be mapped to phases`,
+
+        functionalRequirementsMapping: `📋 FUNCTIONAL REQUIREMENTS MAPPING (MANDATORY):
+🚨 CRITICAL: You MUST extract and include ALL functional requirements (FR-XXX) from the specification.
+
+The parsedSpecData contains ${options.parsedSpecData?.functionalRequirements?.length || 0} functional requirements that MUST be included in the plan.
+
+**REQUIRED ACTIONS:**
+1. List ALL functional requirements from parsedSpecData.functionalRequirements array
+2. Map each FR-XXX to the appropriate implementation phase(s)
+3. Include FR references in phase descriptions and task breakdowns
+4. Ensure NO functional requirements are missing from the plan
+
+**FORMAT:**
+- For each FR-XXX, include: ID (FR-001, FR-002, etc.), description
+- Map to phases based on requirement type:
+  - FR-001 to FR-010: Phase 1 (Foundation) and Phase 2 (Core Implementation)
+  - FR-011 to FR-020: Phase 2 (Core Implementation) and Phase 3 (UI)
+  - FR-021 to FR-030: Phase 3 (UI Development) and Phase 4 (Testing)
+- Reference FRs in phase descriptions: "This phase implements FR-001, FR-002, FR-003..."
+
+**VALIDATION:**
+- Count: ${options.parsedSpecData?.functionalRequirements?.length || 0} FRs must appear in plan
+- Coverage: 100% of FRs must be mapped to phases
+- Missing FRs will cause plan validation to fail
+- Traceability: Every FR must be traceable to implementation tasks`,
+
+        specCompletenessValidation: `✅ SPECIFICATION COMPLETENESS VALIDATION:
+The completeness report shows:
+- User Stories: ${options.completenessReport?.counts?.userStories || 0} found
+- Happy Path Scenarios: ${options.completenessReport?.counts?.happyPathScenarios || 0} found
+- Negative Scenarios: ${options.completenessReport?.counts?.negativeScenarios || 0} found
+- Edge Case Scenarios: ${options.completenessReport?.counts?.edgeCaseScenarios || 0} found
+- Functional Requirements: ${options.completenessReport?.counts?.functionalRequirements || 0} found
+- Edge Case Items: ${options.completenessReport?.counts?.edgeCaseItems || 0} found
+
+${options.completenessReport?.warnings?.length > 0 ? `⚠️ WARNINGS:\n${options.completenessReport.warnings.map(w => `- ${w}`).join('\n')}` : '✅ No warnings - specification is complete'}
+
+**MANDATORY REQUIREMENT:**
+All extracted elements MUST appear in the plan.md file. Missing elements will cause validation to fail.`
       },
       placeholders: {
         '{{SUMMARY}}': 'Replace with generated summary (primary requirement + technical approach)',
@@ -579,11 +688,15 @@ Include specific test scenarios and implementation considerations.`
   private fillPlanTemplate(template: any, options: {
     edgeCaseAnalysis: any;
     specData: any;
+    parsedSpecData?: any;
+    completenessReport?: any;
     architecturePattern?: string;
   }): any {
     // Fill template using fillTemplateWithUserInput
     const filledTemplate = this.fillTemplateWithUserInput(template, {
       specData: options.specData,
+      parsedSpecData: options.parsedSpecData,
+      completenessReport: options.completenessReport,
       edgeCaseAnalysis: options.edgeCaseAnalysis,
       architecturePattern: options.architecturePattern
     });

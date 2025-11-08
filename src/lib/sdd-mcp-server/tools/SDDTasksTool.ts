@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { ProjectEstimator } from '../utils/ProjectEstimator.js';
 import { TaskComplexityAnalyzer } from '../utils/TaskComplexityAnalyzer.js';
+import { SpecParser } from '../utils/SpecParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,11 +19,12 @@ export class SDDTasksTool {
 
   private basePath: string;
   private projectEstimator: ProjectEstimator;
-
+  private specParser: SpecParser;
 
   constructor(basePath: string = process.cwd()) {
     this.basePath = path.resolve(basePath);
     this.projectEstimator = new ProjectEstimator();
+    this.specParser = SpecParser.getInstance();
   }
 
   getToolDefinition(): Tool {
@@ -47,14 +49,14 @@ export class SDDTasksTool {
     try {
       // Get phase number from input for continuation calls
       const requestedPhase = input?.phase; // No default - will determine next phase automatically
-      
+
       // Read spec.md file
       const specPath = path.join(this.basePath, 'specs', 'spec.md');
       if (!fs.existsSync(specPath)) {
         return this.error('spec.md not found. Please create a specification first using sdd_specify tool.');
       }
       const specContent = fs.readFileSync(specPath, 'utf-8');
-      
+
       // Read plan.md file
       const planPath = path.join(this.basePath, 'specs', 'plan.md');
       if (!fs.existsSync(planPath)) {
@@ -87,11 +89,11 @@ export class SDDTasksTool {
       if (!universalTasksTemplate) {
         return this.error('Tasks template not found.');
       }
-      
+
       // Extract platform from plan.md metadata (authoritative source)
       // plan.md should always have platform info since it's generated from spec
       let platformDetection = this.extractPlatformFromPlanMetadata(planContent);
-      
+
       if (!platformDetection) {
         // Fallback to spec metadata if plan doesn't have it (shouldn't happen normally)
         platformDetection = this.extractPlatformFromSpecMetadata(specContent);
@@ -106,7 +108,7 @@ export class SDDTasksTool {
           );
         }
       }
-      
+
       // Extract architecture pattern from spec (prioritize metadata)
       const architecturePattern = this.extractArchitectureFromSpec(specContent);
 
@@ -126,12 +128,12 @@ export class SDDTasksTool {
         if (filteredPhaseTemplate?.tasks && Array.isArray(filteredPhaseTemplate.tasks) && filteredPhaseTemplate.tasks.length > 0) {
           const complexityAnalyzer = new TaskComplexityAnalyzer();
           const complexityAnalysis = complexityAnalyzer.analyzeTasks(filteredPhaseTemplate.tasks);
-          
+
           // Format complexity summary for AI prompt
           const avgComplexity = Math.round(complexityAnalysis.averageComplexity);
           const complexityLevel = avgComplexity < 30 ? 'low' : avgComplexity < 60 ? 'medium' : 'high';
           const avgMinutes = Math.round(complexityAnalysis.totalEstimatedMinutes / filteredPhaseTemplate.tasks.length);
-          
+
           taskComplexitySummary = `
 **TASK COMPLEXITY ANALYSIS (Template-Based):**
 - **Average Complexity Score**: ${avgComplexity}/100 (${complexityLevel})
@@ -163,15 +165,15 @@ export class SDDTasksTool {
       // Format durations for display using PERT weighted averages (consistent with PERT methodology)
       // Human estimates are in days, format as "X days" or "X weeks" or "X months"
       const humanPhaseDurationDays = humanPhasePERT.weightedAverage;
-      const humanPhaseDuration = humanPhaseDurationDays < 7 
+      const humanPhaseDuration = humanPhaseDurationDays < 7
         ? `${humanPhaseDurationDays} day${humanPhaseDurationDays !== 1 ? 's' : ''}`
         : humanPhaseDurationDays < 30
-        ? `${Math.ceil(humanPhaseDurationDays / 7)} week${Math.ceil(humanPhaseDurationDays / 7) !== 1 ? 's' : ''}`
-        : `${Math.ceil(humanPhaseDurationDays / 30)} month${Math.ceil(humanPhaseDurationDays / 30) !== 1 ? 's' : ''}`;
-      
+          ? `${Math.ceil(humanPhaseDurationDays / 7)} week${Math.ceil(humanPhaseDurationDays / 7) !== 1 ? 's' : ''}`
+          : `${Math.ceil(humanPhaseDurationDays / 30)} month${Math.ceil(humanPhaseDurationDays / 30) !== 1 ? 's' : ''}`;
+
       // AI estimates are in hours (AI is faster)
-      const aiPhaseDuration = aiPhasePERT.weightedAverage <= 8 
-        ? `${aiPhasePERT.weightedAverage} hour${aiPhasePERT.weightedAverage !== 1 ? 's' : ''}` 
+      const aiPhaseDuration = aiPhasePERT.weightedAverage <= 8
+        ? `${aiPhasePERT.weightedAverage} hour${aiPhasePERT.weightedAverage !== 1 ? 's' : ''}`
         : `${Math.ceil(aiPhasePERT.weightedAverage / 8)} day${Math.ceil(aiPhasePERT.weightedAverage / 8) !== 1 ? 's' : ''}`;
 
       // Create simplified project context for phase
@@ -256,6 +258,10 @@ ${planContent}
 - Key technologies and stack information
 - Project structure and requirements
 - Implementation phases and tasks structure
+- **CRITICAL**: User Stories Coverage section from plan.md (all user stories mapped to phases)
+- **CRITICAL**: Scenarios Coverage section from plan.md (Happy Path, Negative, Edge Cases mapped to phases)
+- **CRITICAL**: Functional Requirements Mapping section from plan.md (all FR-XXX requirements mapped to phases)
+- **MANDATORY**: Map extracted user stories, scenarios, and FRs to specific tasks in this phase
 
 🚨 CRITICAL: GENERATE ONLY PHASE ${phaseToGenerate} (${phaseInfo.taskRange}):
 
@@ -349,6 +355,34 @@ You are generating ONE markdown file for this tool call:
 - **PENALTY**: Platform violations will cause task regeneration
 
 **PROJECT DOMAIN**: Use the specification and plan data to make all content specific to the project domain
+
+**🚨 CRITICAL: SPEC ELEMENT MAPPING TO TASKS (MANDATORY):**
+You MUST map user stories, scenarios, and functional requirements to specific tasks in this phase:
+
+1. **USER STORIES MAPPING**:
+   - Extract user stories from plan.md "User Stories Coverage" section
+   - For each user story mapped to Phase ${phaseToGenerate}, include it in relevant task descriptions
+   - Reference user stories in task descriptions: "This task implements US-001, US-002..."
+   - Ensure ALL user stories for this phase are covered by tasks
+
+2. **SCENARIOS MAPPING**:
+   - Extract scenarios from plan.md "Scenarios Coverage" section (Happy Path, Negative, Edge Cases)
+   - For each scenario mapped to Phase ${phaseToGenerate}, include it in relevant task descriptions
+   - Reference scenarios in task descriptions: "This task implements Happy Path Scenario 1, Negative Scenario 2..."
+   - Ensure ALL scenarios for this phase are covered by tasks
+
+3. **FUNCTIONAL REQUIREMENTS MAPPING**:
+   - Extract FR-XXX requirements from plan.md "Functional Requirements Mapping" section
+   - For each FR mapped to Phase ${phaseToGenerate}, include it in relevant task descriptions
+   - Reference FRs in task descriptions: "This task implements FR-001, FR-002, FR-003..."
+   - Ensure ALL FRs for this phase are covered by tasks
+
+4. **VALIDATION REQUIREMENT**:
+   - Every task must reference at least one user story, scenario, or FR
+   - No user stories, scenarios, or FRs mapped to this phase should be missing from tasks
+   - Include traceability: Show which spec elements each task implements
+   - **MANDATORY**: After generating tasks, validate that ALL elements from plan.md are referenced
+   - **COVERAGE CHECK**: Ensure 100% coverage of all user stories, scenarios, and FRs mapped to Phase ${phaseToGenerate}
 
 📝 MARKDOWN STRUCTURE FOR ${phaseInfo.filename}:
 The file should follow this structure:
@@ -455,23 +489,63 @@ Make a TOOL CALL with these EXACT parameters:
 }
 `;
 
-        // Determine continuation action
-        const hasMorePhases = phaseToGenerate < 4;
+      // Extract coverage data from plan.md for validation
+      const planCoverage = this.extractPlanCoverage(planContent, phaseToGenerate);
+      
+      // If tasks file already exists, validate coverage
+      const phaseFile = path.join(this.basePath, 'specs', `phase${phaseToGenerate}-tasks.md`);
+      let coverageReport = null;
+      if (fs.existsSync(phaseFile)) {
+        const tasksContent = fs.readFileSync(phaseFile, 'utf-8');
+        coverageReport = this.validateTaskCoverage(tasksContent, planCoverage, phaseToGenerate);
+      }
 
-        const continuationAction = hasMorePhases ? {
-          type: "automatic_continuation",
-          next_tool_call: {
-            name: "sdd_tasks",
-            arguments: {
-              phase: phaseToGenerate + 1
-            }
-          },
-          reason: `Proceed to Phase ${phaseToGenerate + 1} after completing Phase ${phaseToGenerate}`
-        } : null;
+      // Determine continuation action
+      const hasMorePhases = phaseToGenerate < 4;
 
+      const continuationAction = hasMorePhases ? {
+        type: "automatic_continuation",
+        next_tool_call: {
+          name: "sdd_tasks",
+          arguments: {
+            phase: phaseToGenerate + 1
+          }
+        },
+        reason: `Proceed to Phase ${phaseToGenerate + 1} after completing Phase ${phaseToGenerate}`
+      } : null;
+
+      // Add coverage validation warning if needed
+      let coverageWarning = '';
+      let blocksContinuation = false;
+      if (coverageReport && !coverageReport.isComplete) {
+        blocksContinuation = true;
+        coverageWarning = `\n\n🚨🚨🚨 COVERAGE VALIDATION FAILED - CONTINUATION BLOCKED 🚨🚨🚨\n\n${coverageReport.warnings.join('\n')}\n\n**ACTION REQUIRED**: You MUST fix the ${phaseInfo.filename} file before proceeding:\n1. Add missing user stories, scenarios, and FRs to relevant task descriptions\n2. Reference them explicitly (e.g., "This task implements US-003, FR-010...")\n3. Ensure ALL elements mapped to Phase ${phaseToGenerate} in plan.md are covered\n4. Update the tasks file and call this tool again\n\n**CONTINUATION BLOCKED**: Cannot proceed to Phase ${phaseToGenerate + 1} until coverage is 100%.\n`;
+      }
+
+      // Block continuation if coverage validation failed
+      if (blocksContinuation) {
         return {
-          success: true,
-          nextStep: `${successMessage}
+          success: false,
+          error: `COVERAGE VALIDATION FAILED for Phase ${phaseToGenerate}`,
+          nextStep: `${successMessage}${coverageWarning}
+
+📊 PHASE GENERATION CONTEXT:
+PHASE: ${phaseToGenerate}
+PHASE_COMPLETED: ❌ BLOCKED - Coverage incomplete
+CONTINUATION_ACTION: null
+AUTO_PROGRESS: false
+PROGRESS_MESSAGE: Phase ${phaseToGenerate} coverage validation failed. Must fix tasks file before proceeding.
+
+INSTRUCTION: FIX ${phaseInfo.filename} by adding all missing spec elements to task descriptions, then call this tool again.
+
+🎯 NEXT STEP: Update ${phaseInfo.filename} to include ALL user stories, scenarios, and FRs mapped to Phase ${phaseToGenerate} from plan.md.`,
+          coverageReport: coverageReport
+        };
+      }
+
+      return {
+        success: true,
+        nextStep: `${successMessage}${coverageWarning}
 
 📊 PHASE GENERATION CONTEXT:
 PHASE: ${phaseToGenerate}
@@ -479,15 +553,15 @@ PHASE_COMPLETED: Phase ${phaseToGenerate}
 CONTINUATION_ACTION: ${continuationAction}
 AUTO_PROGRESS: ${hasMorePhases}
 PROGRESS_MESSAGE: ${hasMorePhases
-  ? `Phase ${phaseToGenerate} ready for generation. Will automatically continue to Phase ${phaseToGenerate + 1}.`
-  : `All 4 phases ready for generation.`}
+            ? `Phase ${phaseToGenerate} ready for generation. Will automatically continue to Phase ${phaseToGenerate + 1}.`
+            : `All 4 phases ready for generation.`}
 
 INSTRUCTION: ${hasMorePhases
-  ? `GENERATE Phase ${phaseToGenerate} (${phaseInfo.filename}) NOW. When complete, system will automatically proceed to Phase ${phaseToGenerate + 1}.`
-  : `GENERATE Phase ${phaseToGenerate} (${phaseInfo.filename}) NOW. This is the final phase.`}
+  ? `GENERATE Phase ${phaseToGenerate} (${phaseInfo.filename}). When complete, system will automatically proceed to Phase ${phaseToGenerate + 1}.`
+  : `GENERATE Phase ${phaseToGenerate} (${phaseInfo.filename}). This is the final phase.`}
 
 🎯 NEXT STEP: Generate the phase-${phaseToGenerate}-tasks.md file with all tasks for Phase ${phaseToGenerate}.`
-        };
+      };
     } catch (error) {
       console.error('[sdd_tasks] ERROR:', error);
       return this.error(error instanceof Error ? error.message : 'Unknown error occurred');
@@ -505,13 +579,13 @@ INSTRUCTION: ${hasMorePhases
     const templateContent = fs.readFileSync(templatesPath, 'utf-8');
     const template = JSON.parse(templateContent);
     const templateData = template.template_data; // Extract template_data from the JSON structure
-    
+
     // Set current date if metadata.generated exists
     const currentDate = new Date().toISOString().split('T')[0];
     if (templateData.metadata && templateData.metadata.generated === '{{CURRENT_DATE}}') {
       templateData.metadata.generated = currentDate;
-      }
-    
+    }
+
     return templateData;
   }
 
@@ -554,7 +628,7 @@ INSTRUCTION: ${hasMorePhases
         taskNumbers: ['001', '002', '003', '004', '005', '006', '007']
       }
     };
-    
+
     return phases[phase as keyof typeof phases] || phases[1];
   }
 
@@ -725,8 +799,8 @@ INSTRUCTION: ${hasMorePhases
 
     // Always include commands that work across platforms (like generic setup commands)
     if (cmd.includes('find ') || cmd.includes('tree') || cmd.includes('ls') ||
-        cmd.includes('node --version') || cmd.includes('npm --version') ||
-        cmd.includes('show ') || cmd.includes('list ') || cmd.includes('confirm ')) {
+      cmd.includes('node --version') || cmd.includes('npm --version') ||
+      cmd.includes('show ') || cmd.includes('list ') || cmd.includes('confirm ')) {
       return true;
     }
 
@@ -735,14 +809,14 @@ INSTRUCTION: ${hasMorePhases
       case 'mobile':
         // Only React Native/Expo commands for mobile
         return cmd.includes('react-native') || cmd.includes('expo') ||
-               cmd.includes('npx react-native') || cmd.includes('npx expo') ||
-               (!cmd.includes('python') && !cmd.includes('dotnet') && !cmd.includes('mvn'));
+          cmd.includes('npx react-native') || cmd.includes('npx expo') ||
+          (!cmd.includes('python') && !cmd.includes('dotnet') && !cmd.includes('mvn'));
 
       case 'web':
         // Only web/npm commands, no mobile/native commands
         return !cmd.includes('react-native') && !cmd.includes('expo') &&
-               !cmd.includes('python') && !cmd.includes('dotnet') && !cmd.includes('mvn') &&
-               !cmd.includes('android') && !cmd.includes('ios');
+          !cmd.includes('python') && !cmd.includes('dotnet') && !cmd.includes('mvn') &&
+          !cmd.includes('android') && !cmd.includes('ios');
 
       case 'backend':
         // Backend commands, may include some Python/.NET if specified
@@ -786,9 +860,9 @@ INSTRUCTION: ${hasMorePhases
     if (!planMetadataMatch) {
       return null;
     }
-    
+
     const metadataContent = planMetadataMatch[1];
-    
+
     // Try different metadata formats
     // Format 1: - **Platform**: value
     let platformMatch = metadataContent.match(/-?\s*\*\*Platform\*\*[:\s]*([^\n]+)/i);
@@ -800,13 +874,13 @@ INSTRUCTION: ${hasMorePhases
     if (!platformMatch) {
       platformMatch = metadataContent.match(/["']platform["'][:\s]*["']([^"']+)["']/i);
     }
-    
+
     if (!platformMatch) {
       return null;
     }
-    
+
     const platform = platformMatch[1].trim().toLowerCase();
-    
+
     // Extract framework and language from metadata
     let frameworkMatch = metadataContent.match(/-?\s*\*\*Framework\*\*[:\s]*([^\n]+)/i);
     if (!frameworkMatch) {
@@ -815,7 +889,7 @@ INSTRUCTION: ${hasMorePhases
     if (!frameworkMatch) {
       frameworkMatch = metadataContent.match(/["']framework["'][:\s]*["']([^"']+)["']/i);
     }
-    
+
     let languageMatch = metadataContent.match(/-?\s*\*\*Language\*\*[:\s]*([^\n]+)/i);
     if (!languageMatch) {
       languageMatch = metadataContent.match(/Language[:\s]*([^\n]+)/i);
@@ -823,21 +897,21 @@ INSTRUCTION: ${hasMorePhases
     if (!languageMatch) {
       languageMatch = metadataContent.match(/["']language["'][:\s]*["']([^"']+)["']/i);
     }
-    
+
     // Also check Technical Context section for platform details
     const techContextMatch = planContent.match(/##\s*.*Technical\s*Context[\s\S]*?Target\s*Platform[:\s]*([^\n]+)/i);
     if (techContextMatch && !platformMatch) {
       platformMatch = techContextMatch;
     }
-    
+
     let framework = frameworkMatch ? frameworkMatch[1].trim().toLowerCase() : '';
     let language = languageMatch ? languageMatch[1].trim().toLowerCase() : '';
-    
+
     // Map platform to detection engine format
     let mappedPlatform: string = platform;
     let mappedFramework: string = framework;
     let mappedLanguage: string = language;
-    
+
     // Platform mapping logic
     if (platform.includes('ios') || platform.includes('swift')) {
       mappedPlatform = 'mobile';
@@ -864,7 +938,7 @@ INSTRUCTION: ${hasMorePhases
       mappedFramework = framework || 'electron';
       mappedLanguage = language || 'typescript';
     }
-    
+
     // If framework/language still not found, try to infer from platform name
     if (!mappedFramework && platform) {
       if (platform.includes('next')) mappedFramework = 'nextjs';
@@ -872,7 +946,7 @@ INSTRUCTION: ${hasMorePhases
       else if (platform.includes('django')) mappedFramework = 'python-django';
       else if (platform.includes('spring')) mappedFramework = 'java-spring';
     }
-    
+
     return {
       platform: mappedPlatform as any,
       framework: mappedFramework as any,
@@ -893,27 +967,27 @@ INSTRUCTION: ${hasMorePhases
     if (!specMetadataMatch) {
       return null;
     }
-    
+
     const metadataContent = specMetadataMatch[1];
-    
+
     // Extract platform from metadata
     const platformMatch = metadataContent.match(/-?\s*\*\*Platform\*\*[:\s]*([^\n]+)/i);
     const frameworkMatch = metadataContent.match(/-?\s*\*\*Framework\*\*[:\s]*([^\n]+)/i);
     const languageMatch = metadataContent.match(/-?\s*\*\*Language\*\*[:\s]*([^\n]+)/i);
-    
+
     if (!platformMatch) {
       return null;
     }
-    
+
     const platform = platformMatch[1].trim().toLowerCase();
     let framework = frameworkMatch ? frameworkMatch[1].trim().toLowerCase() : '';
     let language = languageMatch ? languageMatch[1].trim().toLowerCase() : '';
-    
+
     // Map platform to detection engine format (same logic as plan)
     let mappedPlatform: string = platform;
     let mappedFramework: string = framework;
     let mappedLanguage: string = language;
-    
+
     if (platform.includes('ios') || platform.includes('swift')) {
       mappedPlatform = 'mobile';
       mappedFramework = framework || (platform.includes('swiftui') ? 'ios-native' : 'ios-native');
@@ -931,7 +1005,7 @@ INSTRUCTION: ${hasMorePhases
       mappedFramework = framework || (platform.includes('next') ? 'nextjs' : 'react');
       mappedLanguage = language || 'typescript';
     }
-    
+
     return {
       platform: mappedPlatform as any,
       framework: mappedFramework as any,
@@ -955,7 +1029,7 @@ INSTRUCTION: ${hasMorePhases
       const archPatternMatch = metadataContent.match(/-?\s*\*\*Architecture\s*Pattern\*\*[:\s]*([^\n]+)/i);
       if (archPatternMatch) {
         const pattern = archPatternMatch[1].trim().toLowerCase();
-     
+
         return pattern;
       }
     }
@@ -971,11 +1045,11 @@ INSTRUCTION: ${hasMorePhases
     // PRIORITY 3: Check for keywords (fallback)
     const content = specContent.toLowerCase();
     if (content.includes('firebase')) {
-    
+
       return 'baas-firebase';
     }
     if (content.includes('supabase')) {
-  
+
       return 'baas-supabase';
     }
     if (content.includes('amplify') || content.includes('appsync')) {
@@ -983,16 +1057,16 @@ INSTRUCTION: ${hasMorePhases
       return 'baas-amplify';
     }
     if (content.includes('serverless') || content.includes('lambda')) {
-   
+
       return 'serverless';
     }
     if (content.includes('express') || content.includes('fastapi') || content.includes('rest api')) {
       // Check if also has BaaS
       if (content.includes('firebase') || content.includes('supabase')) {
-        
+
         return 'hybrid';
       }
- 
+
       return 'traditional-backend';
     }
     return 'traditional-backend'; // Default
@@ -1201,10 +1275,209 @@ INSTRUCTION: ${hasMorePhases
   }
 
   /**
+   * Extract coverage data from plan.md for a specific phase
+   */
+  private extractPlanCoverage(planContent: string, phase: number): {
+    userStories: string[];
+    scenarios: {
+      happyPath: string[];
+      negative: string[];
+      edgeCases: string[];
+    };
+    functionalRequirements: string[];
+  } {
+    const coverage = {
+      userStories: [] as string[],
+      scenarios: {
+        happyPath: [] as string[],
+        negative: [] as string[],
+        edgeCases: [] as string[]
+      },
+      functionalRequirements: [] as string[]
+    };
+
+    // Extract User Stories Coverage section
+    const userStoriesMatch = planContent.match(/##\s+User\s+Stories\s+Coverage\s*\n([\s\S]*?)(?=\n##|$)/i);
+    if (userStoriesMatch) {
+      const section = userStoriesMatch[1];
+      // Extract user stories mapped to this phase (US-XXX format)
+      const usRegex = /US-\d{3}/g;
+      let match;
+      while ((match = usRegex.exec(section)) !== null) {
+        // Check if this US is mentioned in context of Phase X
+        const context = section.substring(Math.max(0, match.index - 200), match.index + 200);
+        if (context.includes(`Phase ${phase}`) || context.includes(`phase ${phase}`)) {
+          coverage.userStories.push(match[0]);
+        }
+      }
+    }
+
+    // Extract Scenarios Coverage section
+    const scenariosMatch = planContent.match(/##\s+Scenarios\s+Coverage\s*\n([\s\S]*?)(?=\n##|$)/i);
+    if (scenariosMatch) {
+      const section = scenariosMatch[1];
+      
+      // Extract Happy Path scenarios
+      const happyPathMatch = section.match(/###\s+Happy\s+Path\s+Scenarios\s*\n([\s\S]*?)(?=\n###|\n##|$)/i);
+      if (happyPathMatch) {
+        const context = happyPathMatch[1];
+        if (context.includes(`Phase ${phase}`) || context.includes(`phase ${phase}`)) {
+          // Extract scenario numbers (1., 2., etc.) or HAPPY_PATH-XXX
+          const scenarioRegex = /(?:HAPPY_PATH-)?(\d{3}|\d+)/g;
+          let match;
+          while ((match = scenarioRegex.exec(context)) !== null) {
+            const id = match[1].startsWith('HAPPY_PATH-') ? match[1] : `HAPPY_PATH-${match[1].padStart(3, '0')}`;
+            if (!coverage.scenarios.happyPath.includes(id)) {
+              coverage.scenarios.happyPath.push(id);
+            }
+          }
+        }
+      }
+
+      // Extract Negative scenarios
+      const negativeMatch = section.match(/###\s+Negative\s+Scenarios\s*\n([\s\S]*?)(?=\n###|\n##|$)/i);
+      if (negativeMatch) {
+        const context = negativeMatch[1];
+        if (context.includes(`Phase ${phase}`) || context.includes(`phase ${phase}`)) {
+          const scenarioRegex = /(?:NEGATIVE-)?(\d{3}|\d+)/g;
+          let match;
+          while ((match = scenarioRegex.exec(context)) !== null) {
+            const id = match[1].startsWith('NEGATIVE-') ? match[1] : `NEGATIVE-${match[1].padStart(3, '0')}`;
+            if (!coverage.scenarios.negative.includes(id)) {
+              coverage.scenarios.negative.push(id);
+            }
+          }
+        }
+      }
+
+      // Extract Edge Case scenarios
+      const edgeCaseMatch = section.match(/###\s+Edge\s+Cases\s*\n([\s\S]*?)(?=\n###|\n##|$)/i);
+      if (edgeCaseMatch) {
+        const context = edgeCaseMatch[1];
+        if (context.includes(`Phase ${phase}`) || context.includes(`phase ${phase}`)) {
+          const scenarioRegex = /(?:EDGE_CASE-)?(\d{3}|\d+)/g;
+          let match;
+          while ((match = scenarioRegex.exec(context)) !== null) {
+            const id = match[1].startsWith('EDGE_CASE-') ? match[1] : `EDGE_CASE-${match[1].padStart(3, '0')}`;
+            if (!coverage.scenarios.edgeCases.includes(id)) {
+              coverage.scenarios.edgeCases.push(id);
+            }
+          }
+        }
+      }
+    }
+
+    // Extract Functional Requirements Mapping section
+    const frMatch = planContent.match(/##\s+Functional\s+Requirements\s+Mapping\s*\n([\s\S]*?)(?=\n##|$)/i);
+    if (frMatch) {
+      const section = frMatch[1];
+      // Extract FR-XXX mapped to this phase
+      const frRegex = /FR-\d{3}/g;
+      let match;
+      while ((match = frRegex.exec(section)) !== null) {
+        const context = section.substring(Math.max(0, match.index - 200), match.index + 200);
+        if (context.includes(`Phase ${phase}`) || context.includes(`phase ${phase}`)) {
+          coverage.functionalRequirements.push(match[0]);
+        }
+      }
+    }
+
+    return coverage;
+  }
+
+  /**
+   * Validate that tasks.md covers all required elements from plan.md
+   */
+  private validateTaskCoverage(tasksContent: string, planCoverage: {
+    userStories: string[];
+    scenarios: { happyPath: string[]; negative: string[]; edgeCases: string[] };
+    functionalRequirements: string[];
+  }, phase: number): {
+    isComplete: boolean;
+    warnings: string[];
+    missing: {
+      userStories: string[];
+      scenarios: { happyPath: string[]; negative: string[]; edgeCases: string[] };
+      functionalRequirements: string[];
+    };
+  } {
+    const warnings: string[] = [];
+    const missing = {
+      userStories: [] as string[],
+      scenarios: {
+        happyPath: [] as string[],
+        negative: [] as string[],
+        edgeCases: [] as string[]
+      },
+      functionalRequirements: [] as string[]
+    };
+
+    // Check user stories coverage
+    for (const us of planCoverage.userStories) {
+      if (!tasksContent.includes(us)) {
+        missing.userStories.push(us);
+      }
+    }
+
+    // Check scenarios coverage
+    for (const scenario of planCoverage.scenarios.happyPath) {
+      if (!tasksContent.includes(scenario) && !tasksContent.includes(`Happy Path Scenario ${scenario.split('-')[1]}`)) {
+        missing.scenarios.happyPath.push(scenario);
+      }
+    }
+    for (const scenario of planCoverage.scenarios.negative) {
+      if (!tasksContent.includes(scenario) && !tasksContent.includes(`Negative Scenario ${scenario.split('-')[1]}`)) {
+        missing.scenarios.negative.push(scenario);
+      }
+    }
+    for (const scenario of planCoverage.scenarios.edgeCases) {
+      if (!tasksContent.includes(scenario) && !tasksContent.includes(`Edge Case Scenario ${scenario.split('-')[1]}`)) {
+        missing.scenarios.edgeCases.push(scenario);
+      }
+    }
+
+    // Check functional requirements coverage
+    for (const fr of planCoverage.functionalRequirements) {
+      if (!tasksContent.includes(fr)) {
+        missing.functionalRequirements.push(fr);
+      }
+    }
+
+    // Generate warnings
+    if (missing.userStories.length > 0) {
+      warnings.push(`❌ Missing ${missing.userStories.length} user story(ies): ${missing.userStories.join(', ')}`);
+    }
+    if (missing.scenarios.happyPath.length > 0) {
+      warnings.push(`❌ Missing ${missing.scenarios.happyPath.length} Happy Path scenario(s): ${missing.scenarios.happyPath.join(', ')}`);
+    }
+    if (missing.scenarios.negative.length > 0) {
+      warnings.push(`❌ Missing ${missing.scenarios.negative.length} Negative scenario(s): ${missing.scenarios.negative.join(', ')}`);
+    }
+    if (missing.scenarios.edgeCases.length > 0) {
+      warnings.push(`❌ Missing ${missing.scenarios.edgeCases.length} Edge Case scenario(s): ${missing.scenarios.edgeCases.join(', ')}`);
+    }
+    if (missing.functionalRequirements.length > 0) {
+      warnings.push(`❌ Missing ${missing.functionalRequirements.length} functional requirement(s): ${missing.functionalRequirements.join(', ')}`);
+    }
+
+    const isComplete = warnings.length === 0;
+
+    if (!isComplete) {
+      warnings.unshift(`⚠️ **Phase ${phase} Coverage Validation Failed**:`);
+    }
+
+    return {
+      isComplete,
+      warnings,
+      missing
+    };
+  }
+
+  /**
    * Error response helper
    */
   private error(message: string): any {
-        return {
+    return {
       success: false,
       error: message
     };

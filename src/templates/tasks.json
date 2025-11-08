@@ -1,7 +1,6 @@
 {
   "id": "sdd-tasks-atomic-v9",
   "name": "SDD Atomic Tasks Template (Framework-Agnostic RED-GREEN-REFACTOR-SMOKE)",
-  "version": "9.4.0",
   "description": "Framework-agnostic atomic task-based SDD with sequential tasks across four phases and mandatory verification. Each task requires proof of execution to prevent AI from gaming the system. CRITICAL: When tasks have multiple requirements (using 'AND', 'INCLUDE', 'ENSURE'), the AI MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria are met.",
   "template_data": {
     "metadata": {
@@ -49,6 +48,15 @@
         "WRITE"
       ],
       "description": "Atomic structure with mandatory verification across four phases",
+      "specElementMapping": {
+        "description": "Each task should reference which user stories, scenarios, and functional requirements it implements",
+        "optionalFields": {
+          "relatedUserStories": "Array of user story IDs (e.g., ['US-001', 'US-002']) that this task implements",
+          "relatedScenarios": "Array of scenario IDs (e.g., ['HAPPY_PATH-001', 'NEGATIVE-002']) that this task implements",
+          "relatedFRs": "Array of functional requirement IDs (e.g., ['FR-001', 'FR-002']) that this task implements"
+        },
+        "instructions": "When generating tasks, AI should extract user stories, scenarios, and FRs from plan.md and include them in task descriptions. These fields are optional but recommended for traceability."
+      },
       "commandPlaceholders": {
         "description": "Platform-agnostic command placeholders that AI must replace with platform-specific commands based on detected platform and framework",
         "placeholders": {
@@ -79,13 +87,13 @@
         "enabled": true,
         "mandatory": true,
         "rules": [
-          "Complete ALL tasks in the current phase without stopping",
+          "Complete ALL tasks in the current phase sequentially, completing each fully before moving to next",
           "Never ask for permission to continue between tasks",
           "Never pause to show progress or summarize mid-phase",
-          "Move automatically from task to task without interruption",
+          "Move from task to task sequentially, completing each fully before proceeding",
           "Only stop when ALL tasks in the phase are complete and verified",
           "Do not ask user to say 'proceed' or 'continue'",
-          "Execute tasks in continuous, uninterrupted session"
+          "Execute tasks sequentially, focusing on completing each task fully"
         ],
         "prohibitedActions": [
           "Asking for permission to continue",
@@ -114,7 +122,7 @@
     "taskPhases": {
       "phase1": {
         "title": "Phase 1: Project Setup & Foundations (9 tasks)",
-        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review. 🚨 CRITICAL: Complete ALL 9 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 1 CLARIFICATION 🚨🚨🚨\nPhase 1 contains BOTH design/specification tasks AND implementation tasks:\n- Tasks 1-2: Design, setup, specifications, and preparation\n- Tasks 3-5: ACTUAL CODE IMPLEMENTATION (not just design!)\n- Tasks 6-9: Final verification and testing\n\nDO NOT confuse design with implementation!\n- API specifications (TASK-001) = DESIGN, not implementation\n- Data schemas (TASK-001) = DESIGN, not implementation\n- API endpoints (TASK-003) = ACTUAL CODE IMPLEMENTATION!\n\nPhase 1 is NOT complete until you have WORKING, FUNCTIONAL code - not just specifications and designs!",
+        "description": "Project initialization, configuration, contract definition, and foundation implementation with atomic verification. Each task uses action verbs and requires proof. Includes REFACTOR phase for architectural review. 🚨 CRITICAL: Complete ALL 9 tasks in this phase sequentially, completing each fully before moving to next. When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 1 CLARIFICATION 🚨🚨🚨\nPhase 1 contains BOTH design/specification tasks AND implementation tasks:\n- Tasks 1-2: Design, setup, specifications, and preparation\n- Tasks 3-5: ACTUAL CODE IMPLEMENTATION (not just design!)\n- Tasks 6-9: Final verification and testing\n\nDO NOT confuse design with implementation!\n- API specifications (TASK-001) = DESIGN, not implementation\n- Data schemas (TASK-001) = DESIGN, not implementation\n- API endpoints (TASK-003) = ACTUAL CODE IMPLEMENTATION!\n\nPhase 1 is NOT complete until you have WORKING, FUNCTIONAL code - not just specifications and designs!",
         "taskCount": 9,
         "tasks": [
           {
@@ -125,6 +133,9 @@
             "dependencies": [],
             "description": "CREATE initial application framework for the detected platform AND CONFIGURE project directory structure with proper organization AND SETUP development environment with all necessary tools, frameworks, and dependencies AND CONFIGURE environment variables for development, testing, and production environments AND CREATE OpenAPI 3.0 specification file with complete API definition AND CHOOSE and SETUP database engine AND DEFINE complete database schema. SHOW complete directory tree, successful app creation, successful dependency installation, API spec validation, and database schema creation. MANDATORY: Complete ALL 7 components - app creation, structure, environment, configuration, API contracts, database engine, and schema!",
             "acceptanceCriteria": "Initial application framework created + project structure created + development environment configured + environment variables set + all tools/frameworks/dependencies installed + OpenAPI specification created + validation passes + database engine chosen + schema defined with all tables/relationships/constraints + API definition complete. Verify ALL 10 requirements before marking complete!",
+            "relatedUserStories": [],
+            "relatedScenarios": [],
+            "relatedFRs": [],
             "estimatedLOC": "320-650",
             "estimatedDuration": "135min",
             "verification": {
@@ -174,8 +185,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (structure + environment + configuration + API + database design). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-002!",
+                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed to TASK-002 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (structure + environment + configuration + API + database design). Fix ALL missing requirements and re-verify, then proceed to TASK-002.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-002"
@@ -237,8 +248,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (models + test suite). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-003!",
+                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed to TASK-003 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (models + test suite). Fix ALL missing requirements and re-verify, then proceed to TASK-003.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-003"
@@ -294,8 +305,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (models + database + API + GREEN tests). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-004!",
+                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed to TASK-004 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (models + database + API + GREEN tests). Fix ALL missing requirements and re-verify, then proceed to TASK-004.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-004"
@@ -351,8 +362,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (architecture + quality refactoring). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-005!",
+                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed to TASK-005 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (architecture + quality refactoring). Fix ALL missing requirements and re-verify, then proceed to TASK-005.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-005"
@@ -416,8 +427,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (compilation + quality + error handling). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-006!",
+                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed to TASK-006 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (compilation + quality + error handling). Fix ALL missing requirements and re-verify, then proceed to TASK-006.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-006"
@@ -460,8 +471,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-007!",
+                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed to TASK-007 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed to TASK-007.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-007"
@@ -509,8 +520,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed immediately to TASK-008 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed immediately to TASK-008!",
+                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed to TASK-008 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements from description must be implemented. Fix ALL missing requirements and re-verify, then proceed to TASK-008.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-008"
@@ -565,8 +576,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed immediately to TASK-009 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! ALL requirements must be implemented (UI→API→DB flow). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-009!",
+                "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed to TASK-009 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! ALL requirements must be implemented (UI→API→DB flow). Fix ALL missing requirements and re-verify, then proceed to TASK-009.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-009"
@@ -641,7 +652,7 @@
       },
       "phase2": {
         "title": "Phase 2: Core Implementation (8 tasks)",
-        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 8 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 2 CLARIFICATION 🚨🚨🚨\nPhase 2 contains BOTH layer implementations AND security features:\n- Tasks 1-3: Core layer implementations (Business Logic, Service, Controller)\n- Tasks 4-6: Security & validation features\n- Tasks 7-8: Optimization and verification\n\nDO NOT confuse layer implementation with security features!\n- Business/Service/Controller layers = CORE FUNCTIONALITY\n- Authentication & Security = ACCESS CONTROL\n- Data validation = INPUT SANITY\n\nPhase 2 is NOT complete until you have WORKING, SECURE core functionality!",
+        "description": "Implement core business logic, services, controllers, and authentication with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 8 tasks in this phase sequentially, completing each fully before moving to next. When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 2 CLARIFICATION 🚨🚨🚨\nPhase 2 contains BOTH layer implementations AND security features:\n- Tasks 1-3: Core layer implementations (Business Logic, Service, Controller)\n- Tasks 4-6: Security & validation features\n- Tasks 7-8: Optimization and verification\n\nDO NOT confuse layer implementation with security features!\n- Business/Service/Controller layers = CORE FUNCTIONALITY\n- Authentication & Security = ACCESS CONTROL\n- Data validation = INPUT SANITY\n\nPhase 2 is NOT complete until you have WORKING, SECURE core functionality!",
         "taskCount": 8,
         "tasks": [
           {
@@ -701,8 +712,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (business logic layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-002!",
+                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed to TASK-002 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (business logic layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed to TASK-002.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-002"
@@ -774,8 +785,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (service layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-003!",
+                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed to TASK-003 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (service layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed to TASK-003.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-003"
@@ -847,8 +858,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (controller layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-004!",
+                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed to TASK-004 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (controller layer + TDD cycle). Fix ALL missing requirements and re-verify, then proceed to TASK-004.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-004"
@@ -898,8 +909,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (integration tests + GREEN status). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-005!",
+                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed to TASK-005 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (integration tests + GREEN status). Fix ALL missing requirements and re-verify, then proceed to TASK-005.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-005"
@@ -956,8 +967,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (authentication + security system). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-006!",
+                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed to TASK-006 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (authentication + security system). Fix ALL missing requirements and re-verify, then proceed to TASK-006.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-006"
@@ -1013,8 +1024,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (validation + error handling system). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-007!",
+                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed to TASK-007 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (validation + error handling system). Fix ALL missing requirements and re-verify, then proceed to TASK-007.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-007"
@@ -1066,8 +1077,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed immediately to TASK-008 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements must be implemented (performance optimization). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-008!",
+                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed to TASK-008 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements must be implemented (performance optimization). Fix ALL missing requirements and re-verify, then proceed to TASK-008.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-008"
@@ -1144,7 +1155,7 @@
       },
       "phase3": {
         "title": "Phase 3: UI Development (9 tasks)",
-        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 9 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 3 CLARIFICATION 🚨🚨🚨\nPhase 3 contains BOTH design system AND UI components AND integration:\n- Tasks 1-2: Platform setup and design system foundation\n- Tasks 3-5: UI components and API integration\n- Tasks 6-9: Experience enhancements and final verification\n\nDO NOT confuse design system with UI components!\n- Design System = VISUAL LANGUAGE (colors, typography, components)\n- UI Components = INTERACTIVE ELEMENTS (buttons, forms, navigation)\n- Integration = API CONNECTIONS\n\nPhase 3 is NOT complete until you have WORKING, INTERACTIVE UI!",
+        "description": "Implement UI components, design system, and API integration with atomic RED-GREEN-REFACTOR-SMOKE verification. 🚨 CRITICAL: Complete ALL 9 tasks in this phase sequentially, completing each fully before moving to next. When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 3 CLARIFICATION 🚨🚨🚨\nPhase 3 contains BOTH design system AND UI components AND integration:\n- Tasks 1-2: Platform setup and design system foundation\n- Tasks 3-5: UI components and API integration\n- Tasks 6-9: Experience enhancements and final verification\n\nDO NOT confuse design system with UI components!\n- Design System = VISUAL LANGUAGE (colors, typography, components)\n- UI Components = INTERACTIVE ELEMENTS (buttons, forms, navigation)\n- Integration = API CONNECTIONS\n\nPhase 3 is NOT complete until you have WORKING, INTERACTIVE UI!\n\n🚨🚨🚨🚨🚨 PLATFORM-SPECIFIC MOBILE UI REQUIREMENTS - MANDATORY 🚨🚨🚨🚨🚨\n\n⚠️ FOR MOBILE APPS (iOS, Android, React Native):\n\nYou MUST follow platform-specific design guidelines. Generic web-style UIs are PROHIBITED!\n\n📱 iOS Apps (SwiftUI/Native):\n✅ MUST use Apple Human Interface Guidelines (HIG)\n✅ MUST use SF Pro font family and system colors\n✅ MUST use native iOS components (List, Form, NavigationStack, TabView, Sheet, Alert)\n✅ MUST respect safe areas and implement proper iOS navigation patterns\n✅ MUST implement native iOS animations, haptic feedback, and 44pt minimum touch targets\n✅ MUST support dark mode and use native iOS design patterns\n❌ PROHIBITED: Web-style components, ignoring HIG guidelines, plain unstyled components\n\n🤖 Android Apps (Native/Kotlin):\n✅ MUST follow Material Design 3 guidelines\n✅ MUST use Material You theming and Material Components (MaterialButton, MaterialCard, etc.)\n✅ MUST implement proper elevation, shadows, and Material motion animations\n✅ MUST use Material Design color system and Navigation Component\n✅ MUST respect system bars, use Material typography scale, and implement Ripple effects\n✅ MUST follow Material Design spacing (8dp grid)\n❌ PROHIBITED: Web-style components, ignoring Material Design guidelines, plain unstyled components\n\n⚛️ React Native Apps (Cross-platform):\n✅ MUST use platform-specific design tokens and Platform.select for iOS/Android differences\n✅ MUST use React Native Paper/NativeBase for Material Design OR React Native Elements\n✅ MUST implement React Navigation with platform-specific styling\n✅ MUST use NativeWind/styled-components and respect platform-specific spacing/sizing\n✅ MUST implement platform-specific animations (Animated/Reanimated)\n✅ MUST use react-native-vector-icons and react-native-safe-area-context\n✅ MUST implement platform-specific gestures and proper accessibility\n❌ PROHIBITED: Generic web-style components, ignoring platform differences, plain unstyled components\n\n🚫 UNIVERSAL PROHIBITIONS FOR ALL MOBILE APPS:\n❌ Plain white backgrounds without depth or visual interest\n❌ Basic flat buttons without proper styling, elevation, or platform-appropriate effects\n❌ Minimal designs lacking visual hierarchy and platform-specific patterns\n❌ Boring standard form inputs without platform-appropriate styling\n❌ Generic web-style components that don't match platform design language\n\n✅ VERIFICATION CHECKLIST (You MUST verify ALL items):\n□ Platform-specific design guidelines followed (iOS HIG / Material Design 3 / React Native patterns)\n□ Native platform components used appropriately (not generic web components)\n□ Platform-specific spacing and sizing implemented (44pt iOS, 8dp Android, platform-appropriate React Native)\n□ Platform-specific navigation patterns implemented (NavigationStack iOS, Navigation Component Android, React Navigation with platform styling)\n□ Platform-specific gestures and interactions implemented\n□ Platform-specific styling applied (system colors iOS, Material theming Android, platform tokens React Native)\n□ Safe areas respected (iOS safe areas, Android system bars)\n□ Accessibility implemented (iOS VoiceOver, Android TalkBack, React Native AccessibilityInfo)\n□ Dark mode support (iOS system colors, Material You dynamic colors, React Native theme support)\n□ Visual hierarchy and modern design patterns implemented (NOT plain/basic designs)",
         "taskCount": 9,
         "tasks": [
           {
@@ -1192,8 +1203,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (frontend platform + build setup). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-002!",
+                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed to TASK-002 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (frontend platform + build setup). Fix ALL missing requirements and re-verify, then proceed to TASK-002.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-002"
@@ -1210,8 +1221,8 @@
             "dependencies": [
               "TASK-001"
             ],
-            "description": "🚨 CRITICAL DESIGN SYSTEM IMPLEMENTATION 🚨: CREATE comprehensive tests for design system including component rendering, styling, and accessibility. EXECUTE tests and CONFIRM they fail with RED status. IMPLEMENT modern design system with custom branding, visual appeal, sophisticated UI patterns, custom color palette, modern gradients, shadows, animations, and micro-interactions. REFACTOR design system for consistency and maintainability. EXECUTE tests after refactoring and SHOW GREEN status. CONFIRM design system is modern, visually appealing, and fully functional.",
-            "acceptanceCriteria": "Design system tests created + tests fail as expected (RED) + modern design system implemented + custom branding established + visual appeal sophisticated + custom color palette created + modern gradients working + shadows implemented + animations functional + micro-interactions working + design system refactored + consistency improved + maintainability enhanced + all tests pass (GREEN) + design system fully verified. Verify ALL 15 requirements before marking complete!",
+            "description": "🚨🚨🚨🚨🚨 CRITICAL DESIGN SYSTEM IMPLEMENTATION - PLATFORM-SPECIFIC UI MANDATORY 🚨🚨🚨🚨🚨\n\n⚠️⚠️⚠️ MOBILE APP DETECTED - PLATFORM-SPECIFIC DESIGN REQUIRED ⚠️⚠️⚠️\n\nIf this is a mobile app (iOS, Android, React Native), you MUST follow platform-specific design guidelines. Generic web-style UIs are STRICTLY PROHIBITED and will cause task failure!\n\n📋 PLATFORM-SPECIFIC DESIGN SYSTEM CHECKLIST:\n\n📱 FOR iOS APPS (SwiftUI/Native):\n□ Apple Human Interface Guidelines (HIG) followed\n□ SF Pro font family used (NOT generic fonts)\n□ System colors used (NOT custom colors that ignore iOS design language)\n□ Native iOS components used: List, Form, NavigationStack, TabView, Sheet, Alert (NOT web-style components)\n□ Safe areas respected in all layouts\n□ Native iOS navigation patterns implemented (NOT web-style navigation)\n□ Native iOS animations and transitions used\n□ Haptic feedback implemented for user interactions\n□ 44pt minimum touch targets (iOS standard)\n□ Native iOS design patterns: sheets, alerts, action sheets (NOT web modals)\n□ Dark mode support with system colors\n\n🤖 FOR ANDROID APPS (Native/Kotlin):\n□ Material Design 3 guidelines followed\n□ Material You theming implemented\n□ Material Components used: MaterialButton, MaterialCard, TextInputLayout, RecyclerView, FloatingActionButton, BottomSheet, Snackbar (NOT web-style components)\n□ Proper elevation and shadows (Material Design elevation system)\n□ Material motion animations implemented\n□ Material Design color system used\n□ Navigation Component used (NOT web-style routing)\n□ System bars respected (edge-to-edge design)\n□ Material typography scale used\n□ Ripple effects implemented for touch feedback\n□ 8dp grid spacing system followed\n\n⚛️ FOR REACT NATIVE APPS:\n□ Platform-specific design tokens used\n□ Platform.select implemented for iOS/Android differences\n□ React Native Paper OR NativeBase for Material Design OR React Native Elements for cross-platform\n□ React Navigation with platform-specific styling (NOT web-style routing)\n□ NativeWind OR styled-components for styling\n□ Platform-specific spacing/sizing (44pt iOS, 8dp Android)\n□ Platform-specific animations: Animated API OR Reanimated\n□ react-native-vector-icons used (NOT web icons)\n□ react-native-safe-area-context for safe areas\n□ Platform-specific gestures implemented\n□ Proper accessibility: AccessibilityInfo, accessibilityLabel\n\n🚫 UNIVERSAL PROHIBITIONS (ALL MOBILE APPS):\n❌ Plain white backgrounds without depth\n❌ Basic flat buttons without platform-appropriate styling\n❌ Minimal designs lacking visual hierarchy\n❌ Boring standard form inputs without platform styling\n❌ Generic web-style components\n\n✅ IMPLEMENTATION STEPS:\n1. CREATE comprehensive tests for design system including component rendering, styling, and accessibility\n2. EXECUTE tests and CONFIRM they fail with RED status\n3. IMPLEMENT modern design system with custom branding, visual appeal, sophisticated UI patterns\n4. IMPLEMENT platform-specific design system following the checklist above\n5. REFACTOR design system for consistency and maintainability\n6. EXECUTE tests after refactoring and SHOW GREEN status\n7. CONFIRM design system is modern, visually appealing, platform-appropriate, and fully functional",
+            "acceptanceCriteria": "Design system tests created + tests fail as expected (RED) + modern design system implemented + custom branding established + visual appeal sophisticated + custom color palette created + modern gradients working + shadows implemented + animations functional + micro-interactions working + platform-specific guidelines followed (iOS HIG / Material Design 3 / React Native platform patterns) + native platform components used appropriately + platform-specific spacing and sizing implemented + platform-specific navigation patterns implemented + design system refactored + consistency improved + maintainability enhanced + all tests pass (GREEN) + design system fully verified. Verify ALL 19 requirements before marking complete!",
             "estimatedLOC": "1800-3000",
             "estimatedDuration": "360min",
             "verification": {
@@ -1232,6 +1243,20 @@
                 "verify visual appeal",
                 "check modern UI patterns",
                 "confirm gradients/shadows/animations",
+                "🚨 PLATFORM-SPECIFIC VERIFICATION (MANDATORY FOR MOBILE APPS):",
+                "For iOS: Verify SF Pro font used, system colors used, native iOS components (List, Form, NavigationStack, TabView, Sheet, Alert), safe areas respected, iOS navigation patterns, haptic feedback, 44pt touch targets, dark mode support",
+                "For Android: Verify Material Design 3 followed, Material You theming, Material Components (MaterialButton, MaterialCard, etc.), elevation/shadows, Material animations, Navigation Component, system bars respected, Material typography, Ripple effects, 8dp grid",
+                "For React Native: Verify Platform.select used, React Native Paper/NativeBase/React Native Elements, React Navigation with platform styling, NativeWind/styled-components, platform spacing/sizing, platform animations, react-native-vector-icons, safe-area-context, platform gestures, accessibility",
+                "VERIFY NO generic web-style components are used",
+                "VERIFY platform-specific design guidelines are followed (NOT generic designs)",
+                "VERIFY native platform components are used appropriately",
+                "VERIFY platform-specific spacing and sizing implemented",
+                "VERIFY platform-specific navigation patterns implemented",
+                "VERIFY platform-specific styling applied (system colors iOS, Material theming Android, platform tokens React Native)",
+                "VERIFY safe areas respected (iOS safe areas, Android system bars)",
+                "VERIFY accessibility implemented (iOS VoiceOver, Android TalkBack, React Native AccessibilityInfo)",
+                "VERIFY dark mode support implemented",
+                "VERIFY visual hierarchy and modern design patterns (NOT plain/basic designs)",
                 "run all existing tests to confirm they still pass after refactoring",
                 "show improved component consistency",
                 "show consolidated styles",
@@ -1266,12 +1291,15 @@
                   "consistency improved",
                   "maintainability enhanced",
                   "refactoring success",
-                  "VERIFIED: All design system requirements implemented"
+                  "VERIFIED: All design system requirements implemented",
+                  "VERIFIED: Platform-specific design guidelines followed",
+                  "VERIFIED: Native platform components used (NOT generic web components)",
+                  "VERIFIED: Platform-specific spacing, sizing, navigation, and styling implemented"
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (design system + TDD cycle). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-003!",
+                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed to TASK-003 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (design system + TDD cycle). Fix ALL missing requirements and re-verify, then proceed to TASK-003.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-003"
@@ -1328,8 +1356,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (application structure + routes + navigation). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-004!",
+                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed to TASK-004 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (application structure + routes + navigation). Fix ALL missing requirements and re-verify, then proceed to TASK-004.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-004"
@@ -1346,8 +1374,8 @@
             "dependencies": [
               "TASK-003"
             ],
-            "description": "🚨 CRITICAL UI COMPONENTS IMPLEMENTATION 🚨: CREATE comprehensive tests for UI components including user interactions, state management, and component behavior. EXECUTE tests and CONFIRM they fail with RED status. IMPLEMENT interactive UI components with event handlers, navigation logic, state management, and component behavior. INTEGRATE components with application routes. REFACTOR UI components for reusability and maintainability. EXECUTE tests after refactoring and SHOW GREEN status. CONFIRM all UI components are interactive, functional, and properly integrated.",
-            "acceptanceCriteria": "UI component tests created + user interactions tested + state management covered + component behavior included + tests fail as expected (RED) + interactive UI components implemented + event handlers working + navigation logic functional + state management operational + component behavior correct + components integrated with routes + UI components refactored + reusability improved + maintainability enhanced + all tests pass (GREEN) + UI components fully verified. Verify ALL 17 requirements before marking complete!",
+            "description": "🚨🚨🚨🚨🚨 CRITICAL UI COMPONENTS IMPLEMENTATION - PLATFORM-SPECIFIC UI MANDATORY 🚨🚨🚨🚨🚨\n\n⚠️⚠️⚠️ MOBILE APP DETECTED - PLATFORM-SPECIFIC COMPONENTS REQUIRED ⚠️⚠️⚠️\n\nIf this is a mobile app (iOS, Android, React Native), you MUST use platform-specific native components. Generic web-style components are STRICTLY PROHIBITED and will cause task failure!\n\n📋 PLATFORM-SPECIFIC UI COMPONENTS CHECKLIST:\n\n📱 FOR iOS APPS (SwiftUI/Native):\n□ Native SwiftUI components used: Button, TextField, List, Form, NavigationLink, Sheet, Alert, ActionSheet (NOT web-style components)\n□ Proper iOS navigation patterns implemented (NavigationStack, TabView - NOT web routing)\n□ Native iOS gestures implemented: swipe, pinch, drag (NOT web-style interactions)\n□ Haptic feedback implemented for user interactions\n□ Native iOS styling used: SF Symbols, system colors (NOT web icons/colors)\n□ Safe areas respected in all components\n□ Proper iOS accessibility implemented (VoiceOver support)\n□ Native iOS component behavior and interactions\n\n🤖 FOR ANDROID APPS (Native/Kotlin):\n□ Material Components used: MaterialButton, TextInputLayout, RecyclerView, MaterialCard, FloatingActionButton, BottomSheet, Snackbar (NOT web-style components)\n□ Material Design navigation patterns implemented (Navigation Component - NOT web routing)\n□ Material gestures implemented (NOT web-style interactions)\n□ Material Ripple effects implemented for touch feedback\n□ Material Design styling used (NOT web styling)\n□ System bars respected (edge-to-edge design)\n□ Proper Android accessibility implemented (TalkBack support)\n□ Material component behavior and interactions\n\n⚛️ FOR REACT NATIVE APPS:\n□ Platform-appropriate components used with Platform.select for iOS/Android differences\n□ React Navigation implemented with platform-specific styling (NOT web-style routing)\n□ Platform-specific gestures implemented (react-native-gesture-handler)\n□ Platform-specific feedback implemented (Haptics API)\n□ Platform-specific styling libraries used (NativeWind/styled-components)\n□ Safe areas respected (react-native-safe-area-context)\n□ Proper accessibility implemented (AccessibilityInfo, accessibilityLabel)\n□ Platform-specific component behavior and interactions\n\n🚫 UNIVERSAL PROHIBITIONS (ALL MOBILE APPS):\n❌ Generic web-style components on mobile (div, span, web buttons, etc.)\n❌ Ignoring platform design guidelines\n❌ Plain unstyled components\n❌ Web-style navigation patterns on mobile\n❌ Web-style gestures on mobile\n\n✅ IMPLEMENTATION STEPS:\n1. CREATE comprehensive tests for UI components including user interactions, state management, and component behavior\n2. EXECUTE tests and CONFIRM they fail with RED status\n3. IMPLEMENT interactive UI components with event handlers, navigation logic, state management, and component behavior\n4. IMPLEMENT platform-specific UI components following the checklist above\n5. INTEGRATE components with application routes\n6. REFACTOR UI components for reusability and maintainability\n7. EXECUTE tests after refactoring and SHOW GREEN status\n8. CONFIRM all UI components are interactive, functional, platform-appropriate, and properly integrated",
+            "acceptanceCriteria": "UI component tests created + user interactions tested + state management covered + component behavior included + tests fail as expected (RED) + interactive UI components implemented + event handlers working + navigation logic functional + state management operational + component behavior correct + platform-specific components used (iOS native / Android Material / React Native platform-appropriate) + platform-specific navigation patterns implemented + platform-specific gestures implemented + platform-specific styling applied + components integrated with routes + UI components refactored + reusability improved + maintainability enhanced + all tests pass (GREEN) + UI components fully verified. Verify ALL 22 requirements before marking complete!",
             "estimatedLOC": "2000-3500",
             "estimatedDuration": "420min",
             "verification": {
@@ -1368,6 +1396,18 @@
                 "confirm all routes are functional",
                 "test all button event handlers",
                 "verify all interactive elements work",
+                "🚨 PLATFORM-SPECIFIC COMPONENT VERIFICATION (MANDATORY FOR MOBILE APPS):",
+                "For iOS: Verify native SwiftUI components used (Button, TextField, List, Form, NavigationLink, Sheet, Alert, ActionSheet), iOS navigation patterns (NavigationStack, TabView), native iOS gestures (swipe, pinch, drag), haptic feedback, SF Symbols, system colors, safe areas, VoiceOver accessibility",
+                "For Android: Verify Material Components used (MaterialButton, TextInputLayout, RecyclerView, MaterialCard, FloatingActionButton, BottomSheet, Snackbar), Material navigation (Navigation Component), Material gestures, Ripple effects, Material styling, system bars, TalkBack accessibility",
+                "For React Native: Verify Platform.select used for iOS/Android differences, React Navigation with platform styling, react-native-gesture-handler, Haptics API, NativeWind/styled-components, react-native-safe-area-context, AccessibilityInfo/accessibilityLabel",
+                "VERIFY NO generic web-style components are used (div, span, web buttons, etc.)",
+                "VERIFY platform-specific components are used (NOT generic web components)",
+                "VERIFY platform-specific navigation patterns implemented (NOT web routing)",
+                "VERIFY platform-specific gestures implemented (NOT web-style interactions)",
+                "VERIFY platform-specific styling applied (system colors iOS, Material theming Android, platform tokens React Native)",
+                "VERIFY safe areas respected (iOS safe areas, Android system bars)",
+                "VERIFY accessibility implemented (iOS VoiceOver, Android TalkBack, React Native AccessibilityInfo)",
+                "VERIFY platform-specific component behavior and interactions",
                 "run all existing tests to confirm they still pass after refactoring",
                 "show improved reusability",
                 "show consolidated logic",
@@ -1400,12 +1440,15 @@
                   "maintainability enhanced",
                   "component architecture",
                   "refactoring success",
-                  "VERIFIED: All UI component requirements implemented"
+                  "VERIFIED: All UI component requirements implemented",
+                  "VERIFIED: Platform-specific components used (NOT generic web components)",
+                  "VERIFIED: Platform-specific navigation, gestures, and styling implemented",
+                  "VERIFIED: No generic web-style components found in mobile app"
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (UI components + TDD cycle). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-005!",
+                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed to TASK-005 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (UI components + TDD cycle). Fix ALL missing requirements and re-verify, then proceed to TASK-005.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-005"
@@ -1475,8 +1518,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (API integration + services + UI connection). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-006!",
+                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed to TASK-006 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (API integration + services + UI connection). Fix ALL missing requirements and re-verify, then proceed to TASK-006.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-006"
@@ -1538,8 +1581,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (state management system). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-007!",
+                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed to TASK-007 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (state management system). Fix ALL missing requirements and re-verify, then proceed to TASK-007.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-007"
@@ -1603,8 +1646,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed immediately to TASK-008 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements must be implemented (user experience enhancements). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-008!",
+                "onSuccess": "🚨 CRITICAL: TASK-007 verification complete! Proceed to TASK-008 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-007 verification failed! ALL requirements must be implemented (user experience enhancements). Fix ALL missing requirements and re-verify, then proceed to TASK-008.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-008"
@@ -1668,8 +1711,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed immediately to TASK-009 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! ALL requirements must be implemented (responsive design + accessibility). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-009!",
+                "onSuccess": "🚨 CRITICAL: TASK-008 verification complete! Proceed to TASK-009 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-008 verification failed! ALL requirements must be implemented (responsive design + accessibility). Fix ALL missing requirements and re-verify, then proceed to TASK-009.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-009"
@@ -1752,7 +1795,7 @@
       },
       "phase4": {
         "title": "Phase 4: Testing, Documentation & Deployment (7 tasks)",
-        "description": "Execute comprehensive testing, create documentation, and prepare for production deployment with atomic verification. 🚨 CRITICAL: Complete ALL 7 tasks in this phase without stopping - do not ask for permission to continue! When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 4 CLARIFICATION 🚨🚨🚨\nPhase 4 contains BOTH comprehensive quality assurance AND production readiness:\n- Task 1: Complete testing and quality verification\n- Task 2: System optimization and security hardening\n- Task 3: Production build and deployment verification\n- Task 4: Final documentation of production-ready system\n- Task 5: Comprehensive security assessment and penetration testing\n- Task 6: Load testing and scalability verification\n- Task 7: Database migration scripts and initial data seeding\n\nDO NOT confuse testing with optimization with deployment with security with scalability with data!\n- TESTING = QUALITY VERIFICATION\n- OPTIMIZATION = PERFORMANCE & SECURITY IMPROVEMENT\n- DEPLOYMENT = PRODUCTION READINESS\n- DOCUMENTATION = FINAL PRODUCT DOCUMENTATION\n- SECURITY = COMPREHENSIVE VULNERABILITY ASSESSMENT\n- SCALABILITY = LOAD TESTING & GROWTH VERIFICATION\n- DATA = MIGRATION SCRIPTS & INITIAL SEEDING\n\nPhase 4 is NOT complete until you have PRODUCTION-READY, FULLY-TESTED, OPTIMIZED, SECURE, SCALABLE, DATA-READY code!",
+        "description": "Execute comprehensive testing, create documentation, and prepare for production deployment with atomic verification. 🚨 CRITICAL: Complete ALL 7 tasks in this phase sequentially, completing each fully before moving to next. When a task description contains multiple requirements (AND, INCLUDE, ENSURE), you MUST implement ALL requirements, not just the first one. Verify ALL acceptance criteria before marking a task complete.\n\n🚨🚨🚨 CRITICAL PHASE 4 CLARIFICATION 🚨🚨🚨\nPhase 4 contains BOTH comprehensive quality assurance AND production readiness:\n- Task 1: Complete testing and quality verification\n- Task 2: System optimization and security hardening\n- Task 3: Production build and deployment verification\n- Task 4: Final documentation of production-ready system\n- Task 5: Comprehensive security assessment and penetration testing\n- Task 6: Load testing and scalability verification\n- Task 7: Database migration scripts and initial data seeding\n\nDO NOT confuse testing with optimization with deployment with security with scalability with data!\n- TESTING = QUALITY VERIFICATION\n- OPTIMIZATION = PERFORMANCE & SECURITY IMPROVEMENT\n- DEPLOYMENT = PRODUCTION READINESS\n- DOCUMENTATION = FINAL PRODUCT DOCUMENTATION\n- SECURITY = COMPREHENSIVE VULNERABILITY ASSESSMENT\n- SCALABILITY = LOAD TESTING & GROWTH VERIFICATION\n- DATA = MIGRATION SCRIPTS & INITIAL SEEDING\n\nPhase 4 is NOT complete until you have PRODUCTION-READY, FULLY-TESTED, OPTIMIZED, SECURE, SCALABLE, DATA-READY code!",
         "taskCount": 7,
         "tasks": [
           {
@@ -1808,8 +1851,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed immediately to TASK-002 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (complete testing + quality assurance). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-002!",
+                "onSuccess": "🚨 CRITICAL: TASK-001 verification complete! Proceed to TASK-002 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-001 verification failed! ALL requirements must be implemented (complete testing + quality assurance). Fix ALL missing requirements and re-verify, then proceed to TASK-002.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-002"
@@ -1872,8 +1915,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed immediately to TASK-003 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (system optimization + security hardening). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-003!",
+                "onSuccess": "🚨 CRITICAL: TASK-002 verification complete! Proceed to TASK-003 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-002 verification failed! ALL requirements must be implemented (system optimization + security hardening). Fix ALL missing requirements and re-verify, then proceed to TASK-003.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-003"
@@ -1931,8 +1974,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed immediately to TASK-004 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (production build + deployment verification). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-004!",
+                "onSuccess": "🚨 CRITICAL: TASK-003 verification complete! Proceed to TASK-004 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-003 verification failed! ALL requirements must be implemented (production build + deployment verification). Fix ALL missing requirements and re-verify, then proceed to TASK-004.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-004"
@@ -1998,8 +2041,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed immediately to TASK-005 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (documentation + deployment preparation). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-005!",
+                "onSuccess": "🚨 CRITICAL: TASK-004 verification complete! Proceed to TASK-005 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-004 verification failed! ALL requirements must be implemented (documentation + deployment preparation). Fix ALL missing requirements and re-verify, then proceed to TASK-005.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-005"
@@ -2068,8 +2111,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed immediately to TASK-006 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (comprehensive security assessment). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-006!",
+                "onSuccess": "🚨 CRITICAL: TASK-005 verification complete! Proceed to TASK-006 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-005 verification failed! ALL requirements must be implemented (comprehensive security assessment). Fix ALL missing requirements and re-verify, then proceed to TASK-006.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-006"
@@ -2139,8 +2182,8 @@
                 ]
               },
               "postVerificationInstructions": {
-                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed immediately to TASK-007 without stopping or asking for permission!",
-                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (load testing and scalability verification). Fix ALL missing requirements and re-verify, then proceed immediately to TASK-007!",
+                "onSuccess": "🚨 CRITICAL: TASK-006 verification complete! Proceed to TASK-007 after completing all requirements and verification.",
+                "onFailure": "🚨 CRITICAL: TASK-006 verification failed! ALL requirements must be implemented (load testing and scalability verification). Fix ALL missing requirements and re-verify, then proceed to TASK-007.",
                 "enforcement": "mandatory",
                 "noPause": true,
                 "nextTask": "TASK-007"
