@@ -95,7 +95,7 @@ Add the following configuration to your Cursor `mcp.json` file:
 
 ## 🏆 Real-World Examples
 
-See **[Complete applications]([https://github.com/asimsinan/VibeCoding](https://anonymous.4open.science/r/VibeCoding-F4D0/))** built with this tool:
+See **[Complete applications](https://anonymous.4open.science/r/VibeCoding-F4D0)** built with this tool:
 - Recipe Finder (3 hours)
 - Invoice Generator (5.5 hours)
 - Kanban Board (5.5 hours)
