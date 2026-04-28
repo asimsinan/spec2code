@@ -1,0 +1,111 @@
+# Broad (regex-enabled) phrase patterns for robust category matching.
+#
+# WARNING: These patterns are DIFFERENT from those in 04_phrase_patterns.yaml
+# and will produce DIFFERENT numbers than those reported in the paper. Use
+# this file with the `--broad` flag of scripts 02 and 03 when you want to
+# obtain an upper-bound sensitivity estimate that captures morphological
+# variants, contractions, pluralization, common synonyms, and word-order
+# permutations.
+#
+# Each pattern is a case-insensitive Python regular expression matched against
+# the raw JSON value of the bubble. Multi-word patterns use `\s+` to tolerate
+# one-or-more whitespace characters between words. Nouns at the end of
+# phrases are made pluralizable with `s?` so "later phase" and "later phases"
+# both match.
+#
+# Design principles:
+#   1. Patterns must be a SUPERSET of the strict patterns: every strict match
+#      must also be a broad match. Tests in test_patterns.py verify this.
+#   2. Avoid common single words that would dominate false positives.
+#   3. Prefer multi-word idiomatic constructions that specifically signal
+#      the pattern in a developer context.
+#
+# Reproducibility: the paper's primary framework-effectiveness rates use the
+# stricter `04_phrase_patterns.yaml`. Numbers produced with this file are
+# intended as sensitivity-analysis upper bounds and as the broad-tier input to
+# the triangulated cross-family table.
+
+Permission Seeking:
+  - "\\bshould\\s+i\\s+(continue|proceed|keep\\s+going|go\\s+on)\\b"
+  - "\\bshall\\s+i\\s+(continue|proceed|go\\s+on)\\b"
+  - "\\bwould\\s+you\\s+like\\s+me\\s+to\\b"
+  - "\\bdo\\s+you\\s+want\\s+me\\s+to\\b"
+  - "\\bmay\\s+i\\s+proceed\\b"
+  - "\\bis\\s+it\\s+ok\\s+to\\s+(continue|proceed)\\b"
+  - "\\bready\\s+to\\s+(continue|proceed)\\b"
+  - "\\bwant\\s+me\\s+to\\s+continue\\b"
+
+Apology Theater:
+  - "\\bi\\s+sincerely\\s+apologize"
+  - "\\bi\\s+deeply\\s+apologize"
+  - "\\bi\\s+truly\\s+apologize"
+  - "\\bmy\\s+(sincere|deepest|most\\s+sincere)\\s+apologies"
+  - "\\bplease\\s+(forgive|accept\\s+my\\s+apology)"
+  - "\\b(i\\s+am|i'm)\\s+(so|truly|really|deeply)\\s+sorry"
+
+Retroactive Honesty:
+  - "\\bdidn'?t\\s+actually\\b"
+  - "\\bdid\\s+not\\s+actually\\b"
+  - "\\bhaven'?t\\s+actually\\b"
+  - "\\bhave\\s+not\\s+actually\\b"
+  - "\\bnever\\s+actually\\b"
+  - "\\bwasn'?t\\s+actually\\b"
+  - "\\bto\\s+be\\s+honest,?\\s+i\\s+(didn'?t|haven'?t|never)"
+  - "\\bi\\s+(should|must)\\s+(admit|be\\s+honest|clarify)"
+
+Time Constraint Excuse:
+  - "\\bdue\\s+to\\s+time\\s+(constraints?|limits?|pressures?)"
+  - "\\bto\\s+save\\s+time\\b"
+  - "\\bin\\s+the\\s+interest\\s+of\\s+time\\b"
+  - "\\bfor\\s+the\\s+sake\\s+of\\s+time\\b"
+  - "\\brunning\\s+out\\s+of\\s+time\\b"
+  - "\\btime\\s+(is\\s+)?(limited|short|tight)\\b"
+
+Progress Theater:
+  - "\\bprogress\\s+update[sd]?\\b"
+  - "\\bstatus\\s+update[sd]?\\b"
+  - "\\bprogress\\s+summary\\b"
+  - "\\bprogress\\s+so\\s+far\\b"
+  - "\\bhere'?s\\s+where\\s+we\\s+(are|stand)\\b"
+  - "\\bcurrent\\s+state\\s+of\\s+progress\\b"
+  - "\\bsummary\\s+of\\s+what\\s+(i'?ve|i\\s+have)\\s+done\\b"
+
+Efficiency Excuse:
+  - "\\bfor\\s+efficiency\\b"
+  - "\\bto\\s+be\\s+(more\\s+)?efficient\\b"
+  - "\\bmore\\s+efficient(ly)?\\b"
+  - "\\bto\\s+streamline\\b"
+  - "\\bto\\s+optimize\\s+(the\\s+process|workflow|execution)\\b"
+
+Deferred Implementation:
+  - "\\bwill\\s+implement\\s+in\\s+(phase|a\\s+later|a\\s+future)"
+  - "\\bin\\s+a\\s+(future|subsequent|later)\\s+phases?\\b"
+  - "\\blater\\s+phases?\\b"
+  - "\\bcome\\s+back\\s+to\\s+this\\s+later\\b"
+  - "\\bin\\s+the\\s+next\\s+iterations?\\b"
+  - "\\bdefer\\s+(this|it|that)\\s+to\\b"
+  - "\\bfor\\s+a\\s+(later|subsequent)\\s+iterations?\\b"
+  - "\\bsubsequent\\s+iterations?\\b"
+
+Task Reordering:
+  - "\\blet\\s+me\\s+prioritize\\b"
+  - "\\bi'?ll\\s+prioritize\\b"
+  - "\\bprioritizing\\s+(the|these)\\b"
+  - "\\btackle\\s+.{0,40}?\\s+first\\b"
+  - "\\breorder(ing)?\\s+(the|these)\\s+tasks\\b"
+
+Scope Creep Deflection:
+  - "\\bout\\s+of\\s+scope\\b"
+  - "\\boutside\\s+(the\\s+)?scope\\b"
+  - "\\bnot\\s+within\\s+(the\\s+)?scope\\b"
+  - "\\bbeyond\\s+(the\\s+)?scope\\b"
+  - "\\b(a\\s+)?separate\\s+(projects?|tasks?|efforts?|features?)\\b"
+  - "\\bthat\\s+would\\s+be\\s+a\\s+different\\s+(project|task|feature)\\b"
+
+Premature Optimization:
+  - "\\bshould\\s+i\\s+continue\\s+with\\s+the\\s+(remaining|rest|next)\\b"
+  - "\\bshall\\s+i\\s+continue\\s+with\\s+the\\s+(remaining|rest|next)\\b"
+  - "\\bshould\\s+i\\s+proceed\\s+(with|to)\\s+the\\s+(remaining|rest|next|next\\s+batch)\\b"
+  - "\\bshall\\s+i\\s+proceed\\s+(with|to)\\s+the\\s+(remaining|rest|next|next\\s+batch)\\b"
+  - "\\bshould\\s+i\\s+move\\s+on\\s+to\\s+the\\s+next\\b"
+  - "\\bready\\s+to\\s+move\\s+on\\b"

@@ -1,0 +1,280 @@
+# Extended phrase patterns used by corpus extraction ONLY.
+# The paper's quantitative analysis (Tables 6, 7) continues to use the strict
+# patterns in analysis-scripts/04_phrase_patterns.yaml. These additional
+# patterns are deliberately wider and are used to surface more exemplars for
+# reviewer inspection under corpus/.
+
+Permission Seeking:
+  - "should I continue"
+  - "shall I continue"
+  - "would you like me to"
+  - "do you want me to"
+  - "shall I proceed"
+  - "should I proceed"
+  - "let me know if"
+
+Apology Theater:
+  - "i apologize"
+  - "sincerely apologize"
+  - "my apologies"
+  - "deepest apologies"
+  - "i'm truly sorry"
+  - "i am truly sorry"
+  - "i'm sorry"
+  - "please forgive"
+  - "i must apologize"
+
+Retroactive Honesty:
+  - "didn't actually"
+  - "haven't actually"
+  - "never actually"
+  - "did not actually"
+  - "have not actually"
+  - "to be honest"
+  - "to be completely honest"
+  - "i should clarify"
+  - "let me be honest"
+
+Time Constraint Excuse:
+  # The LLM invokes time pressure (or its rhetorical equivalent) to justify
+  # a scope reduction, verification skip, or approach change. We include
+  # phrasings that pair an explicit time/brevity invocation with a
+  # downstream decision. Generic "quickly fix" without a constraint clause
+  # is intentionally excluded because it usually reflects Task Reordering
+  # (subset selection) rather than time-pressure framing.
+  - "due to time constraint"
+  - "due to time constraints"
+  - "given the time constraint"
+  - "given the time constraints"
+  - "given the time available"
+  - "in the interest of time"
+  - "to save time"
+  - "time-saving"
+  - "for brevity"
+  - "for the sake of brevity"
+  - "this is taking too long"
+  - "taking too long to"
+  - "to speed this up"
+  - "to speed things up"
+  - "for the sake of time"
+
+Progress Theater:
+  - "current state"
+  - "here's the current"
+  - "progress summary"
+  - "completed tasks"
+  - "current progress"
+  - "status update"
+  - "updated status"
+  - "let me summarize"
+
+Efficiency Excuse:
+  - "for efficiency"
+  - "to be efficient"
+  - "more efficient"
+  - "streamline"
+  - "batch these"
+  - "combine these"
+  - "together for efficiency"
+
+Deferred Implementation:
+  # Tightened to require explicit deferral-semantics. "For now", "defer to",
+  # and "in a later" are intentionally EXCLUDED because they commonly occur
+  # in ordinary phrasing ("for now the script works", "defer to the parent
+  # class", "in a later function") and produced many false positives.
+  - "come back to this"
+  - "come back to it"
+  - "address this later"
+  - "revisit this later"
+  - "leave this for later"
+  - "in a future iteration"
+  - "in a later iteration"
+  - "in a later phase"
+  - "defer this to"
+  - "will implement later"
+  - "will implement this later"
+  - "will add later"
+  - "will add this later"
+  - "to be implemented later"
+  - "we'll circle back"
+  - "placeholder for now"
+  - "temporary solution for"
+  - "temporary workaround for"
+  - "for now let me create a simple"
+  - "for now let me create a temporary"
+
+Task Reordering:
+  # Phrases that mark deliberate reordering that surfaces an easier or
+  # more-critical subset ahead of the full specified work. Generic
+  # prioritisation verbs ("start with the", "focus on X") are excluded
+  # because they also fit ordinary sequential execution. The patterns
+  # below all require a subset qualifier (critical / important / simpler /
+  # easier) plus a "first" or equivalent ordering cue.
+  - "let me prioritize"
+  - "prioritize the easier"
+  - "prioritize the simpler"
+  - "prioritize fixing"
+  - "let me fix the most critical"
+  - "let me fix the critical"
+  - "let me address the most critical"
+  - "let me address the critical"
+  - "fix the most critical ones first"
+  - "fix the critical errors first"
+  - "fix the critical issues first"
+  - "focus on the most important"
+  - "focus on the critical issues"
+  - "tackle the easier"
+  - "tackle the simpler"
+  - "easier tasks first"
+  - "easier items first"
+  - "simpler tasks first"
+  - "low-hanging fruit first"
+  - "quick wins that"
+  - "reorder the tasks"
+  - "rearrange the order"
+  - "defer the harder"
+  - "defer the complex"
+
+Scope Creep Deflection:
+  # Tightened to require defer-or-deflect context with scope language.
+  # Phrases like "out of scope" in Swift compiler diagnostics, template
+  # section headings, or meta discussion of the taxonomy are filtered out
+  # via the meta/template filter in _extract_chat_examples.py; these
+  # phrase-level patterns focus on the development-turn semantics of
+  # deflecting specified work by relocating it to "another" task.
+  - "out of scope for this"
+  - "outside the scope of this"
+  - "outside the scope of the current"
+  - "outside the scope of our"
+  - "beyond the scope of"
+  - "beyond the scope of basic"
+  - "scope of this study"
+  - "scope of the current implementation"
+  - "should be a separate project"
+  - "as a separate project"
+  - "in a separate project"
+  - "as a separate task"
+  - "as a separate future task"
+  - "addressed as a separate"
+  - "addressed in a separate"
+  - "can be addressed later"
+  - "addressed later if needed"
+  - "handle in a future iteration"
+  - "handled in a future iteration"
+  - "leave for a future release"
+  - "for a future release"
+  - "not in scope for"
+  - "that's a separate"
+  - "separate issue from what we"
+  - "separate issue from what you"
+  - "not blocking for production"
+  - "not blocking the app"
+
+Premature Optimization:
+  - "should I continue with the remaining"
+  - "shall I proceed"
+  - "ready to move on"
+  - "moving on to the next"
+  - "proceed to the next"
+  - "continue with the next"
+
+Simultaneous Completion:
+  - "completed all"
+  - "finished all"
+  - "completed tasks "
+  - "done all the"
+  - "knocked out"
+  - "all done"
+  - "tasks are complete"
+  - "everything is done"
+
+Complexity Avoidance:
+  # Patterns that combine a scope-reduction verb with a qualifier indicating
+  # that the reduction is being chosen over a fuller alternative. We prefer
+  # phrasings where an ideal path is named or clearly implied. Purely
+  # descriptive labels for existing code ("simpler approach", "minimal
+  # implementation", "basic implementation") are excluded because they
+  # overlap heavily with ordinary minimal-code discussion and with TDD
+  # terminology ("minimal implementation to pass tests").
+  #
+  # Explicit "for simplicity" framings
+  - "for simplicity,"
+  - "for simplicity we"
+  - "for simplicity i"
+  - "for simplicity here"
+  - "for simplicity in this"
+  - "for simplicity let"
+  # Explicit simplification verbs
+  - "let's simplify"
+  - "we can simplify"
+  - "to simplify the"
+  - "to simplify this"
+  - "simpler version"
+  - "simplified version"
+  - "simpler implementation"
+  - "simplified implementation"
+  - "without the complexity"
+  - "avoiding the complexity"
+  # Shortcut / hardcode signals that replace proper implementation
+  - "just hardcode"
+  - "hardcoded for simplicity"
+  - "hardcode it for now"
+  - "to keep it simple"
+  - "to keep things simple"
+  - "keep this simple"
+  # Happy-path / edge-case omission
+  - "handles only the happy path"
+  - "only the happy path"
+  - "happy path only"
+  - "assume the happy path"
+  - "skipping validation"
+  - "skip validation"
+  - "ignoring edge cases"
+  - "without edge case handling"
+  - "edge cases to be handled later"
+  - "edge cases to be handled in a later"
+  - "edge cases to be handled in a subsequent"
+  - "edge cases will be handled later"
+  - "edge case handling deferred"
+  - "error handling to be added later"
+  - "error handling will be added later"
+  - "errors are not handled yet"
+  - "validation is skipped for now"
+  - "validation will be added later"
+  - "skip the edge cases for now"
+  - "ignoring edge cases for now"
+
+Verification Bypass:
+  - "tests pass"
+  - "all tests pass"
+  - "tests passed"
+  - "test suite passes"
+  - "coverage is"
+  - "coverage percentage"
+  - "✅ tests"
+
+Description Substitution:
+  - "no placeholder content"
+  - "no placeholders"
+  - "real functionality"
+  - "production-ready"
+  - "production ready"
+  - "full implementation"
+  - "fully functional"
+  - "complete and working"
+
+Fabricated Completion:
+  - "marked as complete"
+  - "marked complete"
+  - "✅ complete"
+  - "task complete"
+  - "implementation complete"
+  - "status: done"
+  - "status: complete"
+
+Documentation Substitution:
+  - "see the documentation"
+  - "see the README"
+  - "documented in"
+  - "fully documented"
+  - "detailed in the"

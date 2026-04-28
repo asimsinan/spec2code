@@ -1,0 +1,60 @@
+# Lead practitioner's project directories used for Path-A classification.
+#
+# `spec2code_own`: project directories where the lead practitioner used the
+#   Spec2Code framework with Cursor IDE. These correspond to the 18 VibeCoding
+#   projects (github.com/asimsinan/VibeCoding) plus the Spec2Code framework
+#   repository itself.
+#
+# `nonspec_own`: the lead practitioner's own non-Spec2Code research and
+#   framework-development projects, used as the unrestricted-chat comparison
+#   sample in the within-subject analysis (Section 5.3 Part 2).
+#
+# A bubble's file-path attribution is matched against these names by looking
+# for "Desktop/<project>/" substrings in the bubble's raw JSON value. Bubbles
+# without any such path are excluded from the Spec2Code-vs-unrestricted split.
+#
+# Editing this file for a different practitioner's machine is required before
+# scripts 02 and 03 will classify their bubbles correctly.
+
+spec2code_own:
+  # Spec2Code framework repository and ancillary aggregators
+  - VibeCoding
+  - mcp-server-spec-driven-development
+  # 18 VibeCoding apps (author directories on the lead practitioner's Desktop)
+  - WhiteBoard
+  - ARDecorator
+  - VideoConference
+  - food-lens
+  - LMS
+  - uncle-taxim
+  - MarketPlace
+  - PersonalShoppingAssistant
+  - EventOrganizer
+  - AppointmentScheduler
+  - ResumeReviewer
+  - CrowdFunding
+  - Kanban
+  - PersonalFinanceDashBoard
+  - MentalHealthJournal
+  - InvoiceGenerator
+  - RecipeFinder
+  - legal-assistant
+  - LegalAssistant  # alternative casing used by some sessions
+
+nonspec_own:
+  # Spec2Code framework development (not using the framework to build apps)
+  - SDD
+  - sdd-mcp
+  # Self-driving / computer-vision research
+  - openpilot
+  - openpilot copy
+  - openpilot_lane_detection
+  - openpilot-supercombo-model
+  - openpilot-lane-detection
+  - Ultra-Fast-Lane-Detection-v2
+  - lane detection
+  - Lane Detection
+  # LLM research
+  - Llama 2
+  # Vector DB experiments and paper drafts
+  - qdrant
